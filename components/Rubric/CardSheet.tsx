@@ -61,6 +61,7 @@ const BAND_LABELS: Record<LimitKey, string> = {
   airportMin: "Drive to an airport",
   longTrailMin: "Drive to a long trail",
   paddleMin: "Drive to a lake launch",
+  climbMin: "Drive to a rope area",
   dishClearPct: "Dish spot clear, at least",
   sunH: "December sun at the best site",
 };

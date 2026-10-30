@@ -7889,8 +7889,73 @@
    ],
    "pond": null
   },
+  "climbing": {
+   "rope": {
+    "id": "stone-mountain-nc",
+    "name": "Stone Mountain State Park",
+    "types": [
+     "sport",
+     "trad"
+    ],
+    "min": 89,
+    "mi": 49.2
+   },
+   "boulder": {
+    "id": "grayson-highlands",
+    "name": "Grayson Highlands State Park",
+    "min": 27,
+    "mi": 9.3
+   },
+   "ropeWithin": 0,
+   "timed": [
+    {
+     "id": "grayson-highlands",
+     "min": 27
+    },
+    {
+     "id": "hidden-valley-va",
+     "min": 97
+    },
+    {
+     "id": "stone-mountain-nc",
+     "min": 89
+    },
+    {
+     "id": "rocky-face",
+     "min": 123
+    },
+    {
+     "id": "linville-gorge-table-rock",
+     "min": 226
+    },
+    {
+     "id": "linville-gorge-shortoff",
+     "min": 160
+    },
+    {
+     "id": "breaks-interstate-park",
+     "min": 169
+    },
+    {
+     "id": "pilot-mountain",
+     "min": 125
+    },
+    {
+     "id": "sauratown",
+     "min": 147
+    },
+    {
+     "id": "moores-wall",
+     "min": 150
+    },
+    {
+     "id": "rumbling-bald",
+     "min": 208
+    }
+   ]
+  },
   "schemaVersion": 9,
-  "engine": 34,
+  "engine": 35,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -15785,8 +15850,73 @@
    ],
    "pond": null
   },
+  "climbing": {
+   "rope": {
+    "id": "stone-mountain-nc",
+    "name": "Stone Mountain State Park",
+    "types": [
+     "sport",
+     "trad"
+    ],
+    "min": 89,
+    "mi": 49.2
+   },
+   "boulder": {
+    "id": "grayson-highlands",
+    "name": "Grayson Highlands State Park",
+    "min": 27,
+    "mi": 9.3
+   },
+   "ropeWithin": 0,
+   "timed": [
+    {
+     "id": "grayson-highlands",
+     "min": 27
+    },
+    {
+     "id": "hidden-valley-va",
+     "min": 97
+    },
+    {
+     "id": "stone-mountain-nc",
+     "min": 89
+    },
+    {
+     "id": "rocky-face",
+     "min": 123
+    },
+    {
+     "id": "linville-gorge-table-rock",
+     "min": 226
+    },
+    {
+     "id": "linville-gorge-shortoff",
+     "min": 160
+    },
+    {
+     "id": "breaks-interstate-park",
+     "min": 169
+    },
+    {
+     "id": "pilot-mountain",
+     "min": 125
+    },
+    {
+     "id": "sauratown",
+     "min": 147
+    },
+    {
+     "id": "moores-wall",
+     "min": 150
+    },
+    {
+     "id": "rumbling-bald",
+     "min": 208
+    }
+   ]
+  },
   "schemaVersion": 9,
-  "engine": 34,
+  "engine": 35,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

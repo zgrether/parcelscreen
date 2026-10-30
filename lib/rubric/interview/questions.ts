@@ -141,6 +141,29 @@ export const QUESTIONS: readonly Question[] = [
     },
     skipSecondIf: "rarely",
   },
+  // Step 17 (docs/plans/step-17-climbing.md §4.1): question 4's third screen, after paddling.
+  {
+    key: "climb",
+    n: 4,
+    scene: "A cool, dry Saturday. Rope and a rack, or a crash pad?",
+    ask: "How often do you climb outside?",
+    choices: [
+      { id: "rarely", label: "Rarely or never", why: "You rarely climb outside" },
+      { id: "season", label: "A few times a season", why: "You climb outside a few times a season" },
+      { id: "weekends", label: "Most weekends we can", why: "You climb outside most weekends you can" },
+    ],
+    second: {
+      key: "climbDrive",
+      ask: "The longest you'd drive for a day of climbing?",
+      choices: [
+        { id: "m45", label: "45 min", why: "You'd drive up to 45 minutes for a day of climbing" },
+        { id: "m60", label: "An hour", why: "You'd drive up to an hour for a day of climbing" },
+        { id: "m90", label: "90 min", why: "You'd drive up to 90 minutes for a day of climbing" },
+        { id: "m120", label: "2 hours", why: "You'd drive up to 2 hours for a day of climbing" },
+      ],
+    },
+    skipSecondIf: "rarely",
+  },
   {
     key: "groceries",
     n: 5,

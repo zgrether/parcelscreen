@@ -46,7 +46,7 @@ const APPROVED: [string, string][] = [
 ];
 
 /** Step 11's sections and step 14d's (rule 7: added after the prototype's copy, never in it), by anchor. */
-const ADDED = ["h-climate", "h-privacy", "h-view", "h-bike", "h-internet", "h-paddle"];
+const ADDED = ["h-climate", "h-privacy", "h-view", "h-bike", "h-internet", "h-paddle", "h-climb"];
 /** Our copy without step 11's sections: what the prototype's must match. */
 const withoutAdded = (html: string): string => html.slice(0, html.indexOf(`<h3 id="${ADDED[0]}">`));
 

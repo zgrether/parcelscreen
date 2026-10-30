@@ -53,6 +53,7 @@ describe("the columns", () => {
         "longTrail",
         "internet",
         "paddling",
+        "climbing",
       ],
     });
   });
@@ -75,6 +76,7 @@ describe("the columns", () => {
       "longTrail",
       "internet",
       "paddling",
+      "climbing",
     ]);
     expect(out.rubric.weights).toEqual(D.weights); // not a reorder
     const back = ok(moveCard(out.rubric, { kind: "factor", factor: "access" }, "must"));
@@ -127,6 +129,7 @@ describe("the columns", () => {
       "longTrail",
       "internet",
       "paddling",
+      "climbing",
       "garden",
     ]);
     expect(names(out.rubric).should).not.toContain("garden");
@@ -169,6 +172,7 @@ describe("the weights: explicit until the first reorder, then rank-sum at once (
       ["longTrail", 0, 0],
       ["internet", 0, 0],
       ["paddling", 0, 0],
+      ["climbing", 0, 0],
     ]);
     const second = ok(moveCard(first.rubric, { kind: "factor", factor: "hospital" }, "could"));
     expect(second.switched).toBeUndefined();
@@ -201,6 +205,7 @@ describe("the weights: explicit until the first reorder, then rank-sum at once (
       longTrail: 0,
       internet: 0,
       paddling: 0,
+      climbing: 0,
       budget: 0,
     });
     const pts = (slug: Parameters<typeof expectedOf>[0], r: Rubric) => {

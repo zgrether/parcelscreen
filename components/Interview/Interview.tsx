@@ -74,13 +74,16 @@ export function Interview() {
   return ask ? <AskOne ask={ask} /> : <FullInterview />;
 }
 
-/** The new questions this screen can ask alone: step 11's Climate and step 14d's Paddling (NEW_QUESTION). */
-type Asked = "climate" | "paddle";
+/**
+ * The new questions this screen can ask alone: step 11's Climate, step 14d's Paddling and step 17's Climbing
+ * (NEW_QUESTION).
+ */
+type Asked = "climate" | "paddle" | "climb";
 
 /** The new question a link asks for, when it's one this screen can ask alone. */
 function askedFor(search: string): Asked | null {
   const ask = new URLSearchParams(search).get("ask");
-  return ask === "climate" || ask === "paddle" ? ask : null;
+  return ask === "climate" || ask === "paddle" || ask === "climb" ? ask : null;
 }
 
 function AskOne({ ask }: { ask: Asked }) {
