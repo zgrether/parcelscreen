@@ -5,8 +5,8 @@
  *   pnpm exec vitest run test/tools/tn-counties-probe.test.ts --mode tn-counties-probe
  *
  * Round 1 listed the service directories, the parcel layers' fields, limits and CORS, and the terms pages (its findings
- * are the plan's §0). Round 2 compares Live_Parcels' two "Parcels" layers and finds the Worley Road and Three Gorges
- * lots in the county's own data, with a point query as the app asks it. Read-only; nothing is written to the repo.
+ * are the plan's §0). Round 2 compared Live_Parcels' two "Parcels" layers and found the Worley Road and Three Gorges
+ * lots. Round 3, kept here, samples each PARCEL_TYP that isn't a plain parcel. Read-only; nothing is written to the repo.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -54,12 +54,6 @@ async function query(layer: string, params: Record<string, string>): Promise<Rec
   const q = new URLSearchParams({ f: "json", ...params });
   return json((await get(`${layer}/query?${q}`)).text);
 }
-const centre = (g: { rings?: number[][][] } | undefined): string => {
-  const ring = g?.rings?.[0] ?? [];
-  if (!ring.length) return "?";
-  const [x, y] = ring.reduce(([a, b], [c, d]) => [a! + c!, b! + d!], [0, 0]);
-  return `${(y! / ring.length).toFixed(5)}, ${(x! / ring.length).toFixed(5)}`;
-};
 
 describe.runIf(import.meta.env.MODE === "tn-counties-probe")("Tennessee county parcel services", () => {
   it("probes Hamilton's parcel types, round 3", async () => {

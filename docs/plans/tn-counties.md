@@ -46,8 +46,22 @@ each PR into the step branch when CI is green; the hand-back to main is Zach's.
   - It also says "no portion of the products or databases on this Web Site may be reproduced in any form or by any
     means without the express written authorization of the KGIS Policy Board". Digital data is licensed for a fee.
   - Under the brief, Knox stops here, and is listed as not covered.
-- **Round 2** compares the two Parcels layers and finds the Worley Road and Three Gorges lots in the county's own data:
-  Nominatim found no "Worley Road, Soddy-Daisy".
+- **Rounds 2 and 3:**
+  - **The two "Parcels" layers** hold the same 169,662 records; they differ only in the scales they draw at, which a
+    query ignores. The app asks layer 0.
+  - **`PARCEL_TYP`:**
+    - 1 is a plain parcel (162,758 records).
+    - 6 and 10 are condominium units, 11 a leased site (a cell tower, a dock), 12 mineral rights and 13 improvements
+      only. Each repeats a parcel's polygon (a mineral-rights record shares its parcel's `GISLINK`).
+    - 5 has 4 records.
+    - **So the app asks `PARCEL_TYP=1` only.**
+  - **The identity:** `TAX_MAP_NO` is `MAP`, `GROUP_` and `PARCEL` ("048 045.24"; "110H D 042" in town), as Tennessee's
+    tax cards read. `GISLINK` is "033048 04524". An equality query on `GISLINK` matched nothing, so a record is fetched
+    by its object id, not grouped by `GISLINK`.
+  - **The county record:** `RecordsOnl` is the assessor's card, e.g. `https://assessor.hamiltontn.gov/card/048_045.24`.
+  - **Three Gorges Farms** is a 2026 subdivision (plat book 135, pages 54–58) of about 5-acre tracts on Three Gorges
+    Road, Big Soddy Drive and Deep Down Road, just east of Worley Road. The test lot is tract 1: 048 045.24, 2385
+    Three Gorges Rd, 5.09 ac. (Nominatim found no "Worley Road, Soddy-Daisy"; the county's own records did.)
 
 ## 1. The work, by PR
 
