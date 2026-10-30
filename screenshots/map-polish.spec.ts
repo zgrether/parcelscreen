@@ -4,7 +4,8 @@
  * left); Map layers with "What's on the map" open (#18); Details with the Listing folded once it has a name (#24) and
  * the notes without "Name: …" (#21). Run by `pnpm screenshots`.
  */
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { expectAllDone, importParcel, openExplorer, screenIt } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";
 

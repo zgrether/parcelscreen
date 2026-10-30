@@ -3,7 +3,7 @@
  * the map's buttons), drawing a line (Finish in reach), and the map's pins at the parcel's right edge (Stand here).
  * Run by `pnpm screenshots`.
  */
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { importParcels, openExplorer, openFromList, seedScreens, settled, visit } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";
 

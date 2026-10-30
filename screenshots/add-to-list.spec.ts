@@ -3,7 +3,8 @@
  * list", and the collapse ‹ on a desktop); on one on the list ("★ On your list"); × on one off the list ("Closed.
  * Undo"). One profile; three fixture parcels, none on the list to start.
  */
-import { expect, test, type Browser, type Page } from "@playwright/test";
+import type { Browser, Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { importParcels, openExplorer, seedScreens, visit } from "../e2e/flow";
 import { YOUR_LIST } from "../e2e/household";
 

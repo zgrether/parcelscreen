@@ -4,7 +4,8 @@
  * `pnpm screenshots`.
  */
 import { centroid } from "@turf/turf";
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { loadFixture } from "../test/support/fixtures";
 import { importParcel, openExplorer, screenIt } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";

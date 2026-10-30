@@ -1,4 +1,5 @@
 /** A parcel record's facts table (proto L693–704): the side panel's and the Info panel's. */
+import { inScreenshots, OWNER_HIDDEN } from "@/lib/client/screenshots";
 import { boundarySourceLabel, parcelFacts, type ParcelRecord } from "@/lib/geo/parcels";
 
 /** The facts card's line when a Tennessee conflict polygon overlaps the parcel (owner, step 2). */
@@ -18,6 +19,8 @@ export function ParcelFacts({
   unscreened?: { acres: number; parts: number; tooComplex?: true } | undefined;
 }) {
   const f = parcelFacts(parcel.geo, parcel.props);
+  // Screenshot runs never capture a landowner's name or address (lib/client/screenshots.ts).
+  const shots = inScreenshots();
   return (
     <>
       <table className="facts">
@@ -35,7 +38,7 @@ export function ParcelFacts({
           {f.owner && (
             <tr>
               <td>Owner of record</td>
-              <td>{f.owner}</td>
+              <td data-owner-field="Owner of record">{shots ? OWNER_HIDDEN : f.owner}</td>
             </tr>
           )}
           {f.parcelId && (
@@ -47,7 +50,7 @@ export function ParcelFacts({
           {f.address && (
             <tr>
               <td>Site address</td>
-              <td>{f.address}</td>
+              <td data-owner-field="Site address">{shots ? OWNER_HIDDEN : f.address}</td>
             </tr>
           )}
           {f.county && (

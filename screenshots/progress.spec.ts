@@ -2,7 +2,7 @@
  * UX part 2 PR 3b (Zach's Z-9), on a phone (375 × 667): a grade running shows a slim progress bar under the header, in
  * the peek, with the step and its count; Steps ▸ raises the sheet to the step list. Run by `pnpm screenshots`.
  */
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { importParcel, openExplorer } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";
 

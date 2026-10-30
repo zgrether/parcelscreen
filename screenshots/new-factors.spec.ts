@@ -3,7 +3,8 @@
  * factor's row on the card for Mud Creek, Ferney and Roan, its panel on Mud Creek, and What matters' notice for
  * priorities saved before the step. Each factor's PR adds its own to FACTORS. Run by `pnpm screenshots`.
  */
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
 import { importParcels, openExplorer, openFromList, seedScreens, settled, visit } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";

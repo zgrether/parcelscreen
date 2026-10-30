@@ -3,7 +3,8 @@
  * switch; Details (listing, notes, lines and marks, boundary); the red-gate line opened and being edited in its row;
  * Map layers; the phone's sheet. Mud Creek with its red-gate easement and a spring, a kept screen seeded.
  */
-import { expect, test, type Browser, type BrowserContext, type Page } from "@playwright/test";
+import type { Browser, BrowserContext, Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import roads from "../test/tools/driveway-validation.roads.json";
 import { expectedOf } from "../test/support/expected";
 import { importParcel, openExplorer, reload, seedScreens } from "../e2e/flow";

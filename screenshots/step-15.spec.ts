@@ -3,7 +3,8 @@
  * Virginia's credit slider moved, a split's break-even on Mud Creek, and Roan (Tennessee). Run by
  * `pnpm screenshots step-15`.
  */
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
 import { mudSplitLine } from "../test/support/splitScenario";
 import { importParcels, openExplorer, openFromList, reload, seedScreens, settled, visit } from "../e2e/flow";

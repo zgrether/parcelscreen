@@ -4,7 +4,8 @@
  * facts, then graded; and Knox County's hint, which names the county and offers Draw. Hamilton's service and the grade's
  * services are reached live, so this runs on CI's runners (`.github/workflows/tn-counties.yml`).
  */
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { ownRecordsHint } from "../lib/geo/ownRecords";
 import { screenIt } from "../e2e/flow";
 
@@ -62,16 +63,9 @@ for (const phone of [false, true]) {
         ? { viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true }
         : { viewport: { width: 1280, height: 800 } },
     );
-    // The owner and site address are read live, so they're masked: a real person's name never goes into the repo
-    // (scrubHar.ts keeps them out of recordings for the same reason).
-    const shot = (page: Page, name: string) =>
-      page.screenshot({
-        path: `${OUT}/${device}-${name}.png`,
-        mask: [
-          page.locator("table.facts tr", { hasText: "Owner of record" }).locator("td"),
-          page.locator("table.facts tr", { hasText: "Site address" }).locator("td"),
-        ],
-      });
+    // The owner and site address are read live; screenshot mode (fixtures.ts) has the app hide them, and the guard
+    // refuses a capture that shows them.
+    const shot = (page: Page, name: string) => page.screenshot({ path: `${OUT}/${device}-${name}.png` });
 
     test("Hamilton County: Three Gorges Farms' lines, tract 1's facts, its grade", async ({ page }) => {
       test.setTimeout(600_000);

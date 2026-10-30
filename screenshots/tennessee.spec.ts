@@ -3,7 +3,9 @@
  * the parcel-number search, its report's Trails row, the basemap menu, the no-lines hint over Knox County and the
  * Tennessee-down hint. Run by `pnpm screenshots`; the owner fields are scrubbed in the recording, so none shows.
  */
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
+import { ownRecordsHint } from "@/lib/geo/ownRecords";
+import { expect, test } from "./fixtures";
 import { loadFixture, ROAN_SEARCH } from "../test/support/fixtures";
 import { openExplorer, openSearch, screenIt } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";
@@ -117,7 +119,7 @@ for (const phone of [false, true]) {
       await replayHar(context, ROAN);
       await liveImagery(context);
       await openAt(page, KNOXVILLE);
-      await expect(page.locator(".map-hint")).toContainText("No Tennessee parcel lines here", {
+      await expect(page.locator(".map-hint")).toContainText(ownRecordsHint("Knox"), {
         timeout: 30_000,
       });
       await page.waitForTimeout(3000);

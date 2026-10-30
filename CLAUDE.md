@@ -117,6 +117,12 @@ This is a personal tool for one household. Verification should be proportionate:
   (`docs/plans/step-5-sync.md` §4). Policies scoped to a household come with accounts, if they come.
 - Migrations go through the Supabase connector to the `parcelscreen` project only, and are
   **additive only** (create or add). One that drops, renames, retypes or deletes data is a stop condition.
+- **Owner fields stay out of the repo** (phase-0.md §9.23, #90 review): a parcel's owner of record and site address are
+  read live for display only. Recordings redact them (`test/support/scrubHar.ts`), and **screenshot runs never render
+  them** (owner, 2026-10-30, after a live screenshot put a landowner's name on `pr-assets`): every screenshot spec takes
+  its `test` from `screenshots/fixtures.ts`, which puts the app in screenshot mode (the facts card shows "Hidden in
+  screenshots", `lib/client/screenshots.ts`) and refuses any capture that shows an owner field unmasked. Mask in code,
+  never by editing images afterwards; PR text and docs name a parcel by its tax map number, not its owner or address.
 - Secrets never reach the client. `SUPABASE_SECRET_KEY` and `CRON_SECRET` are server-only, never
   `NEXT_PUBLIC_`.
 - Screen results are **immutable**: `screens` rows are inserted, never updated. A re-run inserts a

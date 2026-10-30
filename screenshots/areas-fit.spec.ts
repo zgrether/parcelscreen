@@ -3,7 +3,8 @@
  * fit at three zooms, a card with its rank and "What holds it back", the catalog-wide line, and Where to look from the
  * menu. Run by `pnpm screenshots`.
  */
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { AREA_WORDS as W } from "@/lib/areas/words";
 import { defaultRubric } from "@/lib/rubric/default";
 import { openExplorer, openMenu, reload } from "../e2e/flow";

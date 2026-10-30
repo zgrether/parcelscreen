@@ -4,7 +4,8 @@
  * take; and Zach's list with her take, new (step 6b: the dot and the badge; the waiting row shows the ask's note). Two browser contexts are the two people's devices, over the memory store. The
  * names are "Alex" (the first device's profile, renamed) and "Sam", not the owners'; the code is a throwaway one.
  */
-import { expect, test, type Browser, type Page } from "@playwright/test";
+import type { Browser, Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { PASSWORD_LEAD, START, SYNC_TITLE } from "@/lib/sync/words";
 import { JULIE, ZACH } from "../test/support/rubrics";
 import {

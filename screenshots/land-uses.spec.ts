@@ -3,7 +3,8 @@
  * What decides it opened, Mud Creek's split graded side by side, and Macks with Map layers' Power lines on (its 765 kV
  * line crosses it). Run by `pnpm screenshots`.
  */
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
 import { mudSplitLine } from "../test/support/splitScenario";
 import {

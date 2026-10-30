@@ -3,7 +3,8 @@
  * adjust panel, an overridden row, a set-aside Must in the answer line. Later PRs add the grid mark, the nudge and the
  * suggestions. Run by `pnpm screenshots`.
  */
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
 import {
   importParcel,

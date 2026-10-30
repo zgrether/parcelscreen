@@ -61,8 +61,8 @@ each PR into the step branch when CI is green; the hand-back to main is Zach's.
     not grouped by `GISLINK`.
   - **The county record:** `RecordsOnl` is the assessor's card, e.g. `https://assessor.hamiltontn.gov/card/048_045.24`.
   - **Three Gorges Farms** is a 2026 subdivision (plat book 135, pages 54–58) of about 5-acre tracts on Three Gorges
-    Road, Big Soddy Drive and Deep Down Road, just east of Worley Road. The test lot is tract 1: 048 045.24, 2385
-    Three Gorges Rd, 5.09 ac. (Nominatim found no "Worley Road, Soddy-Daisy"; the county's own records did.)
+    Road, Big Soddy Drive and Deep Down Road, just east of Worley Road. The test lot is tract 1: 048 045.24, on Three
+    Gorges Road, 5.09 ac. (Nominatim found no "Worley Road, Soddy-Daisy"; the county's own records did.)
 - **Round 4: the other seven** (web search, 2026-10-30; nothing here was queried). None is trivially similar to
   Hamilton's: each would mean its own fields, its own terms read and its own recording, and some are closed or
   restricted. So all seven are **not covered**. Over each, the map names the county and offers Draw.
