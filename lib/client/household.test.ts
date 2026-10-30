@@ -66,6 +66,7 @@ describe("the members", () => {
       "longTrail",
       "internet",
       "paddling", // step 14d
+      "climbing",
     ]);
   });
 });
