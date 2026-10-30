@@ -209,7 +209,8 @@ PR 1 lists every entry and every exclusion with its reason. About 45 entries are
 
 ### 4.1 The interview
 - **One question, question 4's third screen, after the paddle question (§11, Q6).** It has two rows, as `paddle` does.
-  - Scene: "A cool, dry Saturday. Rope and a rack, or a crash pad?"
+  - Scene: "A cool, dry Saturday with nothing planned. A day on the rock?" (first "Rope and a rack, or a crash pad?",
+    changed after the fresh-eyes review: it offered a choice the answers don't make).
   - First row, "How often do you climb outside?":
     - "Rarely or never" → Won't;
     - "A few times a season" → Could;
@@ -289,6 +290,8 @@ PR 1 lists every entry and every exclusion with its reason. About 45 entries are
   - "<n> rope areas within an hour", "1 rope area within an hour", "No rope area within an hour";
   - "Access: <note>";
   - "Rope area: sport or trad".
+  - In the row's panel, read after its line and a semicolon (the fresh-eyes review): "bouldering at <area>, <n> min",
+    "no bouldering area within 150 km", and the access note bare, without "Access:".
 - **Interview:**
   - the scene and the two rows' questions;
   - the seven choice labels and their "why" lines.

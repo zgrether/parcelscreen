@@ -170,7 +170,7 @@ for (const phone of [false, true]) {
         await expect(page.locator(".iv-progress")).toHaveText("4 of 14");
         await page.getByRole("button", { name: /^(Skip this question|Skip|Next)$/ }).click();
       }
-      await expect(page.locator(".iv-scene")).toContainText("Rope and a rack");
+      await expect(page.locator(".iv-scene")).toContainText("A day on the rock?");
       await page.getByRole("radio", { name: "A few times a season" }).first().click();
       await expect(page.getByText("The longest you'd drive for a day of climbing?")).toBeVisible();
       await page.waitForTimeout(300);

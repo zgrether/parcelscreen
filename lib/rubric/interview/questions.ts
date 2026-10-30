@@ -145,7 +145,7 @@ export const QUESTIONS: readonly Question[] = [
   {
     key: "climb",
     n: 4,
-    scene: "A cool, dry Saturday. Rope and a rack, or a crash pad?",
+    scene: "A cool, dry Saturday with nothing planned. A day on the rock?",
     ask: "How often do you climb outside?",
     choices: [
       { id: "rarely", label: "Rarely or never", why: "You rarely climb outside" },
