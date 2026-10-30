@@ -16,6 +16,7 @@ const KEY: Record<PlaceKind, readonly PlaceIcon[]> = {
   grocery: ["grocery"],
   longTrail: ["longTrail"],
   launch: ["launchFlat", "launchRiver"],
+  crag: ["cragRope", "cragBoulder"],
 };
 
 export function PlacesControls() {
@@ -47,6 +48,7 @@ export function PlacesControls() {
             </button>
           ))}
           {places.kinds.launch && <p className="tiny places-key-note">{W.launchKey}</p>}
+          {places.kinds.crag && <p className="tiny places-key-note">{W.cragKey}</p>}
         </div>
       )}
     </>
