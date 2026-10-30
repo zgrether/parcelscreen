@@ -19,7 +19,7 @@ import { parcelFacts } from "./parcels";
 import { pieceDedupeKey } from "./recipe";
 import { serviceDownMessage } from "./serviceStatus";
 
-const HAMILTON = DEFAULT_ENDPOINTS.parcels.find((u) => u.includes("hamiltontn.gov"))!;
+const HAMILTON = DEFAULT_ENDPOINTS.parcels.find((u) => new URL(u).host === "mapsdev.hamiltontn.gov")!;
 const TN = DEFAULT_ENDPOINTS.parcels.find((u) => u.includes("Tennessee_Property_Boundaries"))!;
 
 /** Near Three Gorges Farms, Soddy-Daisy (tn-counties.md §0). */

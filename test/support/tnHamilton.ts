@@ -19,7 +19,9 @@ import { searchParcelNumbers } from "@/lib/search/sources";
 import { createReplayFetch, loadHar } from "./replayFetch";
 import { instantClock } from "./pipeline";
 
-export const HAMILTON_SOURCE = DEFAULT_ENDPOINTS.parcels.find((u) => u.includes("hamiltontn.gov"))!;
+/** Hamilton County's parcel host, matched exactly (a substring would match any host containing it). */
+export const HAMILTON_HOST = "mapsdev.hamiltontn.gov";
+export const HAMILTON_SOURCE = DEFAULT_ENDPOINTS.parcels.find((u) => new URL(u).host === HAMILTON_HOST)!;
 export const HAMILTON_HAR_DIR = join(resolve(process.cwd(), "test", "fixtures"), "tn-hamilton");
 export const HAMILTON_HAR = join(HAMILTON_HAR_DIR, "parcels.har");
 
