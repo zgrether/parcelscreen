@@ -91,7 +91,8 @@ for (const phone of [false, true]) {
     test("Knox County: the hint names the county and offers Draw", async ({ page }) => {
       test.setTimeout(180_000);
       await openAt(page, { ...KNOXVILLE, z: 15 });
-      await expect(page.locator(".map-hint")).toContainText(ownRecordsHint("Knox"), { timeout: 60_000 });
+      // The hint waits for every tile's answer; a slow state service takes up to 75 s (30 s, then a 45 s retry).
+      await expect(page.locator(".map-hint")).toContainText(ownRecordsHint("Knox"), { timeout: 120_000 });
       await drawn(page);
       await shot(page, "knox-hint");
     });

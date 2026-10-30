@@ -9,7 +9,7 @@ import { pointOnFeature } from "@turf/turf";
 import type { Feature, Polygon } from "geojson";
 import type { BrowserContext } from "@playwright/test";
 import type { HarEntry } from "../test/support/replayFetch";
-import { HAMILTON_HAR } from "../test/support/tnHamilton";
+import { HAMILTON_HAR, HAMILTON_HOST } from "../test/support/tnHamilton";
 
 type Kind = "count" | "record" | "point" | "tile" | "search";
 
@@ -31,7 +31,7 @@ const paramsOf = (url: string, body: string | null | undefined): URLSearchParams
 
 const entries = (): HarEntry[] =>
   (JSON.parse(readFileSync(HAMILTON_HAR, "utf8")) as { log: { entries: HarEntry[] } }).log.entries.filter(
-    (e) => e.request.url.includes("hamiltontn.gov"),
+    (e) => new URL(e.request.url).host === HAMILTON_HOST,
   );
 
 /** The recorded answers, by kind. */
@@ -55,7 +55,7 @@ export function threeGorgesPoint(): { lat: number; lon: number } {
 /** Routes Hamilton's layer to the recording. Call after replayHar: the route added last is asked first. */
 export async function replayHamilton(context: BrowserContext): Promise<void> {
   const answers = recorded();
-  await context.route(/hamiltontn\.gov\/.*\/query/, (route) => {
+  await context.route(/^https:\/\/mapsdev\.hamiltontn\.gov\/.*\/query/, (route) => {
     const req = route.request();
     const kind = kindOf(paramsOf(req.url(), req.postData()));
     const body = (kind && answers.get(kind)) ?? JSON.stringify({ type: "FeatureCollection", features: [] });
