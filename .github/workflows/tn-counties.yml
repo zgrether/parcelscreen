@@ -1,17 +1,29 @@
 name: Tennessee county parcels
 
-# The parcels mission (docs/plans/tn-counties.md): what Hamilton's and Knox's public parcel services are, probed live
-# from CI's runners (test/tools/tn-counties-probe.test.ts), since the cloud sessions that build the app can't reach
-# the county hosts. The report goes to the job summary. Nothing here gates a merge.
+# The parcels mission (docs/plans/tn-counties.md), on CI's runners, since the cloud sessions that build the app can't
+# reach the county hosts:
+# - probe: what Hamilton's and Knox's public parcel services are (test/tools/tn-counties-probe.test.ts), into the job
+#   summary;
+# - record: Hamilton's recording for the unit tests (`pnpm record:tn-hamilton`), when test/fixtures/tn-hamilton/
+#   has none (delete it to record again), pushed to the PR's branch; and the Three Gorges lot graded live, into the job
+#   summary.
+# Nothing here gates a merge.
 on:
   pull_request:
     paths:
       - test/tools/tn-counties-probe.test.ts
+      - test/tools/record-tn-hamilton.test.ts
+      - test/support/tnHamilton.ts
       - .github/workflows/tn-counties.yml
   workflow_dispatch: {}
 
+concurrency:
+  group: tn-counties-${{ github.head_ref || github.ref }}
+  cancel-in-progress: false
+
 permissions:
-  contents: read
+  contents: write
+  actions: write
 
 jobs:
   probe:
@@ -29,3 +41,43 @@ jobs:
       - name: The report, into the job summary
         if: always()
         run: cat test-results/tn-counties-probe.md >> "$GITHUB_STEP_SUMMARY" || true
+
+  record:
+    # A fork's PR gets a read-only token: nothing to push to.
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+      - id: has
+        run: |
+          if [ -f test/fixtures/tn-hamilton/parcels.har ]; then echo "har=true" >> "$GITHUB_OUTPUT"; else echo "har=false" >> "$GITHUB_OUTPUT"; fi
+      - uses: pnpm/action-setup@v6
+        if: steps.has.outputs.har == 'false'
+      - uses: actions/setup-node@v7
+        if: steps.has.outputs.har == 'false'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - if: steps.has.outputs.har == 'false'
+        run: pnpm install --frozen-lockfile
+      - if: steps.has.outputs.har == 'false'
+        run: pnpm record:tn-hamilton
+      - name: The grade, into the job summary
+        if: always() && steps.has.outputs.har == 'false'
+        run: cat test-results/tn-hamilton-grade.md >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Push the recording to the PR's branch
+        if: steps.has.outputs.har == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add test/fixtures/tn-hamilton
+          git commit -m "Hamilton County's parcel answers recorded (record:tn-hamilton)" || exit 0
+          git pull --rebase origin "${{ github.head_ref }}"
+          git push origin "HEAD:${{ github.head_ref }}"
+          # A push made with GITHUB_TOKEN starts no workflow (places.yml).
+          gh workflow run ci.yml --ref "${{ github.head_ref }}"

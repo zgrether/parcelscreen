@@ -7,7 +7,7 @@
  * longer limit. An HTTP error or a refused request isn't retried; moving the map asks again.
  */
 import { HttpError, TimeoutError } from "../http";
-import { stateOf } from "./parcelFields";
+import { fieldsFor, stateOf } from "./parcelFields";
 
 /** Per attempt (the client's default), and the one longer retry after a timeout. */
 export const PARCEL_SERVICE_TIMEOUTS = { timeoutMs: 30_000, retryTimeoutMs: 45_000 } as const;
@@ -20,10 +20,14 @@ const STATE_NAMES: Readonly<Record<string, string>> = {
 
 const TAIL = "isn't responding — try again shortly, or draw the boundary";
 
-/** "Virginia parcel service isn't responding — try again shortly, or draw the boundary". */
+/**
+ * "Virginia parcel service isn't responding — try again shortly, or draw the boundary"; a county's own service names
+ * its county ("Hamilton County parcel service …").
+ */
 export function serviceDownMessage(serviceUrl: string): string {
   // An edited endpoint that isn't a known service names no state.
-  const name = STATE_NAMES[stateOf(serviceUrl) ?? ""];
+  const county = fieldsFor(serviceUrl).onlyCounty;
+  const name = county ? `${county} County` : STATE_NAMES[stateOf(serviceUrl) ?? ""];
   return `${name ? `${name} parcel service` : "The parcel service"} ${TAIL}`;
 }
 

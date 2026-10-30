@@ -50,8 +50,11 @@ export interface SaveInput {
   /** The parcel's own bounds. */
   parcel: LonLatBox;
   layers: readonly SaveLayer[];
-  /** The parcel-line services the map asks, each with whether the parcel's state is its own. */
-  parcelServices: readonly { url: string; inState: boolean }[];
+  /**
+   * The parcel-line services the map asks, each with whether the parcel's state is its own, and (a county's own
+   * service) which tiles the map asks it for.
+   */
+  parcelServices: readonly { url: string; inState: boolean; serves?: (b: Bounds) => boolean }[];
   /** The places files: `/places/v1`, its folders, and the cells the index says exist (by folder). */
   places: { path: string; cells: Readonly<Record<string, readonly string[]>> } | null;
   /** This device's average bytes a tile, by layer, where it has some. */
@@ -76,7 +79,7 @@ export function planSave(input: SaveInput): SavePlan {
 
   const lines = input.layers.find((l) => l.id === "parcel-lines");
   for (const s of input.parcelServices)
-    for (const tile of tilesFor(box))
+    for (const tile of tilesFor(box).filter((t) => s.serves?.(t.bounds) ?? true))
       for (const detail of ["coarse", "fine"] as const)
         items.push({
           kind: "parcel",

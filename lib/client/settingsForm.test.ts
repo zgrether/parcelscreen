@@ -88,7 +88,7 @@ describe("the defaults are the prototype's (owner, step 16)", () => {
       (k) => JSON.stringify(protoEndpoints[k]) !== JSON.stringify(portEndpoints[k]),
     );
     expect(differ).toEqual(["_v", "overpass", "parcels"]);
-    expect([protoEndpoints._v, portEndpoints._v]).toEqual([10, 16]);
+    expect([protoEndpoints._v, portEndpoints._v]).toEqual([10, 17]);
     for (const k of Object.keys(protoEndpoints))
       expect(typeof portEndpoints[k], k).toBe(typeof protoEndpoints[k]);
 
@@ -294,12 +294,12 @@ describe("validation (owner, Q1): Save names the field and the reason", () => {
     ]);
     // Only the current version, 12 since A2b (owner, #59), with the owner's wording, below or above.
     expect(reasons({ ...DEFAULT_ENDPOINTS, _v: 12 })).toEqual([
-      "Data endpoints — Endpoints are version 12; only version 16 is accepted, and older versions are replaced by defaults on load. Reset the endpoints, or update the list and set _v to 16.",
+      "Data endpoints — Endpoints are version 12; only version 17 is accepted, and older versions are replaced by defaults on load. Reset the endpoints, or update the list and set _v to 17.",
     ]);
-    expect(reasons({ ...DEFAULT_ENDPOINTS, _v: 17 })).toEqual([
-      "Data endpoints — Endpoints are version 17; only version 16 is accepted, and older versions are replaced by defaults on load. Reset the endpoints, or update the list and set _v to 16.",
+    expect(reasons({ ...DEFAULT_ENDPOINTS, _v: 18 })).toEqual([
+      "Data endpoints — Endpoints are version 18; only version 17 is accepted, and older versions are replaced by defaults on load. Reset the endpoints, or update the list and set _v to 17.",
     ]);
-    expect(reasons({ ...DEFAULT_ENDPOINTS, _v: 16 })).toEqual([]);
+    expect(reasons({ ...DEFAULT_ENDPOINTS, _v: 17 })).toEqual([]);
     expect(
       reasons({
         ...DEFAULT_ENDPOINTS,

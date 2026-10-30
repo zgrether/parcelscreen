@@ -7,6 +7,9 @@
  *
  * A service is matched by URL prefix, not host: Tennessee's layer is on a shared ArcGIS Online host
  * (services1.arcgis.com), which also serves the state's trails and parks.
+ *
+ * Hamilton County's own service (the Tennessee counties mission, docs/plans/tn-counties.md) serves the one county the
+ * state's layer leaves out, and is asked only over it (`onlyCounty`, lib/geo/ownRecords.ts).
  */
 export type StateCode = "VA" | "NC" | "TN";
 
@@ -35,6 +38,13 @@ export interface ServiceFields {
   altId?: string;
   /** The county's name, where `county` is a code (Virginia's and North Carolina's FIPS): what a search hit shows. */
   countyName?: string;
+  /** The tax card's control map, group and parcel fields, for a `mapGroupParcel` service. */
+  taxCard?: { map: string; group: string; parcel: string };
+  /**
+   * A county's own service: its one county, which its records don't name. It's asked only over that county, and each
+   * feature it returns gets the name under `county`, so the app reads it as it reads the state layer's.
+   */
+  onlyCounty?: string;
 }
 
 interface ParcelService {
@@ -103,6 +113,26 @@ const SERVICES: readonly ParcelService[] = [
       groupById: true,
       conflictWhere: "PARCEL_TYPE=5",
       search: "mapGroupParcel",
+      taxCard: { map: "CMAP", group: "GP", parcel: "PARCEL" },
+    },
+  },
+  // Hamilton County's Live_Parcels (tn-counties.md §0): the tax card's MAP, GROUP_ and PARCEL; GISLINK the parcel, as
+  // the state's; OWNERNAME1 and ADDRESS; RecordsOnl the assessor's card. PARCEL_TYP 1 is a plain parcel; the other types
+  // (condominium units, leased sites, mineral rights, improvements) repeat a parcel's polygon. Every record is one
+  // feature, fetched by object id (an equality query on GISLINK matched nothing).
+  {
+    prefix: "https://mapsdev.hamiltontn.gov/hcwa03/rest/services/Live_Parcels/",
+    state: "TN",
+    fields: {
+      oid: "OBJECTID",
+      id: "GISLINK",
+      county: "COUNTY_NAME",
+      maxRecords: 1000,
+      record: ["OBJECTID", "GISLINK", "MAP", "GROUP_", "PARCEL", "OWNERNAME1", "ADDRESS", "RecordsOnl"],
+      where: "PARCEL_TYP=1",
+      search: "mapGroupParcel",
+      taxCard: { map: "MAP", group: "GROUP_", parcel: "PARCEL" },
+      onlyCounty: "Hamilton",
     },
   },
 ];
@@ -168,6 +198,21 @@ export function isPlaceholderRecord(
 
 /** A full record's `outFields` for a service. */
 export const recordOutFields = (serviceUrl: string): string => fieldsFor(serviceUrl).record?.join(",") ?? "*";
+
+/** The fields to ask a service for, less the county a county's own service doesn't hold. */
+export function askFields(serviceUrl: string, names: readonly string[]): string {
+  const f = fieldsFor(serviceUrl);
+  return names.filter((n) => !(f.onlyCounty && n === f.county)).join(",");
+}
+
+/** A feature's properties as the app reads them: a county's own service's get its county's name. */
+export function withCounty(
+  serviceUrl: string,
+  props: Record<string, unknown> | null | undefined,
+): Record<string, unknown> {
+  const f = fieldsFor(serviceUrl);
+  return f.onlyCounty ? { ...props, [f.county]: f.onlyCounty } : (props ?? {});
+}
 
 /** ArcGIS SQL string literal. */
 export const sqlString = (s: string): string => `'${s.replace(/'/g, "''")}'`;

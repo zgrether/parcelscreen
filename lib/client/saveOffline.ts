@@ -7,6 +7,7 @@
 import { bbox as turfBbox } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { isKept, OFFLINE_LAYERS } from "@/components/Map/offlineLayers";
+import { servesBounds } from "@/lib/geo/ownRecords";
 import { stateOf } from "@/lib/geo/parcelFields";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import { planSave, type SavePlan } from "@/lib/offline/plan";
@@ -49,6 +50,7 @@ export async function planFor(t: SaveTarget): Promise<SavePlan> {
     parcelServices: DEFAULT_USER_CONFIG.endpoints.parcels.map((url) => ({
       url,
       inState: !states.size || states.has(stateOf(url)!),
+      serves: (b) => servesBounds(url, b),
     })),
     places: cells ? { path: PLACES_PATH, cells } : null,
     averages: await averagesByLayer(),

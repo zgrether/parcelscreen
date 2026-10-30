@@ -56,8 +56,9 @@ each PR into the step branch when CI is green; the hand-back to main is Zach's.
     - 5 has 4 records.
     - **So the app asks `PARCEL_TYP=1` only.**
   - **The identity:** `TAX_MAP_NO` is `MAP`, `GROUP_` and `PARCEL` ("048 045.24"; "110H D 042" in town), as Tennessee's
-    tax cards read. `GISLINK` is "033048 04524". An equality query on `GISLINK` matched nothing, so a record is fetched
-    by its object id, not grouped by `GISLINK`.
+    tax cards read. `GISLINK` is "033048    04524", four spaces in the middle as the state's are (the probe's equality
+    query, with one space, matched nothing). A plain parcel is one feature, so a record is fetched by its object id,
+    not grouped by `GISLINK`.
   - **The county record:** `RecordsOnl` is the assessor's card, e.g. `https://assessor.hamiltontn.gov/card/048_045.24`.
   - **Three Gorges Farms** is a 2026 subdivision (plat book 135, pages 54–58) of about 5-acre tracts on Three Gorges
     Road, Big Soddy Drive and Deep Down Road, just east of Worley Road. The test lot is tract 1: 048 045.24, 2385
