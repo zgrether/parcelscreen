@@ -27,7 +27,7 @@ export const TN_SERVICES = DEFAULT_ENDPOINTS.parcels.filter((u) => stateOf(u) ==
 
 export const THREE_GORGES_OID = 8192;
 export const THREE_GORGES_TAX_CARD = "048 045.24";
-export const THREE_GORGES_GISLINK = "033048 04524";
+export const THREE_GORGES_GISLINK = "033048    04524";
 
 /** Every request the tests replay, in one run. */
 export async function hamiltonSamples(http: HttpClient) {

@@ -4,7 +4,13 @@
  * down. The other own-records counties have no source: the map names them and offers Draw.
  */
 import { polygon } from "@turf/turf";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
+import {
+  hamiltonReplay,
+  hamiltonSamples,
+  THREE_GORGES_GISLINK,
+  THREE_GORGES_TAX_CARD,
+} from "@/test/support/tnHamilton";
 import { DEFAULT_ENDPOINTS } from "@/lib/screen/config";
 import { taxCardQuery, taxCardWhere } from "@/lib/search/query";
 import { isOwnRecordsHint, ownRecordsHint, servesBounds, servesPoint, uncoveredCountyAt } from "./ownRecords";
@@ -66,7 +72,7 @@ describe("the service", () => {
 describe("a record", () => {
   const props = withCounty(HAMILTON, {
     OBJECTID: 8192,
-    GISLINK: "033048 04524",
+    GISLINK: "033048    04524",
     MAP: "048",
     GROUP_: " ",
     PARCEL: "045.24",
@@ -87,7 +93,7 @@ describe("a record", () => {
   it("reads as the state's: its tax card, GISLINK, county and the assessor's card", () => {
     const f = parcelFacts(geo, props);
     expect(f.parcelId).toBe("048 045.24");
-    expect(f.keyId).toBe("033048 04524");
+    expect(f.keyId).toBe("033048    04524");
     expect(f.county).toBe("Hamilton");
     expect(f.countyRecordUrl).toBe("https://assessor.hamiltontn.gov/card/048_045.24");
     expect(f.deededAcres).toBeNull();
@@ -95,7 +101,7 @@ describe("a record", () => {
 
   it("is keyed as a Hamilton parcel", () => {
     expect(pieceDedupeKey({ geo, props, source: HAMILTON, multiPart: false })).toBe(
-      "TN:hamilton:033048 04524",
+      "TN:hamilton:033048    04524",
     );
   });
 
@@ -129,5 +135,48 @@ describe("the own-records counties with no source", () => {
     expect(h).toBe("No parcel lines in Knox County: it keeps its own records. Draw a custom parcel?");
     expect(isOwnRecordsHint(h)).toBe(true);
     expect(isOwnRecordsHint("Dense area — zoom in to see all parcel lines")).toBe(false);
+  });
+});
+
+describe("the recording (test/support/tnHamilton.ts, `pnpm record:tn-hamilton`)", () => {
+  let got: Awaited<ReturnType<typeof hamiltonSamples>>;
+  beforeAll(async () => {
+    got = await hamiltonSamples(hamiltonReplay());
+  });
+
+  it("Three Gorges tract 1's record: its tax card, GISLINK, county and the assessor's card", () => {
+    const f = parcelFacts(got.record.geo, got.record.props);
+    expect(f.parcelId).toBe(THREE_GORGES_TAX_CARD);
+    expect(f.keyId).toBe(THREE_GORGES_GISLINK);
+    expect(f.county).toBe("Hamilton");
+    expect(f.countyRecordUrl).toBe("https://assessor.hamiltontn.gov/card/048_045.24");
+    expect(f.acres).toBeGreaterThan(4.5);
+    expect(f.acres).toBeLessThan(5.6);
+    // Owner and address are scrubbed from the recording.
+    expect(f.owner).toBe("[redacted]");
+  });
+
+  it("a tap inside it picks it from Hamilton's service, after the state's layer has nothing there", () => {
+    expect(got.picked.parcel?.source).toBe(HAMILTON);
+    expect(got.picked.parcel?.props.OBJECTID).toBe(got.record.props.OBJECTID);
+    expect(got.picked.report).toEqual([
+      expect.stringMatching(/^services1\.arcgis\.com: no parcel at this point$/),
+    ]);
+  });
+
+  it("its tile's outlines are plain parcels, named Hamilton's", () => {
+    expect(got.lines.complete).toBe(true);
+    expect(got.lines.lines.length).toBeGreaterThan(10);
+    for (const l of got.lines.lines) expect(l.feature.properties?.COUNTY_NAME).toBe("Hamilton");
+    expect(got.lines.lines.some((l) => l.feature.properties?.OBJECTID === got.record.props.OBJECTID)).toBe(
+      true,
+    );
+    expect(got.count).toBe(got.lines.lines.length);
+  });
+
+  it("is found by its tax card in Search, as a Hamilton Co. parcel", () => {
+    const hit = got.search.find((h) => h.id === THREE_GORGES_TAX_CARD);
+    expect(hit?.county).toBe("Hamilton Co., TN");
+    expect(hit?.props.OBJECTID).toBe(got.record.props.OBJECTID);
   });
 });

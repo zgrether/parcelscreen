@@ -7,6 +7,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { ownRecordsHint } from "@/lib/geo/ownRecords";
 import { loadFixture, ROAN_SEARCH } from "../test/support/fixtures";
 import { expectAllDone, openExplorer, openSearch, screenIt } from "./flow";
+import { replayHamilton, threeGorgesPoint } from "./hamilton";
 import { replayHar } from "./replay";
 
 const ROAN = "roan-hwy-143-099-046-02" as const;
@@ -106,6 +107,29 @@ async function openAt(page: import("@playwright/test").Page, view: typeof KNOXVI
   }, view);
   await page.goto("/explore");
 }
+
+test("Hamilton County: the county's own lines draw; a tap on a Three Gorges lot shows its record and the assessor's card", async ({
+  page,
+  context,
+}) => {
+  await replayHar(context, FERNEY);
+  await replayHamilton(context);
+  const lot = threeGorgesPoint();
+  await openAt(page, { ...lot, z: 16 });
+  await expect.poll(() => linesDrawn(page), { timeout: 30_000 }).toBeGreaterThan(0);
+  // Not the no-lines hint: Hamilton has a source now.
+  await expect(page.locator(".map-hint")).not.toContainText("keeps its own records");
+  await tapAt(page, lot);
+  const info = page.getByRole("button", { name: /acres: parcel details$/ });
+  await expect(info).toBeVisible({ timeout: 15_000 });
+  await info.click();
+  const facts = page.locator("table.facts").first();
+  await expect(facts).toContainText("048 045.24");
+  await expect(facts).toContainText("Hamilton");
+  const link = page.getByRole("link", { name: "County record ↗" }).first();
+  await expect(link).toHaveAttribute("href", "https://assessor.hamiltontn.gov/card/048_045.24");
+  expect(errors).toEqual([]);
+});
 
 for (const phone of [false, true]) {
   test.describe(phone ? "on a phone" : "on a desktop", () => {
