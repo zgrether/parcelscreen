@@ -312,15 +312,15 @@
       "id": "linville-gorge-shortoff",
       "name": "Linville Gorge: Shortoff Mountain",
       "parking": [
-        35.8064,
-        -81.8947
+        35.82409,
+        -81.8894
       ],
       "types": [
         "trad"
       ],
       "access": "USFS. Peregrine closures on parts of Shortoff each spring-summer. Small lot fills fast. Park only on the FS end of Wolf Pit Rd; private stretch is tow-away",
       "source": "https://carolinaclimbers.org/climbing-areas/linvillegorge.html",
-      "parkingFrom": "estimate: the end of Wolf Pit Rd; no OSM lot within 1.5 km, to check",
+      "parkingFrom": "osm:way/1159710112 (the lot at the Forest Service end of Wolf Pit Rd)",
       "checked": "2026-10-30"
     },
     {
