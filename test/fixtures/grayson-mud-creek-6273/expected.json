@@ -7902,7 +7902,7 @@
    },
    "boulder": {
     "id": "grayson-highlands",
-    "name": "Grayson Highlands State Park",
+    "name": "Grayson Highlands State Park: Massie Gap",
     "min": 27,
     "mi": 9.3
    },
@@ -7930,7 +7930,7 @@
     },
     {
      "id": "linville-gorge-shortoff",
-     "min": 160
+     "min": 162
     },
     {
      "id": "breaks-interstate-park",
@@ -15863,7 +15863,7 @@
    },
    "boulder": {
     "id": "grayson-highlands",
-    "name": "Grayson Highlands State Park",
+    "name": "Grayson Highlands State Park: Massie Gap",
     "min": 27,
     "mi": 9.3
    },
@@ -15891,7 +15891,7 @@
     },
     {
      "id": "linville-gorge-shortoff",
-     "min": 160
+     "min": 162
     },
     {
      "id": "breaks-interstate-park",

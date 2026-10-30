@@ -5230,12 +5230,12 @@
     "types": [
      "trad"
     ],
-    "min": 95,
-    "mi": 51.4
+    "min": 97,
+    "mi": 51.8
    },
    "boulder": {
     "id": "grayson-highlands",
-    "name": "Grayson Highlands State Park",
+    "name": "Grayson Highlands State Park: Massie Gap",
     "min": 130,
     "mi": 83.4
    },
@@ -5247,7 +5247,7 @@
     },
     {
      "id": "linville-gorge-shortoff",
-     "min": 95
+     "min": 97
     },
     {
      "id": "grayson-highlands",
@@ -10225,12 +10225,12 @@
     "types": [
      "trad"
     ],
-    "min": 95,
-    "mi": 51.4
+    "min": 97,
+    "mi": 51.8
    },
    "boulder": {
     "id": "grayson-highlands",
-    "name": "Grayson Highlands State Park",
+    "name": "Grayson Highlands State Park: Massie Gap",
     "min": 130,
     "mi": 83.4
    },
@@ -10242,7 +10242,7 @@
     },
     {
      "id": "linville-gorge-shortoff",
-     "min": 95
+     "min": 97
     },
     {
      "id": "grayson-highlands",

@@ -29,7 +29,7 @@ export function ropeLine(r: NonNullable<Climbing["rope"]>): string {
   return `${fmt(r.min)} min to ${r.name} (${r.types.join(", ")})`;
 }
 
-/** "Bouldering: Grayson Highlands State Park, 22 min", or that there's none within reach. */
+/** "Bouldering: Grayson Highlands State Park: Massie Gap, 27 min", or that there's none within reach. */
 export function boulderLine(b: Climbing["boulder"]): string {
   return b ? `Bouldering: ${b.name}, ${fmt(b.min)} min` : NO_BOULDER;
 }
