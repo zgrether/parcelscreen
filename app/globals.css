@@ -8986,7 +8986,8 @@ button.use-row[aria-expanded="true"] .use-name::after {
   color: rgba(255, 255, 255, 0.78);
 }
 /* The MVUM links: underlined in the text's own ink, on the tip's dark ground and on Map layers' dark panel. */
-.route-card .route-link {
+.route-card .route-link,
+.place-card .route-link {
   display: inline-block;
   padding: 4px 0;
   color: #f1f3ee;

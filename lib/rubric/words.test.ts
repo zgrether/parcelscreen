@@ -41,6 +41,7 @@ describe("the cards' words", () => {
       longTrail: "A long rail-trail within 20 min",
       internet: "A clear spot for a satellite dish",
       paddling: "A lake or reservoir launch within 30 min",
+      climbing: "A sport or trad area within 60 min",
       garden: "At least 0.25 ac of garden ground",
       // Step 10: the starting list has no budgets.
       budget: "No budget given",
@@ -104,6 +105,7 @@ describe("the cards' words", () => {
       longTrail: "A long rail-trail within a 20-minute drive",
       internet: "A dish spot with at least 85% open sky",
       paddling: "A lake or reservoir launch within a 30-minute drive",
+      climbing: "A sport or trad area within a 60-minute drive",
       garden: "Room for a kitchen garden",
       budget: "No budget given",
     });

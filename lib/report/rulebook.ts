@@ -100,6 +100,8 @@ const ROWS: RowKey[] = [
   "internet",
   // Step 14d's.
   "paddling",
+  // Step 17's.
+  "climbing",
 ];
 
 /** The scales each panel shows (as the report's panels do), by panel. */

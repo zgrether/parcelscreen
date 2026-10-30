@@ -30,6 +30,8 @@ import { kmToState, outlineOf, type StateCode } from "../screen/states";
 import { hikingTagged, parkingQuery } from "../screen/trailheadParking";
 import { STATE_SOURCES, readableName } from "../screen/trailheads";
 import type { LatLon } from "../screen/util";
+import cragsJson from "../screen/data/crags.json";
+import { cragPlace, lastChecked, parseCrags } from "./crags";
 import { flatwaterByName } from "./flatwater";
 import { RIDB_EXPORT, RIDB_LAUNCHES } from "./ridb";
 
@@ -119,7 +121,7 @@ const cellBox = (cell: string): [number, number, number, number] => {
 
 // ---------- OpenStreetMap ----------
 
-interface OsmElement {
+export interface OsmElement {
   type: string;
   id: number;
   lat?: number;
@@ -131,7 +133,7 @@ interface OsmElement {
 }
 
 /** One Overpass query, each mirror in turn (POST, as the area profiler sends it). */
-async function overpass(ql: string, deps: BakeDeps): Promise<OsmElement[]> {
+export async function overpass(ql: string, deps: Pick<BakeDeps, "http" | "overpass">): Promise<OsmElement[]> {
   const errs: string[] = [];
   for (const m of deps.overpass ?? DEFAULT_ENDPOINTS.overpass) {
     try {
@@ -149,7 +151,7 @@ async function overpass(ql: string, deps: BakeDeps): Promise<OsmElement[]> {
   throw new Error(`Overpass unreachable (${errs.join("; ")})`);
 }
 
-const at = (e: OsmElement): LatLon | null =>
+export const at = (e: OsmElement): LatLon | null =>
   e.center ? [e.center.lat, e.center.lon] : e.lat != null && e.lon != null ? [e.lat, e.lon] : null;
 
 /**
@@ -619,6 +621,15 @@ export const SOURCE_DEFS: readonly SourceDef[] = [
     url: RIDB_EXPORT,
     fetched: "2026-10-26",
   },
+  {
+    id: "crags",
+    name: "Climbing areas, kept by hand (lib/screen/data/crags.json): the land managers' and climbing coalitions' pages",
+    licence:
+      "Parcel Screen's own list of facts; each lot's point © OpenStreetMap contributors (an insubstantial extract)",
+    attribution: "Parcel Screen; parking © OpenStreetMap contributors",
+    url: "https://github.com/zgrether/parcelscreen/blob/main/lib/screen/data/crags.json",
+    fetched: lastChecked(parseCrags(cragsJson)),
+  },
   ...STATE_SOURCES.map((s): SourceDef => ({
     id: STATE_SRC[`${s.state}:${s.kind}`]!,
     name: s.label,
@@ -743,7 +754,9 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
   if (classified.unanswered.length)
     failed.push(`launch classification (NHD) in ${classified.unanswered.length} cells`);
 
-  const all: Place[] = [...[...got.values()].flat(), ...parking, ...launches, ...RIDB_LAUNCHES];
+  // Step 17: the curated climbing areas, from the repo's own list (no network; pnpm data:crags writes them alone too).
+  const crags = parseCrags(cragsJson).map(cragPlace);
+  const all: Place[] = [...[...got.values()].flat(), ...parking, ...launches, ...RIDB_LAUNCHES, ...crags];
   const byFile = new Map<string, Place[]>();
   for (const p of all) {
     const key = `${FOLDER_OF[p.src]}/${cellOf(p.ll)}`;
@@ -756,7 +769,9 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
       const unique = [...new Map(places.map((p) => [p.id, p])).values()].sort((a, b) =>
         a.id < b.id ? -1 : 1,
       );
-      return { version: PLACES_VERSION, folder, cell, baked: deps.today, places: unique };
+      // The curated cells carry the list's last check, as pnpm data:crags writes them (the same list, the same files).
+      const baked = folder === "curated" ? lastChecked(parseCrags(cragsJson)) : deps.today;
+      return { version: PLACES_VERSION, folder, cell, baked, places: unique };
     })
     .sort((a, b) => (a.folder + a.cell < b.folder + b.cell ? -1 : 1));
 

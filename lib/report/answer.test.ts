@@ -143,6 +143,7 @@ function zeroWeights() {
     longTrail: 0,
     internet: 0,
     paddling: 0,
+    climbing: 0,
     budget: 0,
   };
 }

@@ -2,7 +2,8 @@
  * Roadmap step 14d: Map layers › Places (docs/plans/step-14d-places.md §5, §10). Off at first; on, every kind is on;
  * Mud Creek's trailheads clustered at zoom 10 and apart at 13; a tap on Grayson Highlands State Park's trailhead shows
  * its card with the drive Mud Creek's grade timed; a kind turned off hides its points; a reload keeps both; below zoom
- * 8 the hint says to zoom in. The baked cells are the fixture's frozen copies (e2e/replay.ts); Mud Creek's screen is its
+ * 8 the hint says to zoom in. Step 17: Climbing is a kind too, and a tap on Grayson Highlands' bouldering shows its type,
+ * its access note, the drive Mud Creek's grade timed and its access page. The baked cells are the fixture's frozen copies (e2e/replay.ts); Mud Creek's screen is its
  * expected.json's, seeded current, so the card's minutes are its own.
  */
 import { expect, test, type Page } from "@playwright/test";
@@ -13,6 +14,8 @@ import { replayHar } from "./replay";
 const MUD = "grayson-mud-creek-6273";
 /** Grayson Highlands State Park's trailhead (VA's parks), 17 minutes from Mud Creek in its expected.json. */
 const PARK: [number, number] = [36.612985, -81.481351];
+/** Step 17: Grayson Highlands' bouldering, at the Massie Gap lot (lib/screen/data/crags.json), 27 minutes from Mud Creek. */
+const BOULDERS: [number, number] = [36.63314, -81.50731];
 
 type DebugMap = {
   jumpTo(o: object): void;
@@ -80,7 +83,9 @@ test("Places: off at first; every kind on; clusters at zoom 10, apart at 13; a t
     "Groceries",
     "Long-trail access",
     "Paddle launches",
+    "Climbing",
   ]);
+  await expect(panel).toContainText("Climbing: orange for rope (sport, trad), grey for bouldering.");
   for (const b of await kinds.all()) await expect(b).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "Close the map panel" }).click();
 
@@ -119,6 +124,27 @@ test("Places: off at first; every kind on; clusters at zoom 10, apart at 13; a t
     .click();
   expect(await visibility(page, "places-trailhead-point")).toBe("none");
   expect(await visibility(page, "places-launch-point")).toBe("visible");
+
+  // Step 17: a tap on the park's bouldering (its trailheads off, so the tap is the climbing area's).
+  await page.getByRole("button", { name: "Close the map panel" }).click();
+  await jump(page, 15, BOULDERS);
+  await settle(page);
+  await expect.poll(() => rendered(page, "places-crag-point")).toBeGreaterThan(0);
+  const crag = await page.evaluate(([lat, lon]) => {
+    const m = (window as unknown as { __psMap: DebugMap }).__psMap;
+    const p = m.project([lon, lat]);
+    const box = m.getContainer().getBoundingClientRect();
+    return { x: box.left + p.x, y: box.top + p.y };
+  }, BOULDERS);
+  await page.mouse.click(crag.x, crag.y);
+  await expect(card.locator("strong")).toHaveText("Grayson Highlands State Park: Massie Gap");
+  await expect(card).toContainText("Climbing: bouldering");
+  await expect(card).toContainText("Bouldering only: no ropes, no chipping.");
+  await expect(card).toContainText("27 min from this parcel");
+  await expect(card.getByRole("link", { name: "The access page" })).toHaveAttribute(
+    "href",
+    /dcr\.virginia\.gov/,
+  );
 
   // Kept after a reload: Places on, Trailheads off.
   await reload(page);

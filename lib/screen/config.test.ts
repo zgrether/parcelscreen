@@ -136,6 +136,7 @@ describe("config", () => {
             "groceryChain": 3,
             "launch": 3,
             "longTrail": 4,
+            "rope": 3,
             "trailhead": 3,
           },
           "padusMarginKm": 16,
@@ -233,6 +234,11 @@ describe("config", () => {
             "airportMin": {
               "max": 180,
               "min": 15,
+              "step": 5,
+            },
+            "climbMin": {
+              "max": 180,
+              "min": 10,
               "step": 5,
             },
             "dishClearPct": {
@@ -367,6 +373,45 @@ describe("config", () => {
                   "points": {
                     "climate": 2,
                     "elevation": 0,
+                  },
+                },
+              },
+              "climb": {
+                "rarely": {
+                  "points": {
+                    "climbing": 0,
+                  },
+                },
+                "season": {
+                  "points": {
+                    "climbing": 1,
+                  },
+                },
+                "weekends": {
+                  "points": {
+                    "climbing": 3,
+                  },
+                },
+              },
+              "climbDrive": {
+                "m120": {
+                  "edges": {
+                    "climbMin": 120,
+                  },
+                },
+                "m45": {
+                  "edges": {
+                    "climbMin": 45,
+                  },
+                },
+                "m60": {
+                  "edges": {
+                    "climbMin": 60,
+                  },
+                },
+                "m90": {
+                  "edges": {
+                    "climbMin": 90,
                   },
                 },
               },
@@ -708,6 +753,7 @@ describe("config", () => {
               "airport": 0,
               "budget": 0,
               "climate": 0,
+              "climbing": 0,
               "driveway": 1,
               "elevation": 2,
               "garden": 1,
@@ -751,6 +797,12 @@ describe("config", () => {
           "rows": {
             "airportMin": [
               45,
+              60,
+              90,
+              120,
+            ],
+            "climbMin": [
+              30,
               60,
               90,
               120,
@@ -874,6 +926,7 @@ describe("config", () => {
               "airport": 0,
               "budget": 0,
               "climate": 0,
+              "climbing": 0,
               "driveway": 0,
               "elevation": 25,
               "garden": 10,
@@ -895,6 +948,12 @@ describe("config", () => {
           "lapseFPer1000Ft": 3.6,
           "stationFtPerKm": 66,
           "stationMaxKm": 50,
+        },
+        "climbing": {
+          "boulderPoints": 3,
+          "countWithinMin": 60,
+          "maxKm": 150,
+          "ropePoints": 12,
         },
         "combine": {
           "joinBudgetMs": 2000,

@@ -2,13 +2,13 @@
  * An area's profile file (step 13, docs/plans/step-13-area-catalog.md §3.3): public/areas/v2/<id>.json, written by
  * `pnpm areas:profile` and loaded on demand. The per-point values are columns; a measure that failed at a point is
  * null there. A format change starts the next version and drops the last (clean break, §1): v2 added paddleMin (step
- * 14d plan §4.4).
+ * 14d plan §4.4), v3 climbMin (step 17 plan §5).
  */
 import { z } from "zod";
 import { LatLonSchema, ScreenResultSchema } from "../screen/types";
 
-/** The file format's version; it's also the folder: public/areas/v2/. */
-export const AREA_FILE_VERSION = 2;
+/** The file format's version; it's also the folder: public/areas/v3/. */
+export const AREA_FILE_VERSION = 3;
 export const AREAS_PATH = `/areas/v${AREA_FILE_VERSION}`;
 
 /** What's measured at each point (§3.2), in the units the card's rows read. */
@@ -25,6 +25,7 @@ export const MEASURES = [
   "openLandFt",
   "longTrailMin",
   "paddleMin",
+  "climbMin",
 ] as const;
 export type Measure = (typeof MEASURES)[number];
 

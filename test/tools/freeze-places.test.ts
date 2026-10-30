@@ -1,6 +1,6 @@
 /**
  * Freezes each fixture's copy of the baked places (roadmap step 14d plan §1): each kind within its reach of the parcel
- * (REACH_KM), both folders, from public/places/v1 to test/fixtures/<slug>/places/; and the recorded area profile's (its
+ * (REACH_KM), every folder, from public/places/v1 to test/fixtures/<slug>/places/; and the recorded area profile's (its
  * outline's box plus each kind's reach), to test/fixtures/areas/<id>/places/. The fixtures' replays answer the places
  * from these (test/support/fixtures.ts), so a monthly re-bake moves no fixture number; re-freezing is a declared
  * numbers change, as re-recording is.
@@ -38,6 +38,8 @@ const REACH_KM: Record<Kind, number> = {
   trailhead: SCREEN_CONSTANTS.near.groceryKm + 2,
   parking: SCREEN_CONSTANTS.near.groceryKm + 2,
   launch: SCREEN_CONSTANTS.paddling.maxKm + 2,
+  // Step 17: the climbing areas' straight-line reach (the plan's climbing.maxKm, 150 km).
+  crag: 150 + 2,
 };
 /**
  * PLACES_FREEZE_KINDS=launch: only those kinds are taken from the bake; the frozen copy keeps its own of every other

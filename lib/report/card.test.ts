@@ -73,6 +73,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       longTrail: "D", // step 11: 49 min to the Huckleberry Trail
       internet: "A", // step 11: a dish spot 100% clear
       paddling: "D", // step 14d: 53 min to Claytor Lake
+      climbing: "C", // step 17: 75 min to Pilot Mountain
     });
     const zach = reportCard(r, ZACH);
     expect(zach.points).toBeCloseTo(3.25, 9); // §9.69: 3.2 with the Hospital row a D
@@ -119,6 +120,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       longTrail: "F",
       internet: "A",
       paddling: "F", // step 14d: 82 min to Claytor Lake, past the last cutoff
+      climbing: "D", // step 17: 117 min to Pilot Mountain
     });
     // The nearer grocery is the closer one, 76 min, but over every cutoff.
     // "an" (owner, #124: an approved correction), and the track note appended, as on Trails.
@@ -252,6 +254,7 @@ describe("the report card on the fixtures (engine 13)", () => {
       longTrail: "D",
       internet: "A",
       paddling: "D", // step 14d: 60 min to South Holston Lake, on D's edge
+      climbing: "C", // step 17: 89 min to Stone Mountain State Park
     });
     expect(rowOf(r, "driveway").detail).toBe("2,888 ft, 18% at its steepest");
     const zach = reportCard(r, ZACH);

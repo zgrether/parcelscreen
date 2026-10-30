@@ -86,6 +86,7 @@ describe("Hospital, split from Town (plan §2.1)", () => {
       "longTrail",
       "internet",
       "paddling",
+      "climbing",
       "hospital",
     ]);
   });
