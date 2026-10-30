@@ -5,7 +5,8 @@
  * Paddling row and its panel on Mud Creek; and the interview's question 4 with Paddling's second row. Run by
  * `pnpm screenshots`; the cells are the fixtures' frozen copies (e2e/replay.ts).
  */
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
 import { importParcels, openExplorer, openFromList, seedScreens, settled, visit } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";

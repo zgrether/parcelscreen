@@ -4,9 +4,10 @@
  * with empty collections there (e2e/replay.ts). PR 5 adds the Roan Mountain fixture's tests here.
  */
 import { expect, test, type Page } from "@playwright/test";
-import { OWN_RECORDS_HINT } from "@/lib/geo/ownRecords";
+import { ownRecordsHint } from "@/lib/geo/ownRecords";
 import { loadFixture, ROAN_SEARCH } from "../test/support/fixtures";
 import { expectAllDone, openExplorer, openSearch, screenIt } from "./flow";
+import { replayHamilton, threeGorgesPoint } from "./hamilton";
 import { replayHar } from "./replay";
 
 const ROAN = "roan-hwy-143-099-046-02" as const;
@@ -107,24 +108,50 @@ async function openAt(page: import("@playwright/test").Page, view: typeof KNOXVI
   await page.goto("/explore");
 }
 
+test("Hamilton County: the county's own lines draw; a tap on a Three Gorges lot shows its record and the assessor's card", async ({
+  page,
+  context,
+}) => {
+  await replayHar(context, FERNEY);
+  await replayHamilton(context);
+  const lot = threeGorgesPoint();
+  await openAt(page, { ...lot, z: 16 });
+  await expect.poll(() => linesDrawn(page), { timeout: 30_000 }).toBeGreaterThan(0);
+  // Not the no-lines hint: Hamilton has a source now.
+  await expect(page.getByText("keeps its own records")).toHaveCount(0);
+  await tapAt(page, lot);
+  const info = page.getByRole("button", { name: /acres: parcel details$/ });
+  await expect(info).toBeVisible({ timeout: 15_000 });
+  await info.click();
+  const facts = page.locator("table.facts").first();
+  await expect(facts).toContainText("048 045.24");
+  await expect(facts).toContainText("Hamilton");
+  const link = page.getByRole("link", { name: "County record ↗" }).first();
+  await expect(link).toHaveAttribute("href", "https://assessor.hamiltontn.gov/card/048_045.24");
+  expect(errors).toEqual([]);
+});
+
 for (const phone of [false, true]) {
   test.describe(phone ? "on a phone" : "on a desktop", () => {
     if (phone) test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
 
-    test("over Knox County: the no-lines hint with a Draw button that starts drawing", async ({
+    test("over Knox County: the hint names the county; the toolbar offers only Draw, which starts drawing", async ({
       page,
       context,
     }) => {
       await replayHar(context, FERNEY);
       await openAt(page, KNOXVILLE);
       const hint = page.locator(".map-hint");
-      await expect(hint).toContainText(OWN_RECORDS_HINT, { timeout: 30_000 });
-      const draw = hint.getByRole("button", { name: "Draw" });
-      const box = (await draw.boundingBox())!;
-      expect(box.width).toBeGreaterThanOrEqual(44);
-      expect(box.height).toBeGreaterThanOrEqual(44);
-      // Two lines at most (plan §6.7): the words beside a 44 px button.
-      expect((await hint.boundingBox())!.height).toBeLessThanOrEqual(100);
+      await expect(hint).toContainText(ownRecordsHint("Knox"), { timeout: 30_000 });
+      // The fresh-eyes review: no "Tap a parcel to select it" under a hint that says there are none, and one Draw.
+      await expect(page.getByText(/(Tap|Click) a parcel to select it/)).toBeHidden();
+      const draw = page.getByRole("button", { name: "Draw a custom parcel" });
+      await expect(draw).toHaveCount(1);
+      // The hint shows whole, beside the docked panel on a desktop, and in two lines at most on a phone.
+      const h = (await hint.boundingBox())!;
+      const panel = await page.locator(".explore-panel").boundingBox();
+      if (!phone && panel) expect(h.x).toBeGreaterThanOrEqual(panel.x + panel.width);
+      expect(h.height).toBeLessThanOrEqual(phone ? 60 : 40);
       // Nothing scrolls sideways.
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
       await draw.click();

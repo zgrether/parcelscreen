@@ -5,7 +5,8 @@
  * menu inside the window, and the night sky's sheet (UX part 2, P-7). Run by `pnpm screenshots`; Try it grades the Mud Creek sample, so no parcel is replayed and
  * no owner shows.
  */
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 const OUT = "test-results/screenshots";
 

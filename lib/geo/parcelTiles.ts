@@ -8,12 +8,14 @@ import { bbox, booleanIntersects, featureCollection, point, pointToPolygonDistan
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { CancelledError, HttpError, type HttpClient } from "../http";
 import {
+  askFields,
   fieldsFor,
   isPlaceholderRecord,
   recordOutFields,
   sqlString,
   whereFor,
   whereParam,
+  withCounty,
 } from "./parcelFields";
 import { PARCEL_SERVICE_TIMEOUTS } from "./serviceStatus";
 import {
@@ -118,7 +120,7 @@ export function tileQuery(serviceUrl: string, tile: Tile, detail: Detail, page: 
     inSR: "4326",
     spatialRel: "esriSpatialRelIntersects",
     ...whereParam(serviceUrl),
-    outFields: [f.oid, f.id, f.county].join(","),
+    outFields: askFields(serviceUrl, [f.oid, f.id, f.county]),
     returnGeometry: "true",
     outSR: "4326",
     maxAllowableOffset: String(OFFSET_DEG[detail]),
@@ -152,7 +154,11 @@ export async function fetchTile(
       const j = (await r.json()) as Page;
       if (j.error) return { lines, complete: false, failed: true };
       for (const feature of j.features ?? [])
-        if (!isPlaceholderRecord(serviceUrl, feature.properties)) lines.push({ feature, source: serviceUrl });
+        if (!isPlaceholderRecord(serviceUrl, feature.properties))
+          lines.push({
+            feature: { ...feature, properties: withCounty(serviceUrl, feature.properties) },
+            source: serviceUrl,
+          });
       if (!(j.exceededTransferLimit || j.properties?.exceededTransferLimit))
         return { lines, complete: true, failed: false };
     }
@@ -242,7 +248,10 @@ export async function fullRecord(
   if (!r.ok) throw new HttpError(r.status, host);
   const j = (await r.json()) as Page;
   if (j.error) throw new HttpError(500, host, j.error.message || `${host} error`);
-  const features = j.features ?? [];
+  const features = (j.features ?? []).map((ft) => ({
+    ...ft,
+    properties: withCounty(outline.source, ft.properties),
+  }));
   if (!features.length) throw new Error("The record wasn't found");
   const record = f.groupById
     ? parcelFromFeatures(features, outline.source)

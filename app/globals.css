@@ -75,23 +75,18 @@ html:has(.explore) body {
 }
 /* The map's hint: above the bottom sheet when there is one. */
 /* The map's status hint (zoom in, looking up…): centred just above the parcel toolbar (13e). */
-/* A hint with a button (Draw, step 2) takes the width it needs, so it stays on two lines at 375 px. */
-.map-hint--action {
-  max-width: calc(100% - 24px);
+/* The hint over a Tennessee county with no parcel source (the Tennessee counties mission): beside the docked panel,
+   so its start isn't hidden; and the toolbar below offers only Draw while it shows. */
+.map-hint.map-hint--own {
+  /* The dock's whole width, not --float-l: "Where to look" fills the search-only dock down past the hint's row. */
+  left: calc(var(--dock-w, 0px) + 12px);
+  max-width: calc(100% - var(--dock-w, 0px) - var(--col-r, 0px) - 24px);
 }
-/* The hint's one button (Draw, step 2): a full tap target beside the words. */
-.map-hint-action {
-  min-height: 44px;
-  min-width: 44px;
-  margin-left: 10px;
-  padding: 0 12px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 4px;
-  background: none;
-  color: inherit;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
+.explore:has(.map-hint--own) .tb-idle-tap {
+  display: none;
+}
+.tb-idle-tap {
+  display: contents;
 }
 /* UX part 2 PR 4: the pin typed coordinates leave, a drop shape pointing at the spot. */
 .coord-pin {

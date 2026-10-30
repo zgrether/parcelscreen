@@ -2,7 +2,8 @@
  * The grade note's screenshots (step 8b, owner on #228), desktop (1280 × 800) then phone (375 × 812): Mud Creek graded,
  * a septic permit marked from Details, the note under the header; then Grade after a tap, the Septic row marked.
  */
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { expectedOf } from "../test/support/expected";
 import { defaultNamedRubric } from "@/lib/rubric/default";
 import { reportCard } from "@/lib/report/card";

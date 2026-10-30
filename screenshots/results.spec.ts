@@ -3,7 +3,8 @@
  * answer and Best homesite; the alternatives and N more spots; the card in priority order; Still unknown; Full report
  * open; and, on a phone, the sheet at its peek. Run by `pnpm screenshots`; no facts card is opened, so no owner shows.
  */
-import { expect, test, type BrowserContext, type Locator } from "@playwright/test";
+import type { BrowserContext, Locator } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { booted, importParcel, openExplorer, screenIt, visit } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";
 import type { FixtureSlug } from "../test/support/fixtures";

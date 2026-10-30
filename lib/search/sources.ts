@@ -4,7 +4,8 @@
  */
 import { z } from "zod";
 import { CancelledError, type HttpClient } from "../http";
-import { stateOf, whereFor } from "../geo/parcelFields";
+import { askFields, stateOf, whereFor, withCounty } from "../geo/parcelFields";
+import { servesBounds } from "../geo/ownRecords";
 import { envelopeParams, type Bbox } from "./region";
 import { taxCardId } from "../geo/parcels";
 import { fieldsFor } from "../geo/parcelTiles";
@@ -113,11 +114,12 @@ export async function searchParcelNumbers(
   // Tennessee's where clause is exact: one ask, outlines and all.
   const byTaxCard = async (source: string, code: string | null): Promise<ParcelHit[]> => {
     const f = fieldsFor(source);
+    const tc = f.taxCard!;
     const features = await ask(
       source,
       new URLSearchParams({
-        where: whereFor(source, taxCardWhere(f.county, code, taxCard!)),
-        outFields: [f.oid, f.id, f.county, "CMAP", "GP", "PARCEL"].join(","),
+        where: whereFor(source, taxCardWhere(f.onlyCounty ? null : f.county, code, taxCard!, tc)),
+        outFields: askFields(source, [f.oid, f.id, f.county, tc.map, tc.group, tc.parcel]),
         ...within,
         ...outline,
         orderByFields: f.id,
@@ -126,7 +128,7 @@ export async function searchParcelNumbers(
       }),
     );
     return features.flatMap((ft) => {
-      const props = ft.properties ?? {};
+      const props = withCounty(source, ft.properties);
       const id = taxCardId(props) ?? "";
       const centre = middle(ft.geometry?.coordinates);
       return id && centre
@@ -199,7 +201,12 @@ export async function searchParcelNumbers(
   const asks: [string, string | null][] =
     scope instanceof Map
       ? [...scope].flatMap(([source, codes]) => [...codes].map((code): [string, string] => [source, code]))
-      : (scope as { sources: readonly string[] }).sources.map((source): [string, null] => [source, null]);
+      : (scope as { sources: readonly string[] }).sources
+          // A county's own service (Hamilton's) is asked only when the region reaches its county.
+          .filter((source) =>
+            servesBounds(source, { west: box![0], south: box![1], east: box![2], north: box![3] }),
+          )
+          .map((source): [string, null] => [source, null]);
   const jobs = asks.map(([source, code]) =>
     (async (): Promise<ParcelHit[]> => {
       const byMap = fieldsFor(source).search === "mapGroupParcel";

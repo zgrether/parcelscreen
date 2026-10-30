@@ -32,7 +32,7 @@ import { FinishPrompt } from "@/components/Map/FinishPrompt";
 import { AttachListingChip } from "@/components/Map/AttachListingChip";
 import { MapPanel } from "@/components/Map/MapPanel";
 import { useExplore, type SetHint } from "./useExploreController";
-import { OWN_RECORDS_HINT } from "@/lib/geo/ownRecords";
+import { isOwnRecordsHint } from "@/lib/geo/ownRecords";
 import { AreaOutlines } from "@/components/Map/AreaOutlines";
 import { useMapLayerPrefs } from "@/components/Map/useMapLayerPrefs";
 import { ZOOM_HINT } from "@/components/Map/useParcelLines";
@@ -51,7 +51,7 @@ export function MapArea({
   bottomInset: number;
   leftInset: number;
 }) {
-  const { setMap, panelInset, map, state, startDraw, docked } = useExplore();
+  const { setMap, panelInset, map, state, docked } = useExplore();
   // Draw, Combine and Split flatten the camera while they're open (13g).
   const { mode, split } = state;
   // Polish 2 (M11): with the areas' outlines on, "Zoom in to see parcel lines" would read as being about them.
@@ -85,10 +85,7 @@ export function MapArea({
       <AreaOutlines />
       {/* On a desktop Search is the docked panel's first row (step 4c). */}
       {!docked && <Search photonUrl={config.endpoints.photon} hint={setHint} />}
-      <Hint
-        text={shownHint}
-        action={shownHint === OWN_RECORDS_HINT ? { label: "Draw", onClick: startDraw } : null}
-      />
+      <Hint text={shownHint} ownRecords={isOwnRecordsHint(shownHint)} />
       <SwitchToast />
       <ClearedNote />
       <LineUndoToast />

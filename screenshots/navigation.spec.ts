@@ -5,7 +5,8 @@
  * panel under ☰ on a desktop, More's sheet on a phone). Run by `pnpm screenshots`; the parcels are the fixtures, under
  * the default "Profile 1", and no facts card is opened, so no owner shows.
  */
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import {
   importParcels,
   listRow,

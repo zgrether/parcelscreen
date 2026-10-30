@@ -8,7 +8,8 @@
  */
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
 import { importParcels, openExplorer, openFromList, seedScreens, settled, visit } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";

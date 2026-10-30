@@ -5,7 +5,8 @@
  * you changed?". Run by `pnpm screenshots`; Try it grades the Mud Creek sample, so no parcel is replayed and no owner
  * shows.
  */
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 const OUT = "test-results/screenshots";
 const progress = (page: Page) => page.locator(".iv-progress");

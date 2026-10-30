@@ -3,7 +3,8 @@
  * that fit you after the interview, Where to look on the map, Show more, the outlines (all, and a starred one), and an
  * area's popup. Run by `pnpm screenshots`.
  */
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { AREA_WORDS as W, SAMPLE_WORDS } from "@/lib/areas/words";
 import { defaultRubric } from "@/lib/rubric/default";
 import { openExplorer, reload, settled, visit } from "../e2e/flow";

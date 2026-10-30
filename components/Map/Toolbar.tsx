@@ -348,8 +348,11 @@ function barBody(
   if (!open)
     return (
       <>
-        <Status>{tap} a parcel to select it</Status>
-        <span className="tb-lbl">or</span>
+        {/* Hidden while the map says this county has no parcel lines (globals.css, .map-hint--own). */}
+        <span className="tb-idle-tap">
+          <Status>{tap} a parcel to select it</Status>
+          <span className="tb-lbl">or</span>
+        </span>
         <Btn onClick={ctl.startDraw}>Draw a custom parcel</Btn>
       </>
     );

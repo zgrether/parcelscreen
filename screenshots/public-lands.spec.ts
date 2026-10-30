@@ -5,7 +5,8 @@
  * PAD-US, the MVUM, the basemaps and the Forest Service's pages are fetched live, so this runs where they can be reached
  * (`.github/workflows/public-lands.yml`); the parcel's grade is its recording's.
  */
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { loadFixture } from "../test/support/fixtures";
 import { importParcels, openExplorer, openFromList, seedScreens, settled, visit } from "../e2e/flow";
 import { jump } from "../e2e/publicLand";

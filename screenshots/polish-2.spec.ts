@@ -3,7 +3,8 @@
  * 375 × 667 and 360 × 780, with the four fixtures graded and current (no stale banner). POLISH_TAG names the set
  * ("before" on main, "after" on the branch). Run by `pnpm screenshots polish-2`.
  */
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import {
   importParcels,
   openExplorer,

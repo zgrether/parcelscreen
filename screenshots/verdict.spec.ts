@@ -3,7 +3,8 @@
  * (375 × 812): Mud Creek with a Must it fails (elevation at least 5,000 ft), so it reads as the third verdict, on its
  * card, in the header, on Your list and in Compare; the list's verdict filter; Help's grade rules.
  */
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { ZACH } from "../test/support/rubrics";
 import { booted, importParcel, openExplorer, seedScreens } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";

@@ -59,7 +59,7 @@ describe("config", () => {
           "woodedPct": 100,
         },
         "endpoints": {
-          "_v": 16,
+          "_v": 17,
           "counties": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1",
           "dem": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
           "lpAtlasBinary": "https://djlorenz.github.io/astronomy/binary_tiles",
@@ -82,6 +82,7 @@ describe("config", () => {
             "https://services.nconemap.gov/secure/rest/services/NC1Map_Parcels/FeatureServer/1",
             "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Parcels/FeatureServer/0",
             "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Property_Boundaries_Public_Use/FeatureServer/0",
+            "https://mapsdev.hamiltontn.gov/hcwa03/rest/services/Live_Parcels/MapServer/0",
           ],
           "photon": "https://photon.komoot.io/api/",
           "places": "https://parcelscreen.vercel.app/places/v1",

@@ -6,7 +6,8 @@
 import { area, booleanPointInPolygon, destination, point, polygon } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { CancelledError, type HttpClient } from "../http";
-import { isPlaceholderRecord, recordOutFields, whereParam } from "./parcelFields";
+import { servesPoint } from "./ownRecords";
+import { isPlaceholderRecord, recordOutFields, whereParam, withCounty } from "./parcelFields";
 import { PARCEL_SERVICE_TIMEOUTS } from "./serviceStatus";
 import { M2_PER_ACRE, type LatLon } from "./types";
 
@@ -63,6 +64,8 @@ export async function pickParcelAt(
   const report: string[] = [];
   for (const url of serviceUrls) {
     const short = url.replace(/^https?:\/\//, "").split("/")[0];
+    // A county's own service is asked only over its county.
+    if (!servesPoint(url, ll)) continue;
     try {
       const q = new URLSearchParams({
         geometry: `${ll[1]},${ll[0]}`,
@@ -97,7 +100,7 @@ export async function pickParcelAt(
       return {
         parcel: {
           geo,
-          props: (f.properties as Record<string, unknown>) || {},
+          props: withCounty(url, f.properties as Record<string, unknown> | null),
           source: url,
           multiPart,
           ...(parts ? { parts } : {}),
@@ -185,21 +188,35 @@ export interface ParcelFacts {
   keyId: string | null;
   /** The deed's acreage as the county records it (Tennessee DEEDAC), when it's given. */
   deededAcres: number | null;
-  /** The state's assessment record for the parcel (Tennessee LINK_TPAD), only on the Comptroller's own site. */
+  /**
+   * The parcel's assessment record: Tennessee's (LINK_TPAD) on the Comptroller's own site, or Hamilton County
+   * assessor's card (RecordsOnl).
+   */
   countyRecordUrl: string | null;
   /** Part of the parcel lies under a polygon the county map marks as a boundary conflict (Tennessee, step 2). */
   boundaryConflict: boolean;
 }
 
-/** Where Tennessee's assessment records live: a LINK_TPAD anywhere else isn't linked. */
-const TPAD_PREFIX = "https://assessment.cot.tn.gov/";
+/**
+ * Where Tennessee's assessment records live: the state's (LINK_TPAD), and Hamilton County assessor's cards
+ * (RecordsOnl). A link anywhere else isn't shown.
+ */
+const RECORD_PREFIXES = ["https://assessment.cot.tn.gov/", "https://assessor.hamiltontn.gov/"];
 
-/** Tennessee's tax-card parcel number from its parts: control map, group (often blank) and parcel. */
+/**
+ * Tennessee's tax-card parcel number from its parts: control map, group (often blank) and parcel. The state's layer
+ * calls them CMAP, GP and PARCEL; Hamilton County's MAP, GROUP_ and PARCEL.
+ */
 export function taxCardId(props: Record<string, unknown>): string | null {
-  const map = typeof props.CMAP === "string" ? props.CMAP.trim() : "";
-  const parcel = typeof props.PARCEL === "string" ? props.PARCEL.trim() : "";
+  const text = (...ks: string[]): string =>
+    ks
+      .map((k) => props[k])
+      .find((v): v is string => typeof v === "string" && v.trim() !== "")
+      ?.trim() ?? "";
+  const map = text("CMAP", "MAP");
+  const parcel = text("PARCEL");
   if (!map || !parcel) return null;
-  const group = typeof props.GP === "string" ? props.GP.trim() : "";
+  const group = text("GP", "GROUP_");
   return [map, group, parcel].filter(Boolean).join(" ");
 }
 
@@ -224,18 +241,19 @@ export function parcelFacts(geo: Feature<Polygon>, props: Record<string, unknown
     return null;
   };
   const parcelId = taxCardId(props) ?? pick("parno", "parcelid", "pin", "gispin", "PARCEL_ID", "parid");
-  const link = typeof props.LINK_TPAD === "string" ? props.LINK_TPAD.trim() : "";
+  const link =
+    [props.LINK_TPAD, props.RecordsOnl].find((x): x is string => typeof x === "string")?.trim() ?? "";
   return {
     // A combined boundary may include a bridged strip that isn't part of the listing (lib/geo/combine.ts).
     acres: typeof props.combined_acres === "number" ? props.combined_acres : area(geo) / M2_PER_ACRE,
-    owner: pick("ownname", "owner", "ownername", "owner1", "OWNER_NAME"),
+    owner: pick("ownname", "owner", "ownername", "owner1", "OWNER_NAME", "ownername1"),
     parcelId,
     address: pick("siteadd", "situs", "address", "SITE_ADDRESS"),
     // LOCALITY is VA's (e.g. "Floyd County"); the prototype left the county blank for VA parcels.
     county: pick("county", "cntyname", "COUNTY_NAME", "LOCALITY"),
     keyId: pick("gislink") ?? parcelId,
     deededAcres: typeof props.DEEDAC === "number" && props.DEEDAC > 0 ? props.DEEDAC : null,
-    countyRecordUrl: link.startsWith(TPAD_PREFIX) ? link : null,
+    countyRecordUrl: RECORD_PREFIXES.some((p) => link.startsWith(p)) ? link : null,
     boundaryConflict: props.boundary_conflict === true,
   };
 }
