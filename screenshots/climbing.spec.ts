@@ -2,7 +2,7 @@
  * Roadmap step 17's screenshots (docs/plans/step-17-climbing.md §10), desktop (1280 × 800) then phone (375 × 812):
  * Map layers with Places › Climbing and its key; the climbing areas around Chattanooga at zoom 9; Grayson Highlands'
  * bouldering card from Mud Creek, with its drive; the Climbing row on Mud Creek's card and its panel; and the
- * interview's climbing screen with its second row. Taken by `climbing-shots.yml` on CI's runners (the live basemap),
+ * interview's climbing screen with its second row. Taken by `climbing-shots.yml` on CI's runners (the live basemaps),
  * into test-results/screenshots/step-17/. Mud Creek's data is its recording; the climbing cells are the committed
  * ones, so Chattanooga's show although no fixture is near it.
  */
@@ -85,6 +85,11 @@ for (const phone of [false, true]) {
           ? route.fulfill({ status: 200, contentType: "application/json", body: readFileSync(file) })
           : route.fulfill({ status: 404, body: "not found" });
       });
+      // The basemaps and terrain live, as step 16's shots (the replay aborts them).
+      await context.route(
+        /basemap\.nationalmap\.gov|vginmaps\.vdem\.virginia\.gov|services\.nconemap\.gov\/.*Orthoimagery|tiles\.mapterhorn\.com|elevation-tiles-prod/,
+        (r) => r.continue(),
+      );
       await openExplorer(page, MUD);
       await importParcels(page, [MUD]);
       await seedScreens(page, [MUD], { current: true });
