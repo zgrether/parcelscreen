@@ -4,7 +4,8 @@
  * aerial and the lidar tiles are fetched live, so this runs where they can be reached
  * (`.github/workflows/lidar-tiles.yml`).
  */
-import { test, type BrowserContext, type Page } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
+import { test } from "./fixtures";
 import { importParcel, openExplorer } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";
 import { GRAYSON, withRedGate } from "../e2e/redGate";

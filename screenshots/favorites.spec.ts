@@ -3,7 +3,8 @@
  * name sheet; the panel's star filled; unstarring; Clear history; ✕'s Undo; Search showing saved parcels. The phone's
  * tab is in its Favorites and History shots. One profile; three fixture parcels, two of them starred.
  */
-import { expect, test, type Browser, type Page } from "@playwright/test";
+import type { Browser, Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { importParcels, openExplorer, openSearch, seedScreens, addFromRecent, visit } from "../e2e/flow";
 import { YOUR_LIST } from "../e2e/household";
 

@@ -6,7 +6,8 @@
  * - Settings → Costs; What matters with the Within budget card; One page with both lines.
  * Run by `pnpm screenshots`.
  */
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
 import {
   importParcels,

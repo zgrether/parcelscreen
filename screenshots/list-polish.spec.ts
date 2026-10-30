@@ -4,7 +4,8 @@
  * with "‹ Your list" since UX part 2 PR 2b (Z-2: the detail beside the table, #15, is gone). The takes' comments and New takes (#13, #14) are household.spec.ts's "8-list-with-take". Run by
  * `pnpm screenshots`.
  */
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { importParcels, openExplorer, seedScreens, visit } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";
 

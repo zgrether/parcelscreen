@@ -4,7 +4,8 @@
  * saved; the toast; and the next-open line. Two browser contexts are two devices, over the memory store
  * (playwright.config.ts), under the default "Profile 1". The code in the shots is a throwaway one.
  */
-import { expect, test, type Browser, type Page } from "@playwright/test";
+import type { Browser, Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { generateCode } from "@/lib/sync/code";
 import { PASSWORD_LEAD, START, SYNC_TITLE } from "@/lib/sync/words";
 import { importParcels, listRow, openExplorer, openMenu, openYourData } from "../e2e/flow";

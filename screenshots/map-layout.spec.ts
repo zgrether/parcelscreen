@@ -5,7 +5,8 @@
  * desktop, the sheet at its peek and at 46% on a phone. Run by `pnpm screenshots`; no facts card is opened, so no
  * owner shows.
  */
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { importParcel, openExplorer, openMenu } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";
 

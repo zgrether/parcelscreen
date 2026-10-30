@@ -4,7 +4,7 @@
  * test/fixtures/tn-hamilton/parcels.har (owner and address fields scrubbed). As tnCarter.ts, the recorder and the
  * tests make the same calls, through the app's own functions.
  *
- * The parcel: Three Gorges Farms tract 1, 048 045.24 (2385 Three Gorges Rd, Soddy-Daisy, 5.09 ac, object id 8192),
+ * The parcel: Three Gorges Farms tract 1, 048 045.24 (on Three Gorges Road, Soddy-Daisy, 5.09 ac, object id 8192),
  * just east of Worley Road (checked live 2026-10-30, tn-counties.md §0).
  */
 import { join, resolve } from "node:path";

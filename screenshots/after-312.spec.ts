@@ -8,7 +8,8 @@
  * - Ferney's pond as Garden's water; Roan's frontage, none along the county map's boundary.
  * Run by `pnpm screenshots`.
  */
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
 import { countyRecordOf } from "../test/support/scenarios";
 import { mudSplitLine } from "../test/support/splitScenario";

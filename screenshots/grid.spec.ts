@@ -4,7 +4,8 @@
  * $160k; the list has a walk-away limit on Elevation, as Zach's real one does, so its column reads "✓A".
  * Run by `pnpm screenshots`.
  */
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
 import { importParcels, openExplorer, openFromList, seedScreens, settled, visit } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";

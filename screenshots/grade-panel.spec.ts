@@ -4,7 +4,8 @@
  * rows (Legal road access's warning on its own line); a line drawn after the run (one banner, under the answer). The
  * named setting is map-layout.spec.ts's "7-reason". Run by `pnpm screenshots`.
  */
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { centroid } from "@turf/turf";
 import { loadFixture } from "../test/support/fixtures";
 import { importParcel, openExplorer, screenIt } from "../e2e/flow";
