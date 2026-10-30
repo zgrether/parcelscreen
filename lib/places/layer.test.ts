@@ -137,3 +137,47 @@ describe("the tap card", () => {
     expect(timedMinutes(null, props({}), [0, 0])).toBeNull();
   });
 });
+
+describe("climbing areas (step 17 plan §6)", () => {
+  const crag = (id: string, types: ("sport" | "trad" | "bouldering" | "top-rope")[]): Place => ({
+    kind: "crag",
+    id: `crag:${id}`,
+    name: id,
+    ll: [35.18, -85.67],
+    src: "crags",
+    types,
+    access: "Free online registration each visit.",
+    url: "https://example.org/crag",
+    checked: "2026-10-31",
+  });
+
+  it("a rope area draws as rope, a bouldering-only one as bouldering, with its types, note and page", () => {
+    const f = bakedFeatures(
+      [crag("foster-falls", ["sport", "trad"]), crag("stone-fort", ["bouldering"])],
+      "2026-10-25",
+    ).crag!;
+    expect(f.map((x) => x.properties.climb)).toEqual(["rope", "boulder"]);
+    expect(f[0]!.properties).toMatchObject({
+      kind: "crag",
+      types: "sport, trad",
+      access: "Free online registration each visit.",
+      url: "https://example.org/crag",
+      checked: "2026-10-31",
+    });
+  });
+
+  it("its card: the name, its types, the access note, the date, and the minutes when the grade timed it", () => {
+    const p = bakedFeatures([crag("foster-falls", ["sport", "trad"])], "2026-10-25").crag![0]!.properties;
+    const r = { ...expectedOf("grayson-mud-creek-6273", "run") };
+    r.climbing = { rope: null, boulder: null, ropeWithin: 0, timed: [{ id: "foster-falls", min: 41 }] };
+    expect(cardLines(p, timedMinutes(r, p, [35.18, -85.67]))).toEqual([
+      "foster-falls",
+      "Climbing: sport, trad",
+      "Free online registration each visit.",
+      "Checked 2026-10-31",
+      "41 min from this parcel",
+    ]);
+    r.climbing = { ...r.climbing, timed: [] };
+    expect(timedMinutes(r, p, [35.18, -85.67])).toBeNull();
+  });
+});

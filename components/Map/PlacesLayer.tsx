@@ -41,7 +41,7 @@ import {
 import type { UserConfig } from "@/lib/screen/types";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { mapGone, useMap } from "./MapView";
-import { PLACE_COLOR, addPlaceIcons, iconId } from "./placeIcons";
+import { PLACE_COLOR, addPlaceIcons, iconId, type PlaceIcon } from "./placeIcons";
 import { GLYPHS, LABEL_FONT } from "./terrainStyle";
 import { useMapLayerPrefs } from "./useMapLayerPrefs";
 import { ZOOM_HINT } from "./useParcelLines";
@@ -61,7 +61,10 @@ export const placeLayers = (k: PlaceKind) => ({
   point: `places-${k}-point`,
 });
 const ALL_LAYERS = PLACE_KINDS.flatMap((k) => Object.values(placeLayers(k)));
-const BAKED: readonly PlaceKind[] = ["trailhead", "grocery", "launch"];
+const BAKED: readonly PlaceKind[] = ["trailhead", "grocery", "launch", "crag"];
+/** Each kind's own icon, for its clusters' ring and glyph (a launch's and a climbing area's first). */
+const KIND_ICON = (k: PlaceKind): PlaceIcon =>
+  k === "launch" ? "launchFlat" : k === "crag" ? "cragRope" : k;
 
 /** A place or a cluster under a tap, if any: the map's own tap (select a parcel) skips it. */
 export function placeAt(map: MlMap, point: { x: number; y: number }) {
@@ -108,7 +111,7 @@ export function PlacesLayer({ hint, anchors }: { hint: Hint; anchors: UserConfig
     if (!map.getStyle().glyphs) map.setGlyphs(GLYPHS);
     addPlaceIcons(map);
     for (const k of PLACE_KINDS) {
-      const ring = PLACE_COLOR[k === "launch" ? "launchFlat" : k];
+      const ring = PLACE_COLOR[KIND_ICON(k)];
       map.addSource(sourceId(k), {
         type: "geojson",
         data: collection([]),
@@ -141,7 +144,7 @@ export function PlacesLayer({ hint, anchors }: { hint: Hint; anchors: UserConfig
         filter: ["has", "point_count"],
         // Polish 2 (M9): the kind's icon over the count, so a disc says what it groups, not only how many.
         layout: {
-          "icon-image": iconId(k === "launch" ? "launchFlat" : k),
+          "icon-image": iconId(KIND_ICON(k)),
           "icon-size": 0.67,
           "icon-anchor": "bottom",
           "icon-offset": [0, 3],
@@ -165,7 +168,9 @@ export function PlacesLayer({ hint, anchors }: { hint: Hint; anchors: UserConfig
           "icon-image":
             k === "launch"
               ? ["match", ["get", "water"], "flat", iconId("launchFlat"), iconId("launchRiver")]
-              : iconId(k),
+              : k === "crag"
+                ? ["match", ["get", "climb"], "rope", iconId("cragRope"), iconId("cragBoulder")]
+                : iconId(k),
           "icon-allow-overlap": true,
         },
       });
@@ -253,6 +258,7 @@ export function PlacesLayer({ hint, anchors }: { hint: Hint; anchors: UserConfig
       trailhead: baked.features.trailhead ?? [],
       grocery: baked.features.grocery ?? [],
       launch: baked.features.launch ?? [],
+      crag: baked.features.crag ?? [],
     };
     for (const k of PLACE_KINDS) map.getSource<GeoJSONSource>(sourceId(k))?.setData(collection(data[k]));
   }, [map, places.on, ers, lists, baked]);
@@ -305,6 +311,16 @@ export function PlacesLayer({ hint, anchors }: { hint: Hint; anchors: UserConfig
         row.textContent = line;
         el.appendChild(row);
       });
+      // Step 17: a climbing area's page, where its access note came from.
+      if (p.kind === "crag" && p.url) {
+        const a = document.createElement("a");
+        a.className = "tiny route-link";
+        a.href = p.url;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.textContent = W.accessLink;
+        el.appendChild(a);
+      }
       pop?.remove();
       pop = new Popup({
         closeButton: false,
