@@ -170,7 +170,12 @@ export async function answerRoutes(context: BrowserContext): Promise<{ asked: nu
     return route.fulfill({
       status: 200,
       contentType: "application/geo+json",
-      headers: { "access-control-allow-origin": "*", date: "Wed, 28 Oct 2026 12:00:00 GMT" },
+      // A cross-origin response shows its Date only when it's exposed (the card reads the day the data was served).
+      headers: {
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "date",
+        date: "Wed, 28 Oct 2026 12:00:00 GMT",
+      },
       body: JSON.stringify(ROUTES[layer]),
     });
   });
