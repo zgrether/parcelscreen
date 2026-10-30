@@ -1,7 +1,7 @@
 /**
  * An area's drive times (step 13, docs/plans/step-13-area-catalog.md §3.2): each point's drives to its nearest ERs,
- * groceries, commercial airports, trailheads, long-trail access points and flatwater paddle launches (step 14d plan
- * §4.4), by straight line first, then timed in OSRM
+ * groceries, commercial airports, trailheads, long-trail access points, flatwater paddle launches (step 14d plan
+ * §4.4) and rope climbing areas (step 17 plan §5), by straight line first, then timed in OSRM
  * tables of many points to many destinations, at most areas.tableMaxCoords coordinates each: a few requests an area.
  * The grocery drive is the Town row's: the nearest chain's, or a non-chain's when it's closerMinMin nearer.
  */
@@ -23,6 +23,8 @@ export interface Destinations {
   trailPoints: readonly LatLon[];
   /** Flatwater paddle launches (a lake or reservoir, from the baked places). */
   launches: readonly LatLon[];
+  /** Rope climbing areas, sport or trad (the curated climbing areas' lots). */
+  ropeAreas: readonly LatLon[];
 }
 
 export interface PointDrives {
@@ -32,6 +34,7 @@ export interface PointDrives {
   trailheadMin: number | null;
   longTrailMin: number | null;
   paddleMin: number | null;
+  climbMin: number | null;
 }
 
 /** Minutes from each source to each destination; null where OSRM can't route it. Null when the table fails. */
@@ -53,7 +56,7 @@ export function nearest(from: LatLon, list: readonly LatLon[], k: number): LatLo
     .map((x) => x.ll);
 }
 
-type Kind = "er" | "chain" | "other" | "airport" | "trailhead" | "trail" | "launch";
+type Kind = "er" | "chain" | "other" | "airport" | "trailhead" | "trail" | "launch" | "rope";
 const keyOf = (ll: LatLon) => `${ll[0]},${ll[1]}`;
 
 /** What a point wants timed, by kind. */
@@ -69,6 +72,7 @@ function wants(p: LatLon, d: Destinations): Record<Kind, LatLon[]> {
     trailhead: nearest(p, d.trailheads, n.trailhead),
     trail: nearest(p, d.trailPoints, n.longTrail),
     launch: nearest(p, d.launches, n.launch),
+    rope: nearest(p, d.ropeAreas, n.rope),
   };
 }
 
@@ -124,6 +128,7 @@ export async function pointDrives(
     trailheadMin: null,
     longTrailMin: null,
     paddleMin: null,
+    climbMin: null,
   }));
   for (const batch of batches(points, sets)) {
     const destKeys = [...new Set(batch.flatMap((i) => [...sets[i]!]))];
@@ -143,6 +148,7 @@ export async function pointDrives(
         trailheadMin: t("trailhead"),
         longTrailMin: t("trail"),
         paddleMin: t("launch"),
+        climbMin: t("rope"),
       };
     });
   }
