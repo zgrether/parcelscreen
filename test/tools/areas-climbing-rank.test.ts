@@ -42,7 +42,7 @@ describe.runIf(import.meta.env.MODE === "areas-climbing-rank")(
       const bRank = rankOf(b);
       const climb = (id: string) => areas.find((x) => x.id === id)!.medians.climbMin;
       const table = (cards: typeof a, other?: Map<string, number>) => [
-        "| # | Area | Fit | Rope area, median min | " + (other ? "Was |" : "|"),
+        "| # | Area | Fit | Rope area, median min |" + (other ? " Was |" : ""),
         "|---|---|---|---|" + (other ? "---|" : ""),
         ...cards
           .slice(0, 10)
