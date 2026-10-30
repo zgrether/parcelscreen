@@ -58,12 +58,16 @@ export function accessLine(id: string): string | null {
   return c ? `Access: ${c.access.replace(/\.$/, "")}` : null;
 }
 
-/** The row's panel note: bouldering and the count, then the rope area's access note, then what "rope" means. */
+/**
+ * The row's panel note, read after the row's line and a semicolon (CardPanel): bouldering and the count, then the rope
+ * area's access note as the list words it (it names its manager), then what "rope" means.
+ */
 export function climbingNote(c: Climbing): string {
-  const access = c.rope ? accessLine(c.rope.id) : null;
-  return [boulderLine(c.boulder), withinLine(c.ropeWithin), ...(access ? [access] : []), ROPE_MEANS].join(
-    ". ",
-  );
+  const access = c.rope ? cragById(c.rope.id)?.access.replace(/\.$/, "") : undefined;
+  const boulder = c.boulder
+    ? `bouldering at ${c.boulder.name}, ${fmt(c.boulder.min)} min`
+    : NO_BOULDER.replace(/^No/, "no");
+  return [boulder, withinLine(c.ropeWithin), ...(access ? [access] : []), ROPE_MEANS].join(". ");
 }
 
 /** What the section says about its reach. */

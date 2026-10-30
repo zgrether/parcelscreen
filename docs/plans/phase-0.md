@@ -1387,5 +1387,29 @@ until step 5 (Q14).
     - **The probe:** the cloud session couldn't reach the hosts, so a probe on CI's runners recorded the services (plan
       §0); the same workflow then took the hand-back's live screenshots.
     - No grade, points, verdict, engine, schema or `expected.json` change.
+77. **Step 17: Climbing** (owner, 2026-10-30, pre-approved; the plan `docs/plans/step-17-climbing.md`, #384; built in
+    #385 onwards). A new factor, and the area catalog's and the Places layer's climbing areas.
+    - **The list** (#385): `lib/screen/data/crags.json`, 48 climbers' lots in VA, NC and TN plus about 100 miles, kept
+      by hand: name, parking point, types (sport, trad, bouldering, top-rope), a one-line access note in our own words,
+      the land manager's or coalition's page and the date checked. 40 lots are OSM's (checked by the runners'
+      `crags` job), 4 a climbing directory's point, 4 estimates marked "to check". Baked into a third places folder,
+      `public/places/v1/curated/`, by `pnpm data:crags`, so it's offline with the rest. OpenBeta isn't imported (CC0,
+      but largely copied from Mountain Project, whose owner demanded its removal); Mountain Project's terms forbid
+      copying. `docs/commercial-review.md` lists the sources.
+    - **The measurement** (#386): an optional `climbing` on the result (§9.65's exception, as §9.73 extended it; the
+      schema stays v9): the nearest rope area (sport or trad; top-rope alone isn't one) by road, the nearest
+      bouldering, the rope areas within 60 minutes and every area timed, from one OSRM table of its own to the 12 nearest
+      rope and 3 nearest bouldering lots within 150 km. ENGINE_VERSION 34 → 35; `ENGINE_CURRENT_FROM` stays 29, so an
+      older grade shows no Climbing row until it's graded again. `expected.json` gains `climbing` only.
+    - **The factor:** "Climbing", graded on the rope area's minutes on `climbMin` [30, 60, 90, 120]; its line names the
+      area and its types, its panel the nearest bouldering, the count within an hour, the access note and what "rope"
+      means. Weight 0 until placed. The interview's question 4 gains a third screen (how often you climb outside; the
+      longest drive for a day of climbing, which sets the B edge), and older profiles get "New factors to place".
+    - **The area catalog** (#387): `climbMin`, the median drive to a rope area, in `/areas/v3` (a clean break from v2;
+      no other median moved). With Climbing as the last Really want, Spruce Pine and Brevard enter the starting list's
+      top 10, and Highland County and Burkes Garden leave it.
+    - **Places › Climbing** (#388): a seventh sub-toggle, orange (a carabiner) for rope areas and grey (a boulder) for
+      bouldering only (brown is the trailhead's); a tap shows the types, the access note, the date, the drive the open
+      parcel's grade timed and a link to the access page.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

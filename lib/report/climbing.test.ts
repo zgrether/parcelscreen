@@ -55,13 +55,13 @@ describe("the Climbing row", () => {
     expect(letters).toEqual(["A", "B", "B", "C", "C", "D", "F"]);
   });
 
-  it("its line names the area and its types; its panel, bouldering, the count, the access note and what rope means", () => {
+  it("its line names the area and its types; its panel (after its line), bouldering, the count, the access note and what rope means", () => {
     const row = rowOf(withClimbing(climbing()));
     expect(row.detail).toBe("38 min to Foster Falls (sport, trad)");
     expect(row.short).toBe("Foster Falls 38 min");
     expect(row.measure).toEqual({ value: 38, unit: "min" });
     expect(row.panelNote).toMatch(
-      /^Bouldering: Stone Fort \(Little Rock City\), 22 min\. 3 rope areas within an hour\. Access: South Cumberland State Park: [^.]+\. Rope area: sport or trad$/,
+      /^bouldering at Stone Fort \(Little Rock City\), 22 min\. 3 rope areas within an hour\. South Cumberland State Park: [^.]+\. Rope area: sport or trad$/,
     );
   });
 
@@ -69,7 +69,7 @@ describe("the Climbing row", () => {
     const a = rowOf(withClimbing(climbing({ boulder: boulder(5), ropeWithin: 9 })));
     const b = rowOf(withClimbing(climbing({ boulder: null, ropeWithin: 0 })));
     expect(a.grade).toBe(b.grade);
-    expect(b.panelNote).toMatch(/^No bouldering area within 150 km\. No rope area within an hour\./);
+    expect(b.panelNote).toMatch(/^no bouldering area within 150 km\. No rope area within an hour\./);
   });
 
   it("counts in words: none, one, several", () => {
