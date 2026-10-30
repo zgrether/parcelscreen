@@ -47,7 +47,7 @@
       "url": "https://github.com/zgrether/parcelscreen/blob/main/lib/screen/data/crags.json",
       "fetched": "2026-10-30",
       "folder": "curated",
-      "count": 49
+      "count": 48
     },
     {
       "id": "va-parks",
@@ -234,7 +234,6 @@
     "curated": {
       "33_-87": 1,
       "34_-86": 3,
-      "35_-80": 1,
       "35_-82": 4,
       "35_-83": 5,
       "35_-84": 2,
