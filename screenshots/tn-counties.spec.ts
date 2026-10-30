@@ -19,6 +19,8 @@ async function openAt(page: Page, view: { lat: number; lon: number; z: number })
     if (sessionStorage.getItem("shots")) return;
     sessionStorage.setItem("shots", "1");
     localStorage.clear();
+    // The test handle on the map (window.__psMap), which the taps and the tile wait read.
+    localStorage.setItem("ps.debug", "1");
     localStorage.setItem("ps.view", JSON.stringify(v));
   }, view);
   await page.goto("/explore");
