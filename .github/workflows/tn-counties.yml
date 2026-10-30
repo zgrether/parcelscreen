@@ -1,0 +1,31 @@
+name: Tennessee county parcels
+
+# The parcels mission (docs/plans/tn-counties.md): what Hamilton's and Knox's public parcel services are, probed live
+# from CI's runners (test/tools/tn-counties-probe.test.ts), since the cloud sessions that build the app can't reach
+# the county hosts. The report goes to the job summary. Nothing here gates a merge.
+on:
+  pull_request:
+    paths:
+      - test/tools/tn-counties-probe.test.ts
+      - .github/workflows/tn-counties.yml
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec vitest run test/tools/tn-counties-probe.test.ts --mode tn-counties-probe
+      - name: The report, into the job summary
+        if: always()
+        run: cat test-results/tn-counties-probe.md >> "$GITHUB_STEP_SUMMARY" || true
