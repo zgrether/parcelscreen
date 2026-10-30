@@ -36,6 +36,8 @@
     "data:airports": "node scripts/data-airports.mts",
     "data:places": "vitest run test/tools/places-bake.test.ts --mode places-bake",
     "places:freeze": "vitest run test/tools/freeze-places.test.ts --mode places-freeze",
+    "data:crags": "vitest run test/tools/crags-bake.test.ts --mode crags-bake",
+    "data:crags-check": "vitest run test/tools/crags-check.test.ts --mode crags-check",
     "grade:timing": "vitest run test/tools/grade-timing.test.ts --mode grade-timing",
     "areas:outlines": "node scripts/areas-outlines.mts",
     "areas:profile": "vitest run test/tools/area-profile.test.ts --mode areas",

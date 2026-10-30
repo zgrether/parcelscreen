@@ -1,0 +1,793 @@
+{
+  "about": "Climbing areas for the Climbing factor and the Places layer (roadmap step 17, docs/plans/step-17-climbing.md §2). One entry per climbers' lot; each note is ours, read from the cited land manager's or coalition's page. Edit by hand, then run pnpm data:crags.",
+  "crags": [
+    {
+      "id": "asheboro-boulders",
+      "name": "Asheboro Boulders",
+      "parking": [
+        35.65,
+        -79.97
+      ],
+      "types": [
+        "bouldering"
+      ],
+      "access": "State-owned, NC Zoo-managed. Free daily reservation through the CCC required (it sends the gate code). Day use only",
+      "source": "https://www.carolinaclimbers.org/climbing-areas/asheboro-boulders.html",
+      "parkingFrom": "estimate: Rough estimate; gate code after reservation",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "black-mountain-tn",
+      "name": "Black Mountain (Crab Orchard)",
+      "parking": [
+        35.86807,
+        -84.88755
+      ],
+      "types": [
+        "trad",
+        "sport",
+        "bouldering"
+      ],
+      "access": "Cumberland Trail State Park: free online climbing registration; designated areas only; a narrow one-lane road up.",
+      "source": "https://www.seclimbers.org/project/black-mountain/",
+      "parkingFrom": "estimate: Cumberland Trail Conference trailhead N35°52.084' W84°53.253'",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "breaks-interstate-park",
+      "name": "Breaks Interstate Park",
+      "parking": [
+        37.2885,
+        -82.299
+      ],
+      "types": [
+        "sport",
+        "trad",
+        "top-rope",
+        "bouldering"
+      ],
+      "access": "A free climbing waiver every calendar year (online or at the park); read the park's climbing rules first.",
+      "source": "https://www.breakspark.com/rock-climbing",
+      "parkingFrom": "estimate: Estimated visitor center",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "carderock",
+      "name": "Carderock (MD)",
+      "parking": [
+        38.9725,
+        -77.201
+      ],
+      "types": [
+        "top-rope"
+      ],
+      "access": "C&O Canal NHP, no fee found; no bolting; park in the last (north) lot; car break-ins reported.",
+      "source": "https://www.nps.gov/choh/learn/management/superintendent-s-compendium.htm",
+      "parkingFrom": "estimate: Estimated last (north) lot",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "castle-rock-tn",
+      "name": "Castle Rock (Jasper)",
+      "parking": [
+        35.10694,
+        -85.63639
+      ],
+      "types": [
+        "sport",
+        "trad"
+      ],
+      "access": "Lot on private land the SCC leases: text your car's make to the owner (number at the kiosk); don't park if full; no camping.",
+      "source": "https://www.seclimbers.org/?p=250",
+      "parkingFrom": "estimate: climbingaway.fr Castle Rock parking 35°6'25\"N 85°38'11\"W",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "cedar-rock-pisgah",
+      "name": "Cedar Rock (Pisgah)",
+      "parking": [
+        35.256,
+        -82.812
+      ],
+      "types": [
+        "trad"
+      ],
+      "access": "Pisgah NF, no permit. Peregrine closures are posted near the climbers' trail. Butter Gap Trail reroute changed the approach",
+      "source": "https://carolinaclimbers.org/node/1434",
+      "parkingFrom": "estimate: Estimated lot ~5.9 mi up Cathey's Creek Rd",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "coopers-rock",
+      "name": "Coopers Rock State Forest",
+      "parking": [
+        39.6584,
+        -79.7862
+      ],
+      "types": [
+        "bouldering",
+        "trad",
+        "top-rope"
+      ],
+      "access": "WV state forest: no bolting; climb only in the permitted areas (not the overlook); sign in at the climbers' kiosk.",
+      "source": "https://wvstateparks.com/your-guide-to-rock-climbing-and-bouldering-wv-state-parks/",
+      "parkingFrom": "estimate: Estimated climbers' lot near the overlook",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "crowders-mountain",
+      "name": "Crowders Mountain State Park",
+      "parking": [
+        35.227,
+        -81.279
+      ],
+      "types": [
+        "trad",
+        "top-rope",
+        "bouldering"
+      ],
+      "access": "Free permit at the visitor center or the access boxes. Rope climbing on the Linwood side only; bouldering at the Boulders area. Lots close when full",
+      "source": "https://www.ncparks.gov/state-parks/crowders-mountain-state-park/activities",
+      "parkingFrom": "estimate: Estimated Linwood Access lot",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "denny-cove",
+      "name": "Denny Cove",
+      "parking": [
+        35.165,
+        -85.697
+      ],
+      "types": [
+        "sport",
+        "trad"
+      ],
+      "access": "South Cumberland State Park: free online climbing registration; no overnight parking; rough gravel road of about a mile off US-41.",
+      "source": "https://www.friendsofsouthcumberland.org/trailheads/denny-cove",
+      "parkingFrom": "estimate: Estimated from 5917 US 41 entrance description",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "dragons-tooth",
+      "name": "Dragon's Tooth",
+      "parking": [
+        37.3787,
+        -80.1563
+      ],
+      "types": [
+        "trad",
+        "top-rope"
+      ],
+      "access": "Jefferson NF trailhead: no fee, open all year; small lot fills on weekends, don't park on VA-311; a long hike and scramble to the spire.",
+      "source": "https://www.fs.usda.gov/r08/gwj/recreation/trails/dragons-tooth-trail-forest-trail-5009",
+      "parkingFrom": "estimate: USFS Dragons Tooth Trail page trailhead lat/long",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "elizabeth-furnace",
+      "name": "Elizabeth Furnace",
+      "parking": [
+        38.926,
+        -78.332
+      ],
+      "types": [
+        "sport",
+        "trad",
+        "top-rope"
+      ],
+      "access": "George Washington NF day-use area, mid-April to October, sunrise to sunset; the Buzzard Rocks lot is small.",
+      "source": "https://fs.usda.gov/r08/gwj/recreation/elizabeth-furnace-recreation-area",
+      "parkingFrom": "estimate: Estimated day-use area on Fort Valley Rd",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "foster-falls",
+      "name": "Foster Falls",
+      "parking": [
+        35.1822,
+        -85.67397
+      ],
+      "types": [
+        "sport",
+        "trad"
+      ],
+      "access": "South Cumberland State Park: free online climbing registration each visit; no rappelling in the climbing areas; off the trail by dark.",
+      "source": "https://www.seclimbers.org/?p=293",
+      "parkingFrom": "estimate: Atlanta Trails Foster Falls GPS, 498 Foster Falls Rd",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "grayson-highlands",
+      "name": "Grayson Highlands State Park",
+      "parking": [
+        36.6338,
+        -81.5105
+      ],
+      "types": [
+        "bouldering"
+      ],
+      "access": "Bouldering only: no ropes, no chipping. Virginia State Parks per-car parking fee; crash pads for rent at the park.",
+      "source": "https://www.dcr.virginia.gov/state-parks/blog/bouldering-at-grayson-highlands-state-park-3086",
+      "parkingFrom": "estimate: Estimated Massie Gap lot",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "great-falls-park-va",
+      "name": "Great Falls Park (VA)",
+      "parking": [
+        38.9956,
+        -77.2595
+      ],
+      "types": [
+        "top-rope"
+      ],
+      "access": "NPS per-car entrance fee. Top-rope only, no drilling; climb from Overlook 3 to Sandy Landing, never in the canal cut; lots fill on summer weekends.",
+      "source": "https://www.nps.gov/grfa/planyourvisit/outdooractivities.htm",
+      "parkingFrom": "estimate: Estimated lower lot",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "hidden-valley-va",
+      "name": "Hidden Valley (Washington County)",
+      "parking": [
+        36.837,
+        -82.064
+      ],
+      "types": [
+        "trad",
+        "sport",
+        "top-rope"
+      ],
+      "access": "The CCC's climbers' lot needs no permit; the DWR lot and WMA land need a DWR access permit or licence; DWR lot closed to climbers Oct 1 to Jan 7.",
+      "source": "https://carolinaclimbers.org/climbing-areas/hidden-valley.html",
+      "parkingFrom": "estimate: Estimated CCC lot on Hidden Valley Rd (SR 690)",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "horse-pens-40",
+      "name": "Horse Pens 40",
+      "parking": [
+        33.92194,
+        -86.3075
+      ],
+      "types": [
+        "bouldering"
+      ],
+      "access": "Private park: sign the waiver and pay the day-use fee at the Country Store; fees change, so check first.",
+      "source": "https://www.seclimbers.org/project/horse-pens-40/",
+      "parkingFrom": "estimate: climbingaway.fr HP40 parking 33°55'19\"N 86°18'27\"W",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "jump-off-rock",
+      "name": "Jump Off Rock",
+      "parking": [
+        35.31341,
+        -82.52651
+      ],
+      "types": [
+        "top-rope",
+        "sport"
+      ],
+      "access": "Town of Laurel Park, free, sunrise to sunset, under a CCC agreement. Small lot: leave if full, no big groups",
+      "source": "https://carolinaclimbers.org/node/1491",
+      "parkingFrom": "estimate: CCC page parking GPS",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "kings-bluff",
+      "name": "Kings Bluff (Clarksville)",
+      "parking": [
+        36.50139,
+        -87.32278
+      ],
+      "types": [
+        "sport",
+        "trad",
+        "top-rope"
+      ],
+      "access": "SCC-owned: get the gate code from the SCC and lock the gate behind you; park in the cul-de-sac, not in business spaces; no camping.",
+      "source": "https://www.seclimbers.org/?p=409",
+      "parkingFrom": "estimate: climbingaway.fr parking 36°30'5\"N 87°19'22\"W, Max Ct cul-de-sac",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "laurel-knob",
+      "name": "Laurel Knob",
+      "parking": [
+        35.163,
+        -83.04
+      ],
+      "types": [
+        "trad",
+        "sport"
+      ],
+      "access": "CCC-owned. Only legal approach is the CCC trail from Panthertown's Salt Rock lot; Dillard Canyon side is private. No camping at the cliff",
+      "source": "https://www.carolinaclimbers.org/climbing-areas/laurel-knob.html",
+      "parkingFrom": "estimate: Estimated Salt Rock Gap lot; Discover Jackson 35.14400,-83.03444",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "leda",
+      "name": "Leda",
+      "parking": [
+        35.2388,
+        -85.2334
+      ],
+      "types": [
+        "trad",
+        "sport"
+      ],
+      "access": "Private (Montlake Golf Course): check in, sign the waiver and pay at the golf course first; small lot; roadside pull-offs are tow zones.",
+      "source": "https://www.seclimbers.org/project/leda/",
+      "parkingFrom": "estimate: climbingaway.fr Leda parking GPS, across from Terrace Falls on Montlake Rd",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "linville-gorge-shortoff",
+      "name": "Linville Gorge: Shortoff Mountain",
+      "parking": [
+        35.8064,
+        -81.8947
+      ],
+      "types": [
+        "trad"
+      ],
+      "access": "USFS. Peregrine closures on parts of Shortoff each spring-summer. Small lot fills fast. Park only on the FS end of Wolf Pit Rd; private stretch is tow-away",
+      "source": "https://carolinaclimbers.org/climbing-areas/linvillegorge.html",
+      "parkingFrom": "estimate: Estimated end of Wolf Pit Rd",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "linville-gorge-table-rock",
+      "name": "Linville Gorge: Table Rock",
+      "parking": [
+        35.88707,
+        -81.88316
+      ],
+      "types": [
+        "trad"
+      ],
+      "access": "Wilderness, no permit. USFS: picnic area and lot closed after storm damage, trails open. Road gated about Jan 1-Apr 1. Watergroove area peregrine closure",
+      "source": "https://www.fs.usda.gov/r08/northcarolina/recreation/table-rock",
+      "parkingFrom": "estimate: TopoQuest Table Rock Picnic Area",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "little-river-canyon",
+      "name": "Little River Canyon: The Concave",
+      "parking": [
+        34.378,
+        -85.63
+      ],
+      "types": [
+        "trad",
+        "sport",
+        "top-rope",
+        "bouldering"
+      ],
+      "access": "NPS preserve: park only in the marked pull-offs, all tyres off the pavement; no camping; no bolts added or removed.",
+      "source": "https://www.seclimbers.org/project/little-river-canyon/",
+      "parkingFrom": "estimate: Estimated pull-off 1.7 mi along Canyon Rim Parkway",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "little-stony-man",
+      "name": "Shenandoah: Little Stony Man",
+      "parking": [
+        38.6041,
+        -78.3647
+      ],
+      "types": [
+        "trad",
+        "top-rope"
+      ],
+      "access": "Park entrance fee. Parts of the cliff closed all year, others about May to July for peregrines; no tree anchors.",
+      "source": "https://www.nps.gov/shen/planyourvisit/upload/2024_ClimbingRegulations_508-2.pdf",
+      "parkingFrom": "estimate: Estimated Little Stony Man parking, Skyline Drive MP 39.1",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "looking-glass-rock",
+      "name": "Looking Glass Rock",
+      "parking": [
+        35.31133,
+        -82.79797
+      ],
+      "types": [
+        "trad"
+      ],
+      "access": "Pisgah NF, no permit. North Face has seasonal peregrine closures (about mid-Jan to mid-Aug). FS 475B is gated seasonally, so check road status",
+      "source": "https://carolinaclimbers.org/climbing-areas/looking-glass-rock.html",
+      "parkingFrom": "estimate: Lot on FS 475B (geocache N35 18.680 W82 47.878); hiking trailhead on FS 475 35.29095,-82.77660",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "moores-wall",
+      "name": "Moore's Wall (Hanging Rock SP)",
+      "parking": [
+        36.4018,
+        -80.299
+      ],
+      "types": [
+        "trad",
+        "sport",
+        "bouldering"
+      ],
+      "access": "Free state-park climbing permit required; designated areas only. Small lot: no roadside parking, park hours, carpool",
+      "source": "https://ncparks.gov/node/551",
+      "parkingFrom": "estimate: Estimated Tory's Den lot",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "nrg-bridge-buttress",
+      "name": "New River Gorge: Bridge Buttress",
+      "parking": [
+        38.0675,
+        -81.0815
+      ],
+      "types": [
+        "trad",
+        "sport",
+        "top-rope"
+      ],
+      "access": "Pull-offs on one-way Fayette Station Rd (no vehicles over 12 ft); park only where marked.",
+      "source": "https://www.nps.gov/neri/planyourvisit/climbing.htm",
+      "parkingFrom": "estimate: Estimated pullouts on Fayette Station Rd below the bridge",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "nrg-endless-wall",
+      "name": "New River Gorge: Endless Wall",
+      "parking": [
+        38.0645,
+        -81.063
+      ],
+      "types": [
+        "trad",
+        "sport"
+      ],
+      "access": "NPS, no fee. The small Fern Creek lot fills, and cars on Lansing-Edmond Rd may be towed (use the Nuttall lot); no overnight parking.",
+      "source": "https://www.nps.gov/places/endless-wall-trail.htm",
+      "parkingFrom": "estimate: Estimated Fern Creek lot on Lansing-Edmond Rd",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "nrg-kaymoor",
+      "name": "New River Gorge: Kaymoor",
+      "parking": [
+        38.0445,
+        -81.085
+      ],
+      "types": [
+        "sport",
+        "trad"
+      ],
+      "access": "Park at the Kaymoor Top lot (the Arrowhead lot as overflow); no overnight parking.",
+      "source": "https://www.nps.gov/places/kaymoor-trail.htm",
+      "parkingFrom": "estimate: Estimated Kaymoor Top lot off Gatewood Rd",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "obed-clear-creek",
+      "name": "Obed: Clear Creek",
+      "parking": [
+        36.104,
+        -84.7135
+      ],
+      "types": [
+        "sport",
+        "trad"
+      ],
+      "access": "Climbers' lot on Doc Howard Rd owned by the East Tennessee Climbers Coalition; the park's rules apply on the bluffs.",
+      "source": "https://www.accessfund.org/latest-news/news-and-events/news/access-to-tennessees-clear-creek-secured",
+      "parkingFrom": "estimate: Estimated; climbers' lot at 124 Doc Howard Rd, Lancing",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "obed-lilly",
+      "name": "Obed: Lilly Bluff",
+      "parking": [
+        36.10277,
+        -84.72147
+      ],
+      "types": [
+        "sport",
+        "trad",
+        "bouldering"
+      ],
+      "access": "Obed Wild and Scenic River (NPS), no fee: park at the Lilly Bridge lots, or the Overlook lots if full; Clear Creek can rise fast.",
+      "source": "https://www.nps.gov/obed/planyourvisit/rockclimbing.htm",
+      "parkingFrom": "estimate: Lilly Bluff Overlook lot (The Outbound); NPS Lilly Bridge 36.10202,-84.71744",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "old-rag",
+      "name": "Shenandoah: Old Rag",
+      "parking": [
+        38.5715,
+        -78.2869
+      ],
+      "types": [
+        "trad",
+        "top-rope"
+      ],
+      "access": "Park entrance fee and an Old Rag day-use ticket (Recreation.gov) Mar 1 to Nov 30; no road-shoulder parking.",
+      "source": "https://www.nps.gov/shen/planyourvisit/faqs-oldrag.htm",
+      "parkingFrom": "estimate: Estimated main Old Rag lot on Nethers Rd",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "pilot-mountain",
+      "name": "Pilot Mountain State Park",
+      "parking": [
+        36.3419,
+        -80.47
+      ],
+      "types": [
+        "trad",
+        "top-rope"
+      ],
+      "access": "Free state-park climbing permit required. Designated walls only; the Big Pinnacle is off limits. Summit lot can close when full",
+      "source": "https://ncparks.gov/maps/pilot-mountain-state-park-climbing-map/open",
+      "parkingFrom": "estimate: Estimated summit lot",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "rocktown",
+      "name": "Rocktown (Pigeon Mountain)",
+      "parking": [
+        34.65882,
+        -85.38992
+      ],
+      "types": [
+        "bouldering"
+      ],
+      "access": "Crockford-Pigeon Mountain WMA: a hunting or fishing licence or a Georgia Lands Pass, bought ahead; closed during posted hunts; no camping at the lot.",
+      "source": "https://www.seclimbers.org/project/rocktown/",
+      "parkingFrom": "estimate: Atlanta Trails Rocktown trailhead GPS",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "rocky-face",
+      "name": "Rocky Face Mountain Recreational Area",
+      "parking": [
+        35.96295,
+        -81.1205
+      ],
+      "types": [
+        "sport",
+        "top-rope",
+        "trad"
+      ],
+      "access": "Alexander County park, free, open year-round. Climb on the quarry walls; check the county for current rules",
+      "source": "https://www.visitnc.com/listing/rocky-face-mountain-recreational-area",
+      "parkingFrom": "estimate: HikingUpward quarry parking; VisitNC agrees",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "rrg-gorge",
+      "name": "Red River Gorge: the Gorge",
+      "parking": [
+        37.818,
+        -83.665
+      ],
+      "types": [
+        "trad",
+        "sport"
+      ],
+      "access": "Daniel Boone NF: overnight parking (10 pm to 6 am) needs a recreation pass; no climbing within 300 ft of four named overlooks.",
+      "source": "https://www.fs.usda.gov/r08/danielboone/recreation/opportunities/climbing-and-caving",
+      "parkingFrom": "estimate: Estimated Martin's Fork trailhead near Nada Tunnel",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "rrg-muir-valley",
+      "name": "Red River Gorge: Muir Valley",
+      "parking": [
+        37.7245,
+        -83.6345
+      ],
+      "types": [
+        "sport",
+        "trad"
+      ],
+      "access": "Private nonprofit preserve: signed waiver; a daily parking fee per car or a member pass; designated lot only; no dogs.",
+      "source": "https://muirvalley.org/parking/",
+      "parkingFrom": "estimate: Estimated main lot at the Fincastle Rd entrance",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "rrg-pmrp",
+      "name": "Red River Gorge: PMRP",
+      "parking": [
+        37.67,
+        -83.695
+      ],
+      "types": [
+        "sport",
+        "trad"
+      ],
+      "access": "The RRGCC's preserve: its signed waiver; free parking in the marked lots only, no overnight; keep oil-well access clear.",
+      "source": "https://rrgcc.org/rrg-info/pmrp/",
+      "parkingFrom": "estimate: Rough estimate; RRGCC lots on Bald Rock Fork Rd",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "rumbling-bald",
+      "name": "Rumbling Bald",
+      "parking": [
+        35.44382,
+        -82.21916
+      ],
+      "types": [
+        "trad",
+        "sport",
+        "bouldering",
+        "top-rope"
+      ],
+      "access": "Chimney Rock SP. Free climbing permit at the trailhead. Large lot off Boys Camp Rd; if full use other areas. Closed Christmas Day",
+      "source": "https://carolinaclimbers.org/climbing-areas/rumbling-bald.html",
+      "parkingFrom": "estimate: CCC page parking GPS",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "sand-rock",
+      "name": "Sand Rock (Cherokee Rock Village)",
+      "parking": [
+        34.18056,
+        -85.81722
+      ],
+      "types": [
+        "trad",
+        "sport",
+        "top-rope",
+        "bouldering"
+      ],
+      "access": "Cherokee County park: a per-car day fee at the gate; quiet hours 8 pm to 8 am; soft sandstone, so don't climb when it's wet.",
+      "source": "https://www.seclimbers.org/?p=230",
+      "parkingFrom": "estimate: climbingaway.fr parking 34°10'50\"N 85°49'2\"W",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "sauratown",
+      "name": "Sauratown Mountain",
+      "parking": [
+        36.3705,
+        -80.371
+      ],
+      "types": [
+        "sport",
+        "trad"
+      ],
+      "access": "CCC lease from YMCA Camp Hanes. Open only Dec 1-Mar 31, with the CCC's online waiver each year. Enter through the camp",
+      "source": "https://carolinaclimbers.org/climbing-areas/sauratown.html",
+      "parkingFrom": "estimate: Estimated Baker Center lot, YMCA Camp Hanes",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "seneca-rocks",
+      "name": "Seneca Rocks",
+      "parking": [
+        38.8347,
+        -79.3757
+      ],
+      "types": [
+        "trad"
+      ],
+      "access": "Monongahela NF (Spruce Knob-Seneca Rocks NRA): open all year in daylight under a climbing plan; no permit or fee found.",
+      "source": "https://www.fs.usda.gov/r09/monongahela/recreation/seneca-rocks",
+      "parkingFrom": "estimate: Estimated Discovery Center lot off US-33",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "stone-fort",
+      "name": "Stone Fort (Little Rock City)",
+      "parking": [
+        35.241,
+        -85.242
+      ],
+      "types": [
+        "bouldering"
+      ],
+      "access": "Private golf course: sign the waiver and buy a day pass at the clubhouse; no dogs, night bouldering or camping.",
+      "source": "https://www.seclimbers.org/project/stone-fort/",
+      "parkingFrom": "estimate: Rough estimate; climber parking at the Montlake Golf Course clubhouse, 9104 Brow Lake Rd",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "stone-mountain-nc",
+      "name": "Stone Mountain State Park",
+      "parking": [
+        36.384,
+        -81.02803
+      ],
+      "types": [
+        "trad",
+        "sport"
+      ],
+      "access": "NC State Parks: free climbing permit required (park office or the climbers' kiosk). Park hours apply",
+      "source": "https://www.ncparks.gov/media/913/open",
+      "parkingFrom": "estimate: HikingUpward Lower Trailhead",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "summersville-lake",
+      "name": "Summersville Lake",
+      "parking": [
+        38.248,
+        -80.859
+      ],
+      "types": [
+        "sport",
+        "trad"
+      ],
+      "access": "Free WV state park; signed climbers' lot off US-19. Many crags need the lake low (the fall drawdown).",
+      "source": "https://wvstateparks.com/parks/summersville-lake-state-park/activities-at-summersville-lake-state-park/",
+      "parkingFrom": "estimate: Estimated state-park climber lot off US-19",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "sunset-rock",
+      "name": "Sunset Rock",
+      "parking": [
+        35.00028,
+        -85.35417
+      ],
+      "types": [
+        "trad",
+        "top-rope"
+      ],
+      "access": "NPS military park: tiny West Brow lot, no street or yard parking; groups of 10 or more need a permit; no fixed protection.",
+      "source": "https://www.seclimbers.org/project/sunset-rock/",
+      "parkingFrom": "estimate: climbingaway.fr Sunset Rock parking 35°0'1\"N 85°21'15\"W, small West Brow Rd lot",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "table-rock-sc",
+      "name": "Table Rock State Park (SC)",
+      "parking": [
+        35.034,
+        -82.692
+      ],
+      "types": [
+        "trad"
+      ],
+      "access": "Park entry fee. Permit box on the climbers' trail behind the White Oaks Pavilion. Designated walls; Walker Buttress closed about Feb 1-Aug 15",
+      "source": "https://southcarolinaparks.com/table-rock/faqs",
+      "parkingFrom": "estimate: Estimated White Oaks Pavilion",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "tennessee-wall",
+      "name": "Tennessee Wall",
+      "parking": [
+        35.0675,
+        -85.40333
+      ],
+      "types": [
+        "trad",
+        "sport"
+      ],
+      "access": "Prentice Cooper State Forest: no climbing during scheduled spring and fall hunts (check the dates each season); car break-ins at the lot are common.",
+      "source": "https://www.seclimbers.org/?p=430",
+      "parkingFrom": "estimate: climbingaway.fr T-Wall parking 35°4'3\"N 85°24'12\"W, lot on Mullens Cove Rd",
+      "checked": "2026-10-30"
+    },
+    {
+      "id": "whiteside-mountain",
+      "name": "Whiteside Mountain",
+      "parking": [
+        35.08042,
+        -83.14403
+      ],
+      "types": [
+        "trad"
+      ],
+      "access": "Nantahala NF day-use fee lot. USFS and NCWRC close the Southwest Arete-Mainline section for peregrine nesting about Jan 15-Aug 15",
+      "source": "https://www.fs.usda.gov/r08/northcarolina/newsroom/releases/seasonal-restriction-near-peregrine-falcon-nesting-areas",
+      "parkingFrom": "estimate: Whiteside Mountain trailhead lot (Asheville Trails)",
+      "checked": "2026-10-30"
+    }
+  ]
+}

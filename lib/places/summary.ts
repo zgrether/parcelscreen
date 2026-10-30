@@ -15,6 +15,7 @@ const WORD: Record<Shown["kind"], [string, string]> = {
   grocer: ["grocery", "groceries"],
   trailhead: ["trailhead", "trailheads"],
   launch: ["launch", "launches"],
+  crag: ["climbing area", "climbing areas"],
 };
 /** Names shown after a line, at most. */
 const NAMES = 3;
