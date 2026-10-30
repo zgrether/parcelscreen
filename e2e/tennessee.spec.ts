@@ -4,7 +4,7 @@
  * with empty collections there (e2e/replay.ts). PR 5 adds the Roan Mountain fixture's tests here.
  */
 import { expect, test, type Page } from "@playwright/test";
-import { OWN_RECORDS_HINT } from "@/lib/geo/ownRecords";
+import { ownRecordsHint } from "@/lib/geo/ownRecords";
 import { loadFixture, ROAN_SEARCH } from "../test/support/fixtures";
 import { expectAllDone, openExplorer, openSearch, screenIt } from "./flow";
 import { replayHar } from "./replay";
@@ -111,14 +111,14 @@ for (const phone of [false, true]) {
   test.describe(phone ? "on a phone" : "on a desktop", () => {
     if (phone) test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
 
-    test("over Knox County: the no-lines hint with a Draw button that starts drawing", async ({
+    test("over Knox County: the no-lines hint names the county, with a Draw button that starts drawing", async ({
       page,
       context,
     }) => {
       await replayHar(context, FERNEY);
       await openAt(page, KNOXVILLE);
       const hint = page.locator(".map-hint");
-      await expect(hint).toContainText(OWN_RECORDS_HINT, { timeout: 30_000 });
+      await expect(hint).toContainText(ownRecordsHint("Knox"), { timeout: 30_000 });
       const draw = hint.getByRole("button", { name: "Draw" });
       const box = (await draw.boundingBox())!;
       expect(box.width).toBeGreaterThanOrEqual(44);

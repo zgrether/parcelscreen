@@ -310,10 +310,10 @@ describe("settings from a file", () => {
   });
 
   it("the same checks as Save: a bad field fails the whole import", () => {
-    const bad = { ...DEFAULT_USER_CONFIG, gardenMin: 300, endpoints: { ...DEFAULT_ENDPOINTS, _v: 17 } };
+    const bad = { ...DEFAULT_USER_CONFIG, gardenMin: 300, endpoints: { ...DEFAULT_ENDPOINTS, _v: 18 } };
     expect(errors(file({ cfg: bad }))).toEqual([
       "Settings: Garden: min cell score — must be between 0 and 100",
-      "Settings: Data endpoints — Endpoints are version 17; only version 16 is accepted, and older versions are replaced by defaults on load. Reset the endpoints, or update the list and set _v to 16.",
+      "Settings: Data endpoints — Endpoints are version 18; only version 17 is accepted, and older versions are replaced by defaults on load. Reset the endpoints, or update the list and set _v to 17.",
     ]);
   });
 

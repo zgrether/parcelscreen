@@ -46,6 +46,7 @@ import { CancelledError } from "@/lib/http";
 import { unreachableMessage } from "@/lib/client/pwa";
 import { isServiceDown, serviceDownMessage } from "@/lib/geo/serviceStatus";
 import { combineParcels, type CombineResult } from "@/lib/geo/combine";
+import { ownRecordsHint, uncoveredCountyAt } from "@/lib/geo/ownRecords";
 import { parcelFromLine, pickParcelAt, type ParcelLine, type ParcelRecord } from "@/lib/geo/parcels";
 import { fieldsFor, fullRecord } from "@/lib/geo/parcelTiles";
 import { deriveParcel, ownLand, splitPreview, type DerivedParcel } from "@/lib/geo/recipe";
@@ -729,7 +730,11 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
         const { parcel: picked } = await pickParcelAt(browserHttp, parcelServices, ll, ctl.signal);
         // Where a parcel can be several features (Tennessee, step 2), the record is all of them, conflicts checked.
         const record = picked && fieldsFor(picked.source).groupById ? await full(picked) : picked;
-        if (!record) return flash(hint, NO_PARCEL_HERE, 4000);
+        if (!record) {
+          // Over a Tennessee county with no parcel source, say which (the Tennessee counties mission).
+          const county = uncoveredCountyAt(ll, parcelServices);
+          return flash(hint, county ? ownRecordsHint(county) : NO_PARCEL_HERE, 4000);
+        }
         if (refuseBusy()) return;
         leaving();
         dispatch({ type: "select", record, stamp: stamp(), keepPanel: docked });

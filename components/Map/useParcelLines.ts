@@ -42,14 +42,14 @@ import {
 import { unreachableMessage } from "@/lib/client/pwa";
 import { isServiceDownMessage, serviceDownMessage } from "@/lib/geo/serviceStatus";
 import { stateOf } from "@/lib/geo/parcelFields";
-import { OWN_RECORDS_HINT, ownRecordsCountyAt } from "@/lib/geo/ownRecords";
+import { isOwnRecordsHint, ownRecordsHint, servesBounds, uncoveredCountyAt } from "@/lib/geo/ownRecords";
 import { LAYER, SOURCE } from "./style";
 
 export { LINES_MIN_ZOOM };
 export const ZOOM_HINT = "Zoom in to see parcel lines";
 export const INCOMPLETE_HINT = "Some parcel lines didn't load here — zoom in.";
 export const DENSE_HINT = "Dense area — zoom in to see all parcel lines";
-const OUR_HINTS = new Set([ZOOM_HINT, INCOMPLETE_HINT, DENSE_HINT, OWN_RECORDS_HINT]);
+const OUR_HINTS = new Set([ZOOM_HINT, INCOMPLETE_HINT, DENSE_HINT]);
 /** The map redraws at most this often while tiles arrive. */
 const REDRAW_MS = 250;
 
@@ -182,7 +182,8 @@ export function useParcelLines(
       drawn.set(map, lines);
       source()?.setData({ type: "FeatureCollection", features });
     };
-    const clearOurHints = (h: string) => (OUR_HINTS.has(h) || isServiceDownMessage(h) ? "" : h);
+    const clearOurHints = (h: string) =>
+      OUR_HINTS.has(h) || isServiceDownMessage(h) || isOwnRecordsHint(h) ? "" : h;
     if (!enabled) {
       downInView.delete(map);
       show([]);
@@ -224,26 +225,30 @@ export function useParcelLines(
       const draw = () => {
         if (gen === generation) show(done);
       };
+      // A county's own service (Hamilton's) is asked only for tiles over its county.
       const jobs = serviceUrls.flatMap((url) =>
-        tiles.map(async (t) => {
-          // Below zoom 15 a dense tile waits (the count is cached, so this costs one tiny request per tile);
-          // from 15 every tile draws, so none is counted.
-          if (zoom < DENSE_BELOW_ZOOM && !drawsAt(zoom, await tileCount(url, t))) {
-            dense = true;
-            return;
-          }
-          const r = await loadTile(url, t, detail);
-          if (r.failed) failed.add(url);
-          done.push(r);
-          // Redraw as tiles arrive, at most every REDRAW_MS.
-          redraw ??= setTimeout(() => {
-            redraw = undefined;
-            draw();
-          }, REDRAW_MS);
-        }),
+        tiles
+          .filter((t) => servesBounds(url, t.bounds))
+          .map(async (t) => {
+            // Below zoom 15 a dense tile waits (the count is cached, so this costs one tiny request per tile);
+            // from 15 every tile draws, so none is counted.
+            if (zoom < DENSE_BELOW_ZOOM && !drawsAt(zoom, await tileCount(url, t))) {
+              dense = true;
+              return;
+            }
+            const r = await loadTile(url, t, detail);
+            if (r.failed) failed.add(url);
+            done.push(r);
+            // Redraw as tiles arrive, at most every REDRAW_MS.
+            redraw ??= setTimeout(() => {
+              redraw = undefined;
+              draw();
+            }, REDRAW_MS);
+          }),
       );
       void Promise.all(jobs).then(() => {
         if (gen !== generation) return;
+        const county = askTennessee ? uncoveredCountyAt([centre.lat, centre.lng], serviceUrls) : null;
         clearTimeout(redraw);
         redraw = undefined;
         draw();
@@ -253,9 +258,10 @@ export function useParcelLines(
           const message = unreachableMessage(serviceDownMessage([...failed][0]!), online);
           downInView.set(map, message);
           if (online) hint(message);
-        } else if (askTennessee && ownRecordsCountyAt([centre.lat, centre.lng])) {
-          // One of the nine counties outside the state's system (step 2 plan §6.4): no lines will ever draw here.
-          hint(OWN_RECORDS_HINT);
+        } else if (county) {
+          // One of the nine counties outside the state's system (step 2 plan §6.4) with no source of its own (the
+          // Tennessee counties mission): no lines will ever draw here.
+          hint(ownRecordsHint(county));
         } else if (dense) hint(DENSE_HINT);
         else if (done.some((t) => !t.complete && !t.failed)) hint(INCOMPLETE_HINT);
       });

@@ -98,12 +98,27 @@ export function taxCardQuery(text: string): TaxCardQuery | null {
   };
 }
 
-/** The where clause for one county of Tennessee's service (or the region's, null): its map, and the group and parcel. */
-export function taxCardWhere(countyField: string, county: string | null, q: TaxCardQuery): string {
+/** A Tennessee service's tax card fields (the state's CMAP, GP and PARCEL; Hamilton County's MAP, GROUP_ and PARCEL). */
+export interface TaxCardFields {
+  map: string;
+  group: string;
+  parcel: string;
+}
+
+/**
+ * The where clause for one county of a Tennessee service (or the region's, null): its map, and the group and parcel.
+ * `countyField` is null for a county's own service, which holds only its county.
+ */
+export function taxCardWhere(
+  countyField: string | null,
+  county: string | null,
+  q: TaxCardQuery,
+  fields: TaxCardFields = { map: "CMAP", group: "GP", parcel: "PARCEL" },
+): string {
   return [
-    ...(county === null ? [] : [`${countyField}=${sqlString(county)}`]),
-    `CMAP=${sqlString(q.map)}`,
-    ...(q.group ? [`GP=${sqlString(q.group)}`] : []),
-    ...(q.parcel ? [`PARCEL LIKE ${sqlString(`${q.parcel}%`)}`] : []),
+    ...(county === null || countyField === null ? [] : [`${countyField}=${sqlString(county)}`]),
+    `${fields.map}=${sqlString(q.map)}`,
+    ...(q.group ? [`${fields.group}=${sqlString(q.group)}`] : []),
+    ...(q.parcel ? [`${fields.parcel} LIKE ${sqlString(`${q.parcel}%`)}`] : []),
   ].join(" AND ");
 }

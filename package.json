@@ -49,6 +49,7 @@
     "check:deployed": "node scripts/check-deployed.mts",
     "record:port": "vitest run test/tools/record-port.test.ts --mode record-port",
     "record:tn": "vitest run test/tools/record-tn.test.ts --mode record-tn",
+    "record:tn-hamilton": "vitest run test/tools/record-tn-hamilton.test.ts --mode record-tn-hamilton",
     "record:oracles": "vitest run test/tools/record-oracles.test.ts --mode record-oracles",
     "screenshots": "playwright test -c playwright.screenshots.config.ts",
     "study:grades": "vitest run test/tools/grade-study.test.ts --mode grade-study",

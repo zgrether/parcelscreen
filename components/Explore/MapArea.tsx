@@ -32,7 +32,7 @@ import { FinishPrompt } from "@/components/Map/FinishPrompt";
 import { AttachListingChip } from "@/components/Map/AttachListingChip";
 import { MapPanel } from "@/components/Map/MapPanel";
 import { useExplore, type SetHint } from "./useExploreController";
-import { OWN_RECORDS_HINT } from "@/lib/geo/ownRecords";
+import { isOwnRecordsHint } from "@/lib/geo/ownRecords";
 import { AreaOutlines } from "@/components/Map/AreaOutlines";
 import { useMapLayerPrefs } from "@/components/Map/useMapLayerPrefs";
 import { ZOOM_HINT } from "@/components/Map/useParcelLines";
@@ -87,7 +87,7 @@ export function MapArea({
       {!docked && <Search photonUrl={config.endpoints.photon} hint={setHint} />}
       <Hint
         text={shownHint}
-        action={shownHint === OWN_RECORDS_HINT ? { label: "Draw", onClick: startDraw } : null}
+        action={isOwnRecordsHint(shownHint) ? { label: "Draw", onClick: startDraw } : null}
       />
       <SwitchToast />
       <ClearedNote />
