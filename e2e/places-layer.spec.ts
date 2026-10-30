@@ -137,7 +137,7 @@ test("Places: off at first; every kind on; clusters at zoom 10, apart at 13; a t
     return { x: box.left + p.x, y: box.top + p.y };
   }, BOULDERS);
   await page.mouse.click(crag.x, crag.y);
-  await expect(card.locator("strong")).toHaveText("Grayson Highlands State Park");
+  await expect(card.locator("strong")).toHaveText("Grayson Highlands State Park: Massie Gap");
   await expect(card).toContainText("Climbing: bouldering");
   await expect(card).toContainText("Bouldering only: no ropes, no chipping.");
   await expect(card).toContainText("27 min from this parcel");
