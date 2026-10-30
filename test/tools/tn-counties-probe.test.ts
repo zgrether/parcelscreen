@@ -62,77 +62,25 @@ const centre = (g: { rings?: number[][][] } | undefined): string => {
 };
 
 describe.runIf(import.meta.env.MODE === "tn-counties-probe")("Tennessee county parcel services", () => {
-  it("probes Hamilton's parcel layers, round 2", async () => {
-    for (const id of [0, 1]) {
-      const l = `${HAMILTON}/${id}`;
-      const meta = json((await get(`${l}?f=pjson`)).text);
-      const count = await query(l, { where: "1=1", returnCountOnly: "true" });
-      const types = await query(l, {
-        where: "1=1",
-        groupByFieldsForStatistics: "PARCEL_TYP",
-        outStatistics: JSON.stringify([
-          { statisticType: "count", onStatisticField: "OBJECTID", outStatisticFieldName: "n" },
-        ]),
-      });
-      say(
-        `## Layer ${id}`,
-        "",
-        `- minScale ${String(meta?.minScale)}, maxScale ${String(meta?.maxScale)}, defaultVisibility ${String(meta?.defaultVisibility)}, definitionExpression ${clip(meta?.definitionExpression, 120)}`,
-        `- count ${String(count?.count)}`,
-        `- PARCEL_TYP: ${clip(JSON.stringify((types?.features as { attributes: unknown }[] | undefined)?.map((f) => f.attributes)), 600)}`,
-        "",
-      );
-    }
+  it("probes Hamilton's parcel types, round 3", async () => {
     const l = `${HAMILTON}/0`;
-    for (const [label, where] of [
-      ["Worley Road", "UPPER(STNAME) LIKE '%WORLEY%'"],
-      ["Three Gorges (legal description)", "UPPER(LEGALDESC1) LIKE '%GORGE%'"],
-    ] as const) {
+    for (const t of [5, 6, 10, 11, 12, 13]) {
       const j = await query(l, {
-        where,
+        where: `PARCEL_TYP=${t}`,
         outFields: SHOWN_FIELDS,
-        returnGeometry: "true",
-        outSR: "4326",
-        resultRecordCount: "25",
+        returnGeometry: "false",
+        resultRecordCount: "4",
       });
-      type Feat = { attributes: Record<string, unknown>; geometry?: { rings?: number[][][] } };
-      const feats = (j?.features as Feat[] | undefined) ?? [];
-      say(
-        `## ${label}: ${feats.length} parcels${j?.error ? `, error ${clip(JSON.stringify(j.error))}` : ""}`,
-        "",
-      );
-      for (const f of feats) say(`- at ${centre(f.geometry)}: ${clip(JSON.stringify(f.attributes), 500)}`);
-      say("");
+      const feats = (j?.features as { attributes: Record<string, unknown> }[] | undefined) ?? [];
+      say(`## PARCEL_TYP ${t}`, "", ...feats.map((f) => `- ${clip(JSON.stringify(f.attributes), 400)}`), "");
     }
-    // A point query at the first Three Gorges lot, as the app asks it (f=geojson).
-    const first = await query(l, {
-      where: "UPPER(LEGALDESC1) LIKE '%GORGE%'",
-      outFields: "OBJECTID",
-      returnGeometry: "true",
-      outSR: "4326",
-      resultRecordCount: "1",
+    // Several polygons for one GISLINK among regular parcels (the state layer's two-part tracts)?
+    const multi = await query(l, {
+      where: "PARCEL_TYP=1 AND GISLINK IN ('033048 04501','033039 01800','033039 02000')",
+      outFields: "OBJECTID,GISLINK,PARCEL_TYP,CALCACRES",
+      returnGeometry: "false",
     });
-    const g = (first?.features as { geometry?: { rings?: number[][][] } }[] | undefined)?.[0]?.geometry;
-    if (g) {
-      const [lat, lon] = centre(g).split(", ").map(Number);
-      const q = new URLSearchParams({
-        geometry: `${lon},${lat}`,
-        geometryType: "esriGeometryPoint",
-        inSR: "4326",
-        spatialRel: "esriSpatialRelIntersects",
-        outFields: SHOWN_FIELDS,
-        returnGeometry: "true",
-        outSR: "4326",
-        f: "geojson",
-      });
-      const r = await get(`${l}/query?${q}`);
-      say(
-        `## Point query at ${lat}, ${lon} (f=geojson)`,
-        "",
-        `- HTTP ${r.status}, ACAO ${r.acao ?? "(none)"}: ${clip(r.text, 700)}`,
-        "",
-      );
-    }
+    say("## Polygons per GISLINK (three samples)", "", clip(JSON.stringify(multi?.features), 600), "");
     mkdirSync(join(process.cwd(), "test-results"), { recursive: true });
     writeFileSync(join(process.cwd(), "test-results", "tn-counties-probe.md"), out.join("\n") + "\n");
     expect(out.length).toBeGreaterThan(2);
