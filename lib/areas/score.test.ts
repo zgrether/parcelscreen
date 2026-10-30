@@ -107,6 +107,31 @@ describe("a row's letter, the card's own", () => {
   });
 });
 
+describe("Climbing re-ranks the catalog (step 17 plan §9)", () => {
+  it("as a Really want, the area nearer rope climbing moves up past one otherwise the same", () => {
+    // The same in every other measure, so without Climbing they tie and go by name: "far" first.
+    const far = area("far", { climbMin: Array.from({ length: 10 }, () => 150) });
+    const near = area("near", { climbMin: Array.from({ length: 10 }, () => 20) });
+    const names = new Map([
+      ["far", "far"],
+      ["near", "near"],
+    ]);
+    const base: Rubric = { ...defaultRubric(), weights: { mode: "rankSum" } };
+    const order = (R: Rubric) =>
+      rankAreas(
+        [far, near].map((a) => areaCard(a, nr(R))),
+        names,
+      ).map((c) => c.id);
+    expect(order(base)).toEqual(["far", "near"]);
+    const climbing: Rubric = {
+      ...base,
+      wonts: base.wonts.filter((f) => f !== "climbing"),
+      ranked: [...base.ranked, { factor: "climbing", tier: "should" }],
+    };
+    expect(order(climbing)).toEqual(["near", "far"]);
+  });
+});
+
 describe("the fit letter", () => {
   it("every area-scale factor graded, and a letter", () => {
     const c = areaCard(area("x", {}), nr());
