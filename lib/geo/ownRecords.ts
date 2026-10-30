@@ -20,14 +20,14 @@ import type { LatLon } from "./types";
 
 const COUNTIES = data.counties as unknown as Record<string, Polygon | MultiPolygon>;
 
-/** The map's hint over a county with no parcel source; its Draw button sits beside it. */
+/** The map's hint over a county with no parcel source; the toolbar's "Draw a custom parcel" sits below it. */
 export const ownRecordsHint = (county: string): string =>
-  `No parcel lines in ${county} County: it keeps its own records. Draw a custom parcel?`;
+  `No parcel lines in ${county} County: it keeps its own records. Draw a custom parcel instead.`;
 
 /** Whether a hint is ownRecordsHint's, for any county. */
 export const isOwnRecordsHint = (h: string): boolean =>
   h.startsWith("No parcel lines in ") &&
-  h.endsWith(" County: it keeps its own records. Draw a custom parcel?");
+  h.endsWith(" County: it keeps its own records. Draw a custom parcel instead.");
 
 /** The county the point is in, if it's one of the nine; null otherwise. */
 export function ownRecordsCountyAt([lat, lon]: LatLon): string | null {

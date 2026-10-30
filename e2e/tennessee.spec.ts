@@ -135,7 +135,7 @@ for (const phone of [false, true]) {
   test.describe(phone ? "on a phone" : "on a desktop", () => {
     if (phone) test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
 
-    test("over Knox County: the no-lines hint names the county, with a Draw button that starts drawing", async ({
+    test("over Knox County: the hint names the county; the toolbar offers only Draw, which starts drawing", async ({
       page,
       context,
     }) => {
@@ -143,12 +143,15 @@ for (const phone of [false, true]) {
       await openAt(page, KNOXVILLE);
       const hint = page.locator(".map-hint");
       await expect(hint).toContainText(ownRecordsHint("Knox"), { timeout: 30_000 });
-      const draw = hint.getByRole("button", { name: "Draw" });
-      const box = (await draw.boundingBox())!;
-      expect(box.width).toBeGreaterThanOrEqual(44);
-      expect(box.height).toBeGreaterThanOrEqual(44);
-      // Two lines at most (plan §6.7): the words beside a 44 px button.
-      expect((await hint.boundingBox())!.height).toBeLessThanOrEqual(100);
+      // The fresh-eyes review: no "Tap a parcel to select it" under a hint that says there are none, and one Draw.
+      await expect(page.getByText(/(Tap|Click) a parcel to select it/)).toBeHidden();
+      const draw = page.getByRole("button", { name: "Draw a custom parcel" });
+      await expect(draw).toHaveCount(1);
+      // The hint shows whole, beside the docked panel on a desktop, and in two lines at most on a phone.
+      const h = (await hint.boundingBox())!;
+      const panel = await page.locator(".explore-panel").boundingBox();
+      if (!phone && panel) expect(h.x).toBeGreaterThanOrEqual(panel.x + panel.width);
+      expect(h.height).toBeLessThanOrEqual(phone ? 60 : 40);
       // Nothing scrolls sideways.
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
       await draw.click();

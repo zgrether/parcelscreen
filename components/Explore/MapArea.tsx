@@ -51,7 +51,7 @@ export function MapArea({
   bottomInset: number;
   leftInset: number;
 }) {
-  const { setMap, panelInset, map, state, startDraw, docked } = useExplore();
+  const { setMap, panelInset, map, state, docked } = useExplore();
   // Draw, Combine and Split flatten the camera while they're open (13g).
   const { mode, split } = state;
   // Polish 2 (M11): with the areas' outlines on, "Zoom in to see parcel lines" would read as being about them.
@@ -85,10 +85,7 @@ export function MapArea({
       <AreaOutlines />
       {/* On a desktop Search is the docked panel's first row (step 4c). */}
       {!docked && <Search photonUrl={config.endpoints.photon} hint={setHint} />}
-      <Hint
-        text={shownHint}
-        action={isOwnRecordsHint(shownHint) ? { label: "Draw", onClick: startDraw } : null}
-      />
+      <Hint text={shownHint} ownRecords={isOwnRecordsHint(shownHint)} />
       <SwitchToast />
       <ClearedNote />
       <LineUndoToast />
