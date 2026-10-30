@@ -4,9 +4,9 @@
  *
  *   pnpm exec vitest run test/tools/tn-counties-probe.test.ts --mode tn-counties-probe
  *
- * For each candidate it reports the service directory, each parcel layer's fields, record limit, query formats,
- * description and copyright, and the CORS header a browser would see; a parcel at Worley Road, Soddy-Daisy; and the
- * terms pages' lines on use. Read-only; nothing is written to the repo. Its findings go into the plan's §0.
+ * Round 1 listed the service directories, the parcel layers' fields, limits and CORS, and the terms pages (its findings
+ * are the plan's §0). Round 2 compares Live_Parcels' two "Parcels" layers and finds the Worley Road and Three Gorges
+ * lots in the county's own data, with a point query as the app asks it. Read-only; nothing is written to the repo.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -17,28 +17,6 @@ const live = () =>
 
 const UA = "parcelscreen-data/1 (Tennessee county parcels probe; https://github.com/zgrether/parcelscreen)";
 const ORIGIN = "https://parcelscreen.vercel.app";
-
-/** Service directories to list; any service whose name says parcel is opened. */
-const DIRECTORIES = [
-  "https://mapsdev.hamiltontn.gov/hcwa03/rest/services",
-  "https://mapsdev.hamiltontn.gov/hcwa/rest/services",
-  "https://gismaps.hamiltontn.gov/arcgis/rest/services",
-  "https://www.kgis.org/arcgis/rest/services",
-  "https://kgis.org/arcgis/rest/services",
-  "https://maps.kgis.org/arcgis/rest/services",
-];
-/** Layers named in the research, opened whatever the directories say. */
-const LAYERS = [
-  "https://mapsdev.hamiltontn.gov/hcwa03/rest/services/Live_Parcels/MapServer/0",
-  "https://mapsdev.hamiltontn.gov/hcwa03/rest/services/OpenGov/OpenGov_HamiltonTN/MapServer/2",
-];
-/** Pages whose lines on use, licence or copyright are quoted. */
-const TERMS = [
-  "https://gis.hamiltontn.gov/gishome.html",
-  "https://assessor.hamiltontn.gov/",
-  "https://www.kgis.org/kgismaps/",
-  "https://www.kgis.org/portal/Products/DigitalData/PurchaseInformation.aspx",
-];
 
 const out: string[] = ["# Tennessee county parcel services (probe)", ""];
 const say = (...l: string[]) => {
@@ -66,142 +44,95 @@ const clip = (s: unknown, n = 400) =>
     .replace(/\s+/g, " ")
     .slice(0, n);
 
-async function layer(url: string): Promise<void> {
-  const r = await get(`${url}?f=pjson`);
-  const j = json(r.text);
-  say(`### ${url}`, "", `- HTTP ${r.status}, Access-Control-Allow-Origin: ${r.acao ?? "(none)"}`);
-  if (!j) return say(`- not JSON: ${clip(r.text, 200)}`, "");
-  if (j.error) return say(`- error: ${clip(JSON.stringify(j.error))}`, "");
-  const fields = (j.fields as { name: string; type: string; alias?: string }[] | undefined) ?? [];
-  say(
-    `- name ${clip(j.name, 80)}, type ${clip(j.type, 40)}, geometry ${clip(j.geometryType, 40)}`,
-    `- maxRecordCount ${String(j.maxRecordCount)}, supportedQueryFormats ${clip(j.supportedQueryFormats, 80)}, capabilities ${clip(j.capabilities, 120)}`,
-    `- description: ${clip(j.description)}`,
-    `- copyrightText: ${clip(j.copyrightText)}`,
-    `- fields (${fields.length}): ${fields.map((f) => `${f.name}${f.alias && f.alias !== f.name ? ` "${f.alias}"` : ""}`).join(", ")}`,
-    "",
-  );
-}
+/** Hamilton's parcel layers (round 2: the first round found Live_Parcels' two "Parcels" layers). */
+const HAMILTON = "https://mapsdev.hamiltontn.gov/hcwa03/rest/services/Live_Parcels/MapServer";
+/** The fields a sample prints (no owner or mailing fields). */
+const SHOWN_FIELDS =
+  "OBJECTID,PARCEL_TYP,GISLINK,MAP,GROUP_,PARCEL,TAX_MAP_NO,STNUM,STNAME,ADDRESS,LEGALDESC1,CALCACRES,RecordsOnl";
 
-async function directory(root: string): Promise<string[]> {
-  const r = await get(`${root}?f=pjson`);
-  const j = json(r.text);
-  say(`## ${root}`, "", `- HTTP ${r.status}, Access-Control-Allow-Origin: ${r.acao ?? "(none)"}`);
-  if (!j) {
-    say(`- not JSON: ${clip(r.text, 200)}`, "");
-    return [];
-  }
-  const folders = (j.folders as string[] | undefined) ?? [];
-  const services = (j.services as { name: string; type: string }[] | undefined) ?? [];
-  say(
-    `- folders: ${folders.join(", ") || "(none)"}`,
-    `- services: ${services.map((s) => `${s.name} (${s.type})`).join(", ") || "(none)"}`,
-  );
-  const parcelServices = services.filter((s) => /parcel|property|cadast/i.test(s.name));
-  // One level into folders, for parcel services only.
-  for (const f of folders) {
-    const fj = json((await get(`${root}/${f}?f=pjson`)).text);
-    const fs = (fj?.services as { name: string; type: string }[] | undefined) ?? [];
-    const hits = fs.filter((s) => /parcel|property|cadast/i.test(s.name));
-    if (hits.length) say(`- in ${f}: ${hits.map((s) => `${s.name} (${s.type})`).join(", ")}`);
-    parcelServices.push(...hits);
-  }
-  say("");
-  const layers: string[] = [];
-  for (const s of parcelServices) {
-    const base = `${root}/${s.name}/${s.type}`;
-    const sj = json((await get(`${base}?f=pjson`)).text);
-    const ls = (sj?.layers as { id: number; name: string }[] | undefined) ?? [];
-    say(
-      `### ${base}`,
-      "",
-      `- layers: ${ls.map((l) => `${l.id} ${l.name}`).join(", ") || "(none)"}`,
-      `- description: ${clip(sj?.serviceDescription ?? sj?.description)}`,
-      `- copyrightText: ${clip(sj?.copyrightText)}`,
-      "",
-    );
-    for (const l of ls.filter((x) => /parcel|property|tax/i.test(x.name)).slice(0, 2))
-      layers.push(`${base}/${l.id}`);
-  }
-  return layers;
+async function query(layer: string, params: Record<string, string>): Promise<Record<string, unknown> | null> {
+  const q = new URLSearchParams({ f: "json", ...params });
+  return json((await get(`${layer}/query?${q}`)).text);
 }
+const centre = (g: { rings?: number[][][] } | undefined): string => {
+  const ring = g?.rings?.[0] ?? [];
+  if (!ring.length) return "?";
+  const [x, y] = ring.reduce(([a, b], [c, d]) => [a! + c!, b! + d!], [0, 0]);
+  return `${(y! / ring.length).toFixed(5)}, ${(x! / ring.length).toFixed(5)}`;
+};
 
 describe.runIf(import.meta.env.MODE === "tn-counties-probe")("Tennessee county parcel services", () => {
-  it("probes Hamilton's and Knox's services", async () => {
-    const found: string[] = [];
-    for (const d of DIRECTORIES) found.push(...(await directory(d)));
-    const layers = [...new Set([...LAYERS, ...found])];
-    say("## Parcel layers", "");
-    for (const l of layers) await layer(l);
-
-    // Worley Road, Soddy-Daisy (the brief's Three Gorges lot): Nominatim, then each Hamilton layer around it.
-    say("## Worley Road, Soddy-Daisy", "");
-    const geo = json(
-      `{"r":${(await get("https://nominatim.openstreetmap.org/search?q=Worley+Road,+Soddy-Daisy,+Tennessee&format=json&limit=3")).text}}`,
-    );
-    const hits = ((geo?.r as { lat: string; lon: string; display_name: string }[] | undefined) ?? []).slice(
-      0,
-      3,
-    );
-    say(...hits.map((h) => `- ${h.lat}, ${h.lon}: ${clip(h.display_name, 160)}`), "");
-    const at = hits[0];
-    if (at) {
-      const [lat, lon] = [Number(at.lat), Number(at.lon)];
-      const env = `${lon - 0.004},${lat - 0.003},${lon + 0.004},${lat + 0.003}`;
-      for (const l of layers.filter((x) => x.includes("hamiltontn"))) {
-        const q = new URLSearchParams({
-          geometry: env,
-          geometryType: "esriGeometryEnvelope",
-          inSR: "4326",
-          spatialRel: "esriSpatialRelIntersects",
-          outFields: "*",
-          returnGeometry: "false",
-          resultRecordCount: "40",
-          f: "json",
-        });
-        const r = await get(`${l}/query?${q}`);
-        const j = json(r.text);
-        const feats = (j?.features as { attributes: Record<string, unknown> }[] | undefined) ?? [];
-        say(
-          `### ${l}`,
-          "",
-          `- HTTP ${r.status}, ACAO ${r.acao ?? "(none)"}, ${feats.length} features${j?.error ? `, error ${clip(JSON.stringify(j.error))}` : ""}`,
-        );
-        for (const f of feats.slice(0, 2)) say(`- ${clip(JSON.stringify(f.attributes), 900)}`);
-        const gorges = feats.filter((f) => /gorge/i.test(JSON.stringify(f.attributes)));
-        say(
-          `- ${gorges.length} mention "gorge"`,
-          ...gorges.slice(0, 3).map((f) => `  - ${clip(JSON.stringify(f.attributes), 600)}`),
-          "",
-        );
-        // GeoJSON answered? (the app asks f=geojson)
-        q.set("f", "geojson");
-        q.set("resultRecordCount", "1");
-        q.set("returnGeometry", "true");
-        q.set("outSR", "4326");
-        const g = await get(`${l}/query?${q}`);
-        say(`- f=geojson: HTTP ${g.status}, ${clip(g.text, 160)}`, "");
-      }
+  it("probes Hamilton's parcel layers, round 2", async () => {
+    for (const id of [0, 1]) {
+      const l = `${HAMILTON}/${id}`;
+      const meta = json((await get(`${l}?f=pjson`)).text);
+      const count = await query(l, { where: "1=1", returnCountOnly: "true" });
+      const types = await query(l, {
+        where: "1=1",
+        groupByFieldsForStatistics: "PARCEL_TYP",
+        outStatistics: JSON.stringify([
+          { statisticType: "count", onStatisticField: "OBJECTID", outStatisticFieldName: "n" },
+        ]),
+      });
+      say(
+        `## Layer ${id}`,
+        "",
+        `- minScale ${String(meta?.minScale)}, maxScale ${String(meta?.maxScale)}, defaultVisibility ${String(meta?.defaultVisibility)}, definitionExpression ${clip(meta?.definitionExpression, 120)}`,
+        `- count ${String(count?.count)}`,
+        `- PARCEL_TYP: ${clip(JSON.stringify((types?.features as { attributes: unknown }[] | undefined)?.map((f) => f.attributes)), 600)}`,
+        "",
+      );
     }
-
-    say("## Terms", "");
-    for (const t of TERMS) {
-      const r = await get(t);
-      const text = r.text
-        .replace(/<script[\s\S]*?<\/script>/gi, " ")
-        .replace(/<[^>]+>/g, " ")
-        .replace(/&nbsp;/g, " ")
-        .replace(/\s+/g, " ");
-      const lines = text
-        .split(/(?<=[.!?])\s+/)
-        .filter((s) =>
-          /licen|copyright|disclaim|commercial|permission|reproduc|terms|agreement|not intended|internal/i.test(
-            s,
-          ),
-        );
-      say(`### ${t}`, "", `- HTTP ${r.status}`, ...lines.slice(0, 12).map((s) => `- "${clip(s, 300)}"`), "");
+    const l = `${HAMILTON}/0`;
+    for (const [label, where] of [
+      ["Worley Road", "UPPER(STNAME) LIKE '%WORLEY%'"],
+      ["Three Gorges (legal description)", "UPPER(LEGALDESC1) LIKE '%GORGE%'"],
+    ] as const) {
+      const j = await query(l, {
+        where,
+        outFields: SHOWN_FIELDS,
+        returnGeometry: "true",
+        outSR: "4326",
+        resultRecordCount: "25",
+      });
+      type Feat = { attributes: Record<string, unknown>; geometry?: { rings?: number[][][] } };
+      const feats = (j?.features as Feat[] | undefined) ?? [];
+      say(
+        `## ${label}: ${feats.length} parcels${j?.error ? `, error ${clip(JSON.stringify(j.error))}` : ""}`,
+        "",
+      );
+      for (const f of feats) say(`- at ${centre(f.geometry)}: ${clip(JSON.stringify(f.attributes), 500)}`);
+      say("");
     }
-
+    // A point query at the first Three Gorges lot, as the app asks it (f=geojson).
+    const first = await query(l, {
+      where: "UPPER(LEGALDESC1) LIKE '%GORGE%'",
+      outFields: "OBJECTID",
+      returnGeometry: "true",
+      outSR: "4326",
+      resultRecordCount: "1",
+    });
+    const g = (first?.features as { geometry?: { rings?: number[][][] } }[] | undefined)?.[0]?.geometry;
+    if (g) {
+      const [lat, lon] = centre(g).split(", ").map(Number);
+      const q = new URLSearchParams({
+        geometry: `${lon},${lat}`,
+        geometryType: "esriGeometryPoint",
+        inSR: "4326",
+        spatialRel: "esriSpatialRelIntersects",
+        outFields: SHOWN_FIELDS,
+        returnGeometry: "true",
+        outSR: "4326",
+        f: "geojson",
+      });
+      const r = await get(`${l}/query?${q}`);
+      say(
+        `## Point query at ${lat}, ${lon} (f=geojson)`,
+        "",
+        `- HTTP ${r.status}, ACAO ${r.acao ?? "(none)"}: ${clip(r.text, 700)}`,
+        "",
+      );
+    }
     mkdirSync(join(process.cwd(), "test-results"), { recursive: true });
     writeFileSync(join(process.cwd(), "test-results", "tn-counties-probe.md"), out.join("\n") + "\n");
     expect(out.length).toBeGreaterThan(2);

@@ -22,26 +22,32 @@ each PR into the step branch when CI is green; the hand-back to main is Zach's.
 - **The hint:** over one of the nine, the map now says "No Tennessee parcel lines here; this county keeps its own
   records. Draw the boundary instead." (`lib/geo/ownRecords.ts`), with a Draw button.
 
-**From the research** (web search; the hosts can't be reached from this session):
-- **Hamilton:** a `Live_Parcels` MapServer on the county's GIS host (`mapsdev.hamiltontn.gov/hcwa03`), and a Parcels
-  layer in its OpenGov service.
-  - The county GIS site's disclaimer is about accuracy (no survey-grade use, no legal determinations), and says the
-    parcels come from the Assessor of Property.
-  - The Assessor's site terms are use at your own risk, with an indemnity clause. I found no ban on this use.
-- **Knox:** KGIS, the Knoxville–Knox County–KUB GIS.
-  - Its disclaimer says the information "was prepared for the internal purposes" of its partners.
-  - Its maps are "copyrighted by KGIS".
-  - Its digital data is released only under a signed Data License Agreement, for a fee (KGIS, Purchase Information).
-  - **Unless the probe finds a public service whose own terms allow reuse, this is the brief's stop: the terms forbid
-    this use without a licence.**
-
-**The probe:** `test/tools/tn-counties-probe.test.ts`, run on CI's runners by `.github/workflows/tn-counties.yml`.
-It reports, for each county:
-- the service directories and parcel layers;
-- each layer's fields, record limit, query formats, description and copyright;
-- the CORS header a browser sees;
-- the parcels around Worley Road, Soddy-Daisy;
-- the terms pages' lines on use.
+**What the probe found** (round 1, CI's runners, 2026-10-30; `test/tools/tn-counties-probe.test.ts`):
+- **Hamilton:**
+  - **The service:** `https://mapsdev.hamiltontn.gov/hcwa03/rest/services/Live_Parcels/MapServer`, with two layers both
+    named "Parcels" (0 and 1). It also lists `Live_RealProperty` (a 2015 snapshot) and `Live_Assessor`.
+  - **The layer:** answers JSON and GeoJSON, `maxRecordCount` 1000, capabilities Map, Query, Data.
+  - **CORS:** it sends `Access-Control-Allow-Origin` for the app's origin, so the browser can ask it directly, as it
+    asks the states'.
+  - **Fields, in the state layer's shape:**
+    - the parcel's identity: `GISLINK`, `MAP`, `GROUP_`, `PARCEL`, `TAX_MAP_NO`;
+    - the record: `OWNERNAME1`, `ADDRESS`, `CALCACRES`, `LEGALDESC1`, `PARCEL_TYP`;
+    - `RecordsOnl` ("RecordsOnlineLink"), the assessor's own record.
+    - The layer also holds mailing addresses, sales and values, which the app never asks for.
+  - **Terms:**
+    - The Assessor of Property's site is "a service to the public for informational purposes only", use at your own
+      risk, with an indemnity for "any violation of these terms".
+    - The county GIS site's disclaimer is about accuracy.
+    - Neither forbids this use, and neither asks for a key.
+- **Knox (KGIS): stop.**
+  - Its ArcGIS server (`www.kgis.org`, `kgis.org`, `maps.kgis.org`) answers 401: it needs a login.
+  - Its disclaimer says the data was prepared "for their internal purposes only, and was not designed or intended for
+    general use by members of the public".
+  - It also says "no portion of the products or databases on this Web Site may be reproduced in any form or by any
+    means without the express written authorization of the KGIS Policy Board". Digital data is licensed for a fee.
+  - Under the brief, Knox stops here, and is listed as not covered.
+- **Round 2** compares the two Parcels layers and finds the Worley Road and Three Gorges lots in the county's own data:
+  Nominatim found no "Worley Road, Soddy-Daisy".
 
 ## 1. The work, by PR
 
@@ -49,7 +55,7 @@ It reports, for each county:
 |---|---|---|
 | 0 | This plan, and the probe | The probe's findings go into §0 |
 | 1 | Hamilton | The county's service in `parcelFields.ts`, asked only for tiles over Hamilton; tap, search and the record fields; a Three Gorges lot near Worley Road selects and grades (a recording); the hint names the county and suggests Draw a custom parcel where there's no source; `commercial-review.md` |
-| 2 | Knox, or its stop | If allowed, as Hamilton, with one Knox parcel selecting (a recording); otherwise "not covered", with why |
+| 2 | Knox: stopped (§0) | Not covered: KGIS needs a login, and its terms forbid reuse without written authorization |
 | 3 | The others; hand-back | The other seven listed as not covered, with their links; screenshots at 1280 and 375; the fresh-eyes review; the hand-back to main |
 
 ## 2. Stop conditions
