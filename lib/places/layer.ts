@@ -55,6 +55,7 @@ const SOURCE_NAME: Record<PlaceSource, string> = {
   "tn-parks": "Tennessee State Parks",
   "tn-trec": "Tennessee's TREC trails",
   ridb: "Recreation.gov",
+  crags: "Parcel Screen's climbing list",
 };
 
 /** What a feature carries: enough for its icon and its card, all primitives (GeoJSON properties). */
