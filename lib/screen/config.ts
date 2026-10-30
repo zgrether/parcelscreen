@@ -382,6 +382,14 @@ export const SCREEN_CONSTANTS = deepFreeze({
     sameWithinM: 150, // two launches this close are one put-in (OSM often maps a ramp and its access point both)
     pondMinAc: 1, // a pond on the parcel this big is one you could paddle
   },
+  // Step 17 (docs/plans/step-17-climbing.md §3): the drive to the nearest rope area (sport or trad) and bouldering area,
+  // from the curated climbing areas, in one OSRM table.
+  climbing: {
+    maxKm: 150, // climbing areas timed: within this, in a straight line
+    ropePoints: 12, // at most this many rope areas, nearest first
+    boulderPoints: 3, // and this many bouldering areas
+    countWithinMin: 60, // the second line's count: rope areas within this many minutes (the brief's hour)
+  },
   // Step 14 (plan §3, §9): the land uses' thresholds. None is graded; each decides a Yes / Maybe / No.
   uses: {
     trailSpacingFt: 100, // the trail estimate: one path every 100 ft across the gentle ground
@@ -467,7 +475,16 @@ export const SCREEN_CONSTANTS = deepFreeze({
     maxCandidates: 5000,
     waterClasses: [11] as readonly number[],
     developedClasses: [22, 23, 24] as readonly number[],
-    nearest: { er: 3, groceryChain: 3, groceryAny: 3, airport: 3, trailhead: 3, longTrail: 4, launch: 3 },
+    nearest: {
+      er: 3,
+      groceryChain: 3,
+      groceryAny: 3,
+      airport: 3,
+      trailhead: 3,
+      longTrail: 4,
+      launch: 3,
+      rope: 3,
+    },
     tableMaxCoords: 100,
     demResM: 30,
     demTileCoreKm: 30,
@@ -713,6 +730,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
       dishClearPct: [95, 85, 70, 50],
       // Step 14d (plan §4.2): Paddling, the drive to the nearest flatwater launch, in minutes, at most.
       paddleMin: [15, 30, 45, 60],
+      // Step 17 (plan §4): Climbing, the drive to the nearest rope area (sport or trad), in minutes, at most.
+      climbMin: [30, 60, 90, 120],
     },
     // The default rubric's weights, summing to 100 (roadmap step 1: a profile's rubric replaces them; the second set the
     // app shipped with is test/support/rubrics.ts LEGACY_SECOND_WEIGHTS, kept for the step 1 card oracle). The Driveway
@@ -739,6 +758,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
         internet: 0,
         // Step 14d: Paddling weighs 0 too, Don't care until the interview places it.
         paddling: 0,
+        // Step 17: Climbing too.
+        climbing: 0,
         // Step 10: Within budget is never on the starting list; it comes with the interview's budgets.
         budget: 0,
       },
@@ -769,6 +790,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
       airportMin: { min: 15, max: 180, step: 5 },
       longTrailMin: { min: 5, max: 90, step: 5 },
       paddleMin: { min: 5, max: 90, step: 5 },
+      climbMin: { min: 10, max: 180, step: 5 },
       dishClearPct: { min: 30, max: 100, step: 1 },
     },
     // Step 4, the interview (docs/plans/step-4-interview.md §2–§3; owner, 10/18): what each answer gives a row, as
@@ -803,6 +825,8 @@ export const SCREEN_CONSTANTS = deepFreeze({
         internet: 1,
         // Step 14d: placed by its question, never by default.
         paddling: 0,
+        // Step 17: the same.
+        climbing: 0,
         // Step 10: placed by the budgets themselves (generate.ts), never by points.
         budget: 0,
       },
@@ -848,6 +872,19 @@ export const SCREEN_CONSTANTS = deepFreeze({
           m30: { edges: { paddleMin: 30 } },
           m45: { edges: { paddleMin: 45 } },
           m60: { edges: { paddleMin: 60 } },
+        },
+        // Step 17 (plan §4.1): how often you climb outside: rarely Don't care, a few times a season Nice to have, most
+        // weekends Really want; the longest drive for a day of climbing sets the B/C edge.
+        climb: {
+          rarely: { points: { climbing: 0 } },
+          season: { points: { climbing: 1 } },
+          weekends: { points: { climbing: 3 } },
+        },
+        climbDrive: {
+          m45: { edges: { climbMin: 45 } },
+          m60: { edges: { climbMin: 60 } },
+          m90: { edges: { climbMin: 90 } },
+          m120: { edges: { climbMin: 120 } },
         },
         // Question 1's follow-ups (step 11): the B/C edges, the limits as the plan has them. "Real winter welcome" and
         // "Hot is fine" set them at the sliders' ends, past anything in these mountains: no limit.

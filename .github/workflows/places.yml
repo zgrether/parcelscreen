@@ -11,6 +11,8 @@ name: Places
 # - areas: `pnpm areas:record`, the recorded area profile only, and `pnpm areas:profile`, every area file
 #   (public/areas/v<n>/, the previous version's area files removed: a format change is a clean break). No fixture
 #   recording moves.
+# - crags: `pnpm data:crags-check` (step 17), OSM's lots and climbing features near each curated climbing area, into
+#   the job summary; nothing pushed but places-done.json.
 # Each finished request is recorded in .github/places-done.json and pushed with the job's output to the PR's branch,
 # so a later push to the PR doesn't run it again. A push made with GITHUB_TOKEN starts no workflow, so the job then
 # dispatches ci.yml on the branch (as areas-refresh.yml does); its checks land on the commit, so the PR shows them.
@@ -38,6 +40,7 @@ jobs:
       record: ${{ steps.read.outputs.record }}
       timing: ${{ steps.read.outputs.timing }}
       areas: ${{ steps.read.outputs.areas }}
+      crags: ${{ steps.read.outputs.crags }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -47,7 +50,7 @@ jobs:
           request=$(node -p "require('./.github/places-run.json').request")
           done=$(node -p "try { require('./.github/places-done.json').request } catch { '' }")
           echo "request=$request" >> "$GITHUB_OUTPUT"
-          for job in bake record timing areas; do
+          for job in bake record timing areas crags; do
             if [ "$request" = "$done" ]; then
               echo "$job=false" >> "$GITHUB_OUTPUT"
             else
@@ -197,6 +200,39 @@ jobs:
           scripts/areas-clean-old.sh "$v"
           git add public/areas test/fixtures/areas .github/places-done.json
           git commit -m "Area files profiled again ($REQUEST)" || exit 0
+          git pull --rebase origin "${{ github.head_ref }}"
+          git push origin "HEAD:${{ github.head_ref }}"
+          gh workflow run ci.yml --ref "${{ github.head_ref }}"
+
+  crags:
+    needs: ask
+    if: needs.ask.outputs.crags == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm data:crags-check
+      - name: The report, into the job summary
+        if: always()
+        run: cat test-results/crags-check.md >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Record the request as done
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUEST: ${{ needs.ask.outputs.request }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          node -e "require('fs').writeFileSync('.github/places-done.json', JSON.stringify({ request: process.env.REQUEST, ran: new Date().toISOString() }, null, 2) + '\n')"
+          git add .github/places-done.json
+          git commit -m "Climbing areas checked against OSM ($REQUEST)" || exit 0
           git pull --rebase origin "${{ github.head_ref }}"
           git push origin "HEAD:${{ github.head_ref }}"
           gh workflow run ci.yml --ref "${{ github.head_ref }}"

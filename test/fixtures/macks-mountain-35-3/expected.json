@@ -6680,8 +6680,77 @@
    ],
    "pond": null
   },
+  "climbing": {
+   "rope": {
+    "id": "pilot-mountain",
+    "name": "Pilot Mountain State Park",
+    "types": [
+     "trad",
+     "top-rope"
+    ],
+    "min": 117,
+    "mi": 57.1
+   },
+   "boulder": {
+    "id": "moores-wall",
+    "name": "Moore's Wall (Hanging Rock SP)",
+    "min": 142,
+    "mi": 69.7
+   },
+   "ropeWithin": 0,
+   "timed": [
+    {
+     "id": "dragons-tooth",
+     "min": 132
+    },
+    {
+     "id": "moores-wall",
+     "min": 142
+    },
+    {
+     "id": "pilot-mountain",
+     "min": 117
+    },
+    {
+     "id": "sauratown",
+     "min": 139
+    },
+    {
+     "id": "stone-mountain-nc",
+     "min": 147
+    },
+    {
+     "id": "grayson-highlands",
+     "min": 162
+    },
+    {
+     "id": "rocky-face",
+     "min": 183
+    },
+    {
+     "id": "hidden-valley-va",
+     "min": 208
+    },
+    {
+     "id": "nrg-kaymoor",
+     "min": 215
+    },
+    {
+     "id": "nrg-endless-wall",
+     "min": 217
+    },
+    {
+     "id": "nrg-bridge-buttress",
+     "min": 223
+    },
+    {
+     "id": "summersville-lake",
+     "min": 237
+    }
+   ]
+  },
   "schemaVersion": 9,
-  "engine": 34,
+  "engine": 35,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -13387,8 +13456,77 @@
    ],
    "pond": null
   },
+  "climbing": {
+   "rope": {
+    "id": "pilot-mountain",
+    "name": "Pilot Mountain State Park",
+    "types": [
+     "trad",
+     "top-rope"
+    ],
+    "min": 117,
+    "mi": 57.1
+   },
+   "boulder": {
+    "id": "moores-wall",
+    "name": "Moore's Wall (Hanging Rock SP)",
+    "min": 142,
+    "mi": 69.7
+   },
+   "ropeWithin": 0,
+   "timed": [
+    {
+     "id": "dragons-tooth",
+     "min": 132
+    },
+    {
+     "id": "moores-wall",
+     "min": 142
+    },
+    {
+     "id": "pilot-mountain",
+     "min": 117
+    },
+    {
+     "id": "sauratown",
+     "min": 139
+    },
+    {
+     "id": "stone-mountain-nc",
+     "min": 147
+    },
+    {
+     "id": "grayson-highlands",
+     "min": 162
+    },
+    {
+     "id": "rocky-face",
+     "min": 183
+    },
+    {
+     "id": "hidden-valley-va",
+     "min": 208
+    },
+    {
+     "id": "nrg-kaymoor",
+     "min": 215
+    },
+    {
+     "id": "nrg-endless-wall",
+     "min": 217
+    },
+    {
+     "id": "nrg-bridge-buttress",
+     "min": 223
+    },
+    {
+     "id": "summersville-lake",
+     "min": 237
+    }
+   ]
+  },
   "schemaVersion": 9,
-  "engine": 34,
+  "engine": 35,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

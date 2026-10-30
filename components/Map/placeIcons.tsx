@@ -6,7 +6,8 @@
 import type { Map as MlMap } from "maplibre-gl";
 import type { PlaceKind } from "@/lib/places/layer";
 
-export type PlaceIcon = Exclude<PlaceKind, "launch"> | "launchFlat" | "launchRiver";
+export type PlaceIcon =
+  Exclude<PlaceKind, "launch" | "crag"> | "launchFlat" | "launchRiver" | "cragRope" | "cragBoulder";
 
 /** Each icon's disc, and the kind's ring on its clusters. */
 export const PLACE_COLOR: Record<PlaceIcon, string> = {
@@ -17,6 +18,9 @@ export const PLACE_COLOR: Record<PlaceIcon, string> = {
   longTrail: "#7b4b94",
   launchFlat: "#1f6fb2",
   launchRiver: "#2e8540",
+  // Step 17: rope areas orange, bouldering-only areas granite grey.
+  cragRope: "#c4561a",
+  cragBoulder: "#555b63",
 };
 
 /** Glyphs on a 24-unit grid (SVG path data). */
@@ -33,6 +37,11 @@ const GLYPH: Record<PlaceIcon, string> = {
     "M6 11.5a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5zm0 1.6a2.15 2.15 0 1 1 0 4.3 2.15 2.15 0 0 1 0-4.3zM18 11.5a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5zm0 1.6a2.15 2.15 0 1 1 0 4.3 2.15 2.15 0 0 1 0-4.3zM11 6h4v1.6h-1.5l3.4 5.6-1.4.8-1.1-1.8-3 3.6h-4l.5-1.6h2.7l2.6-3.1-.9-1.5-2.8 3.4-1.2-1z",
   launchFlat: PADDLE,
   launchRiver: PADDLE,
+  // A carabiner: a tall link with its gate's notch.
+  cragRope:
+    "M9.5 2.5h5a4.5 4.5 0 0 1 4.5 4.5v10a4.5 4.5 0 0 1-4.5 4.5h-5A4.5 4.5 0 0 1 5 17V7a4.5 4.5 0 0 1 4.5-4.5zm0 2.3A2.2 2.2 0 0 0 7.3 7v10a2.2 2.2 0 0 0 2.2 2.2h5a2.2 2.2 0 0 0 2.2-2.2V12h-2.3V7.6h2.3V7a2.2 2.2 0 0 0-2.2-2.2z",
+  // A boulder on the ground.
+  cragBoulder: "M2.5 19.5l2.2-6.3 4.3-4.6 3.8.4 3.6-2.6 3.4 3.3 1.7 9.8z",
 };
 
 /** An icon as the Map layers panel shows it beside its toggle (PlacesControls): the map's disc, in SVG. */

@@ -1,5 +1,5 @@
 /**
- * Step 11's new factors (and step 14d's Paddling), added once to priorities saved before them (docs/plans/step-11-new-data.md §1, §5): each to
+ * Step 11's new factors (and step 14d's Paddling, step 17's Climbing), added once to priorities saved before them (docs/plans/step-11-new-data.md §1, §5): each to
  * Don't care, unless an answer the person already gave clearly places it. Nothing else in the rubric moves, except
  * Hospital's split from Town (§2.1), which takes Town's place because Town graded the ER until then. Pure;
  * lib/client/factorsAdd.ts applies it at boot and keeps the notice's state.
@@ -21,6 +21,8 @@ export const NEW_FACTORS = [
   "internet",
   // Step 14d (docs/plans/step-14d-places.md §4.3).
   "paddling",
+  // Step 17 (docs/plans/step-17-climbing.md §4.1).
+  "climbing",
 ] as const satisfies readonly RowKey[];
 export type NewFactor = (typeof NEW_FACTORS)[number];
 
@@ -39,6 +41,8 @@ export const NEW_QUESTION: Partial<Record<NewFactor, keyof InterviewAnswers>> = 
   climate: "climate",
   // Step 14d: a question of its own, new to every profile.
   paddling: "paddle",
+  // Step 17: the same.
+  climbing: "climb",
 };
 
 /**
@@ -64,6 +68,8 @@ export function withFactor(r: Rubric, f: NewFactor, answers: InterviewAnswers = 
       return withInternet(r, answers);
     case "paddling":
       return withPaddling(r, answers);
+    case "climbing":
+      return withClimbing(r, answers);
   }
 }
 
@@ -79,6 +85,20 @@ function withPaddling(r: Rubric, a: InterviewAnswers): Rubric {
   const edge = a.paddleDrive ? I.choices.paddleDrive[a.paddleDrive].edges.paddleMin : undefined;
   const out = edge === undefined ? r : setBandEdge({ ...r, bands: { ...r.bands } }, "paddleMin", edge);
   return points >= I.should.minPoints ? lastShould(out, "paddling") : lastCould(out, "paddling");
+}
+
+/**
+ * Climbing (step 17 plan §4.1): as Paddling. "A few times a season" goes at the bottom of Nice to have and "Most
+ * weekends we can" at the bottom of Really want, at the answer's longest drive; "Rarely or never", or no answer yet,
+ * Don't care until the person answers it. On explicit weights it stays Don't care.
+ */
+function withClimbing(r: Rubric, a: InterviewAnswers): Rubric {
+  const I = SCREEN_CONSTANTS.card.interview;
+  const points = a.climb ? I.choices.climb[a.climb].points.climbing : 0;
+  if (r.weights.mode !== "rankSum" || points < 1) return { ...r, wonts: [...r.wonts, "climbing"] };
+  const edge = a.climbDrive ? I.choices.climbDrive[a.climbDrive].edges.climbMin : undefined;
+  const out = edge === undefined ? r : setBandEdge({ ...r, bands: { ...r.bands } }, "climbMin", edge);
+  return points >= I.should.minPoints ? lastShould(out, "climbing") : lastCould(out, "climbing");
 }
 
 /**

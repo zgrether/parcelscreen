@@ -13,6 +13,7 @@ import { CLIMATE_SOURCES } from "./climate";
 import { IN_WINTER, PRIVACY_SOURCES } from "./privacy";
 import { VIEW_CAVEAT, VIEW_OPEN_MI } from "./view";
 import { LONG_TRAIL_SOURCES } from "./longTrail";
+import { CLIMB_SOURCES, ROPE_MEANS } from "./climbing";
 import { PADDLE_SOURCES, RIVER_CAUTION } from "./paddling";
 import { DISH_CAVEAT } from "./internet";
 import { climateWords, privacyWords } from "../rubric/words";
@@ -43,6 +44,7 @@ const PANELS: Record<PanelKey, true> = {
   longTrail: true,
   internet: true,
   paddling: true,
+  climbing: true,
   budget: true,
   cost: true,
 };
@@ -275,6 +277,12 @@ export function panelText(
         title: "Paddling",
         question: "How far to a lake we could paddle?",
         howScored: `The drive from where the driveway meets the road to the nearest launch on a lake or reservoir of at least ${SCREEN_CONSTANTS.paddling.flatwaterMinAc} ac: A within ${R.paddleMin[0]} min, B within ${R.paddleMin[1]}, C within ${R.paddleMin[2]}, D within ${R.paddleMin[3]}. River put-ins nearby are listed and not graded: ${RIVER_CAUTION}. ${weightOf(rubrics, "paddling")}. ${PADDLE_SOURCES}`,
+      };
+    case "climbing":
+      return {
+        title: "Climbing",
+        question: "How far to climbing on rope?",
+        howScored: `The drive from where the driveway meets the road to the nearest sport or trad area: A within ${R.climbMin[0]} min, B within ${R.climbMin[1]}, C within ${R.climbMin[2]}, D within ${R.climbMin[3]}. ${ROPE_MEANS}; top-rope alone doesn't count. The nearest bouldering and the rope areas within an hour are listed, not graded; ${weightOf(rubrics, "climbing")}. ${CLIMB_SOURCES}`,
       };
     case "internet": {
       const D = SCREEN_CONSTANTS.dish;

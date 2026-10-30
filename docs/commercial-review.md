@@ -88,6 +88,25 @@ is the one list):
   publishes no trail data of its own (PDF maps and an app); the only copies online are third parties' (a Virginia Tech
   account's and The Nature Conservancy's edit), each with no licence.
 
+**Climbing areas** (the Climbing factor and the Places layer's Climbing, step 17):
+- **The list is ours:** `lib/screen/data/crags.json`, kept by hand and baked into the places' `curated/` folder. Each
+  entry's name, types and one-line access note are facts read from the land manager's page (NPS, USFS, a state park or
+  WMA) or the local climbing coalition's (the Carolina Climbers Coalition, the Southeastern Climbers Coalition, the
+  Access Fund, the New River Alliance of Climbers, the Red River Gorge Climbers' Coalition). The notes are written in
+  our own words, and each entry cites its page and the date it was checked. No text is copied.
+- **Parking points:** each lot is OSM's parking lot nearest the climbers' trail where OSM maps one (cited per entry as
+  `parkingFrom: osm:way/…`), else the manager's published trailhead. About 50 points taken once is an insubstantial
+  extract under the OSMF's Substantial Extract guideline (fewer than 100 features), so it needs attribution, not
+  share-alike: "parking © OpenStreetMap contributors" in the places index and the Places layer's attribution.
+- **Not used:**
+  - **Mountain Project:** its terms of use forbid copying its content.
+  - **OpenBeta:** its data is published under CC0, but much of it was copied from Mountain Project. onX, Mountain
+    Project's owner, sent a cease-and-desist and a DMCA notice in 2021 (GitHub reinstated the repository; the EFF argued
+    names and locations are facts), and asked OpenBeta in 2024 to remove all Mountain Project content, with no public
+    outcome found. Its points are crags or sectors, not parking. Not imported (step 17 plan §11, Q1; checked
+    2026-10-30).
+  - **Guidebooks:** no text or topo is used.
+
 ## The area catalog's monthly profile (step 13)
 
 The catalog re-profiles its 30 areas once a month (`.github/workflows/areas-refresh.yml`,

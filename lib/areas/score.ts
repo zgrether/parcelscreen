@@ -25,6 +25,7 @@ export const AREA_FACTORS = [
   "airport",
   "longTrail",
   "paddling",
+  "climbing",
 ] as const satisfies readonly RowKey[];
 export type AreaFactor = (typeof AREA_FACTORS)[number];
 
@@ -38,6 +39,7 @@ export const LIMIT_MEASURE: Partial<Record<AreaFactor, Measure>> = {
   airport: "airportMin",
   longTrail: "longTrailMin",
   paddling: "paddleMin",
+  climbing: "climbMin",
 };
 
 type Values = Partial<Record<Measure, number | null>>;
@@ -63,6 +65,8 @@ export function areaLetter(f: AreaFactor, v: Values, R: Rubric): Letter | null {
       return n("longTrailMin") === null ? null : atMost(n("longTrailMin")!, b.longTrailMin);
     case "paddling":
       return n("paddleMin") === null ? null : atMost(n("paddleMin")!, b.paddleMin);
+    case "climbing":
+      return n("climbMin") === null ? null : atMost(n("climbMin")!, b.climbMin);
     case "longView":
       return n("viewOpenPct") === null ? null : atLeast(n("viewOpenPct")!, b.viewOpenPct);
     case "climate":

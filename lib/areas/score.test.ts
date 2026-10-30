@@ -28,6 +28,7 @@ function area(id: string, cols: Partial<Record<Measure, (number | null)[]>>, n =
     openLandFt: 5000,
     longTrailMin: 40,
     paddleMin: 35,
+    climbMin: 70,
   };
   const points = Object.fromEntries(
     MEASURES.map((m) => [m, cols[m] ?? Array.from({ length: n }, () => base[m])]),
@@ -67,6 +68,7 @@ describe("a row's letter, the card's own", () => {
       airportMin: m("airport"),
       longTrailMin: m("longTrail"),
       paddleMin: m("paddling"),
+      climbMin: m("climbing"),
     };
     for (const [f, k] of [
       ["elevation", "elevation"],
@@ -76,6 +78,7 @@ describe("a row's letter, the card's own", () => {
       ["airport", "airport"],
       ["longTrail", "longTrail"],
       ["paddling", "paddling"],
+      ["climbing", "climbing"],
     ] as const)
       if (card.rows.some((x) => x.key === k && x.measure))
         expect(areaLetter(f, values, defaultRubric()), f).toBe(card.rows.find((x) => x.key === k)!.grade);
@@ -94,6 +97,38 @@ describe("a row's letter, the card's own", () => {
     const at = (paddleMin: number | null) => areaLetter("paddling", { paddleMin }, R);
     expect([15, 30, 31, 60, 61].map(at)).toEqual(["A", "B", "C", "D", "F"]);
     expect(at(null)).toBeNull();
+  });
+
+  it("Climbing (step 17): the drive to a rope area on climbMin's bands, unmeasured when no table answered", () => {
+    const R = defaultRubric();
+    const at = (climbMin: number | null) => areaLetter("climbing", { climbMin }, R);
+    expect([30, 60, 61, 120, 121].map(at)).toEqual(["A", "B", "C", "D", "F"]);
+    expect(at(null)).toBeNull();
+  });
+});
+
+describe("Climbing re-ranks the catalog (step 17 plan §9)", () => {
+  it("as a Really want, the area nearer rope climbing moves up past one otherwise the same", () => {
+    // The same in every other measure, so without Climbing they tie and go by name: "far" first.
+    const far = area("far", { climbMin: Array.from({ length: 10 }, () => 150) });
+    const near = area("near", { climbMin: Array.from({ length: 10 }, () => 20) });
+    const names = new Map([
+      ["far", "far"],
+      ["near", "near"],
+    ]);
+    const base: Rubric = { ...defaultRubric(), weights: { mode: "rankSum" } };
+    const order = (R: Rubric) =>
+      rankAreas(
+        [far, near].map((a) => areaCard(a, nr(R))),
+        names,
+      ).map((c) => c.id);
+    expect(order(base)).toEqual(["far", "near"]);
+    const climbing: Rubric = {
+      ...base,
+      wonts: base.wonts.filter((f) => f !== "climbing"),
+      ranked: [...base.ranked, { factor: "climbing", tier: "should" }],
+    };
+    expect(order(climbing)).toEqual(["near", "far"]);
   });
 });
 

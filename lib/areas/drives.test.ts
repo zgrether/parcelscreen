@@ -38,6 +38,7 @@ describe("each point's drives", () => {
     trailheads: [[36.01, -81]],
     trailPoints: [[36.3, -81]],
     launches: [[36.25, -81]],
+    ropeAreas: [[36.4, -81]],
   };
   // Minutes: 100 per degree of latitude apart.
   const matrix: Matrix = async (s, d) => s.map((a) => d.map((b) => Math.round(Math.abs(b[0] - a[0]) * 100)));
@@ -51,6 +52,7 @@ describe("each point's drives", () => {
       trailheadMin: 1,
       longTrailMin: 30,
       paddleMin: 25,
+      climbMin: 40,
     });
   });
 
@@ -63,6 +65,7 @@ describe("each point's drives", () => {
       trailheadMin: null,
       longTrailMin: null,
       paddleMin: null,
+      climbMin: null,
     });
   });
 

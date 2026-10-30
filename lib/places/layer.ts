@@ -7,12 +7,12 @@ import type { Feature, FeatureCollection, Point } from "geojson";
 import { CLOSER_GROCERY, NEAREST_HOSPITAL, REAL_GROCERY } from "../screen/driveList";
 import type { LongTrail } from "../screen/data/longTrails";
 import type { ErPlace } from "../screen/hospitals";
-import type { Place, PlaceSource } from "../screen/placeData";
+import { isRopeArea, type Place, type PlaceSource } from "../screen/placeData";
 import type { ScreenResult, UserConfig } from "../screen/types";
 import type { LatLon } from "../geo/types";
 
 /** The sub-toggles, in the panel's order. */
-export const PLACE_KINDS = ["er", "airport", "trailhead", "grocery", "longTrail", "launch"] as const;
+export const PLACE_KINDS = ["er", "airport", "trailhead", "grocery", "longTrail", "launch", "crag"] as const;
 export type PlaceKind = (typeof PLACE_KINDS)[number];
 
 export const PLACES_WORDS = {
@@ -24,21 +24,28 @@ export const PLACES_WORDS = {
     grocery: "Groceries",
     longTrail: "Long-trail access",
     launch: "Paddle launches",
+    // Step 17 (docs/plans/step-17-climbing.md §6).
+    crag: "Climbing",
   } satisfies Record<PlaceKind, string>,
   zoomIn: "Zoom in to see places",
   failed: "Some places didn't load",
-  attribution: "Places: © OpenStreetMap contributors, USFS, CMS, the states' parks",
+  attribution:
+    "Places: © OpenStreetMap contributors, USFS, CMS, the states' parks; climbing areas: Parcel Screen",
   // Polish 2 (P11): the class in plain words; a river launch beside a graded parcel says why it has no drive.
   river: "Check the river's class (how hard its rapids are) before paddling",
   notTimed: "Not timed: rivers are listed, not graded",
   /** Under the toggles: the launches' two colours. */
   launchKey: "Paddle launches: blue on a lake or reservoir, green on a river.",
+  /** Step 17: the climbing areas' two icons. */
+  cragKey: "Climbing: orange for rope (sport, trad), grey for bouldering.",
+  /** A climbing area's card: its page, for the access details. */
+  accessLink: "The access page",
   checked: (date: string) => `Checked ${date}`,
   minutes: (n: number) => `${n} min from this parcel`,
 } as const;
 
 /** Each kind's one-place type, the card's second line. */
-const TYPE: Record<Exclude<PlaceKind, "launch">, string> = {
+const TYPE: Record<Exclude<PlaceKind, "launch" | "crag">, string> = {
   er: "ER hospital",
   airport: "Airport",
   trailhead: "Trailhead",
@@ -55,6 +62,7 @@ const SOURCE_NAME: Record<PlaceSource, string> = {
   "tn-parks": "Tennessee State Parks",
   "tn-trec": "Tennessee's TREC trails",
   ridb: "Recreation.gov",
+  crags: "Parcel Screen's climbing list",
 };
 
 /** What a feature carries: enough for its icon and its card, all primitives (GeoJSON properties). */
@@ -70,6 +78,11 @@ export interface PlaceProps {
   water: "flat" | "river" | "";
   /** A launch's lake or river; a long-trail point's trail. */
   of: string;
+  /** Step 17, a climbing area: rope (sport or trad) or bouldering only, its types ("sport, trad"), its access note and page. */
+  climb?: "rope" | "boulder";
+  types?: string;
+  access?: string;
+  url?: string;
 }
 
 export type PlaceFeature = Feature<Point, PlaceProps>;
@@ -94,6 +107,21 @@ export function bakedFeatures(
       add("trailhead", feature(p.ll, { ...base, kind: "trailhead", water: "", of: "" }));
     else if (p.kind === "launch")
       add("launch", feature(p.ll, { ...base, kind: "launch", water: p.water, of: p.waterName ?? "" }));
+    else if (p.kind === "crag")
+      add(
+        "crag",
+        feature(p.ll, {
+          ...base,
+          kind: "crag",
+          checked: p.checked,
+          water: "",
+          of: "",
+          climb: isRopeArea(p.types) ? "rope" : "boulder",
+          types: p.types.join(", "),
+          access: p.access,
+          url: p.url,
+        }),
+      );
   }
   return out;
 }
@@ -146,7 +174,10 @@ const SAME_TRAILHEAD_M = 50;
 
 /** The minutes the open parcel's grade already timed to this place, if it did; nothing is fetched. */
 /** What the tap card reads of the open parcel's result. */
-export type TimedResult = Pick<ScreenResult, "drives" | "closerGrocery" | "near" | "longTrail" | "paddling">;
+export type TimedResult = Pick<
+  ScreenResult,
+  "drives" | "closerGrocery" | "near" | "longTrail" | "paddling" | "climbing"
+>;
 
 export function timedMinutes(r: TimedResult | null, p: PlaceProps, ll: LatLon): number | null {
   if (!r) return null;
@@ -173,6 +204,9 @@ export function timedMinutes(r: TimedResult | null, p: PlaceProps, ll: LatLon): 
       const f = r.paddling?.flat;
       return p.water === "flat" && f && sameName(f.name, p.name) && (f.water ?? "") === p.of ? f.min : null;
     }
+    // Step 17: every climbing area the grade's table timed (plan §11, Q8).
+    case "crag":
+      return r.climbing?.timed.find((t) => `crag:${t.id}` === p.id)?.min ?? null;
   }
 }
 
@@ -188,6 +222,14 @@ export function cardLines(
   graded = false,
 ): string[] {
   const river = p.kind === "launch" && p.water === "river";
+  if (p.kind === "crag")
+    return [
+      p.name,
+      `Climbing: ${p.types ?? ""}`,
+      ...(p.access ? [p.access] : []),
+      ...(p.checked ? [PLACES_WORDS.checked(p.checked)] : []),
+      ...(minutes !== null ? [PLACES_WORDS.minutes(minutes)] : []),
+    ];
   const type =
     p.kind === "launch"
       ? `Paddle launch: ${p.water === "flat" ? (firstFlat ? "flatwater (a lake or reservoir)" : "flatwater") : "river"}${p.of ? `, ${p.of}` : ""}`

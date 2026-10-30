@@ -577,6 +577,17 @@ workflow's PR. Two prefs: `ps.areas` (per device) and `ps.areaStars` (per profil
 - **Both** are kept by the offline cache and Save offline. Remembered per device (`ps.publicLand`, `ps.mvum`).
 - **The details** are in phase-0.md §9.76.
 
+### 3r. Climbing (step 17)
+
+- **The factor:** "Climbing", the drive from where the driveway meets the road to the nearest rope area (sport or
+  trad), named, with the nearest bouldering and the rope areas within an hour; graded on `climbMin`, weight 0 until
+  the interview's climbing screen (question 4's third) places it.
+- **The areas:** a hand-kept list, `lib/screen/data/crags.json` (name, parking, types, access note, source, date
+  checked), baked with the places into `public/places/v1/curated/`, so it's offline too.
+- **The area catalog** scores Climbing on each area's median `climbMin`; **Map layers › Places › Climbing** draws
+  the areas, rope and bouldering apart, with a card for type, access note and drive.
+- **The details** are in phase-0.md §9.77.
+
 ## 4. The parcel page (the export)
 
 Blocks, in order; each is computed, placeholder, or user-authored:

@@ -77,9 +77,9 @@ describe("the questions' entry (owner, 10/18)", () => {
   it("the priorities page: Answer a few questions, Finish your questions, or Answer the questions again", () => {
     expect(interviewLabel(null)).toBe("Answer a few questions (about 4 min)");
     expect(interviewLabel(freshDoc())).toBe("Answer a few questions (about 4 min)");
-    // Step 5 is question 5 since step 14d: Paddling shares question 4 with Trails (as 14a and 14b share 14).
-    expect(interviewLabel({ ...freshDoc(), at: 5 })).toBe("Finish your questions (5 of 14)");
-    expect(interviewLabel({ ...freshDoc(), state: "notNow", at: 14 })).toBe(
+    // Step 6 is question 5 since step 17: Paddling and Climbing share question 4 with Trails (as 14a and 14b share 14).
+    expect(interviewLabel({ ...freshDoc(), at: 6 })).toBe("Finish your questions (5 of 14)");
+    expect(interviewLabel({ ...freshDoc(), state: "notNow", at: 15 })).toBe(
       "Finish your questions (14 of 14)",
     );
     expect(interviewLabel({ ...freshDoc(), state: "done", at: RESULT_AT, answers: { er: "30" } })).toBe(

@@ -1,8 +1,9 @@
 /**
  * The baked places (roadmap step 14d, docs/plans/step-14d-places.md §2): groceries, trailheads and their parking, and
- * paddle launches, for VA, NC and TN plus 60 km, in 1° cells under `public/places/v1/`. Two folders, one per
- * licence: `osm/` (OpenStreetMap, ODbL) and `official/` (USFS and the states). No published file mixes them; the near
- * step merges them per grade (§2.3). Pure data and arithmetic: the worker fetches the cells, Node reads them.
+ * paddle launches, for VA, NC and TN plus 60 km, in 1° cells under `public/places/v1/`. A folder per licence:
+ * `osm/` (OpenStreetMap, ODbL), `official/` (USFS and the states) and, from step 17, `curated/` (the climbing areas
+ * this repo keeps by hand, lib/screen/data/crags.json). No published file mixes them; the near step merges them per
+ * grade (§2.3). Pure data and arithmetic: the worker fetches the cells, Node reads them.
  */
 import { z } from "zod";
 import type { HttpClient } from "../http";
@@ -13,14 +14,23 @@ export const PLACES_VERSION = 1 as const;
 /** Where the app serves them, and where the bake writes them under `public/`. */
 export const PLACES_PATH = `/places/v${PLACES_VERSION}`;
 
-export const PLACE_FOLDERS = ["osm", "official"] as const;
+export const PLACE_FOLDERS = ["osm", "official", "curated"] as const;
 export type PlaceFolder = (typeof PLACE_FOLDERS)[number];
 
 /**
  * Each source, as a place records it. The trailhead sources map onto the near step's three ranks (usfs, state, osm;
  * trailheads.ts) by `TRAILHEAD_RANK_SOURCE`.
  */
-export const PLACE_SOURCES = ["osm", "usfs", "va-parks", "nc-parks", "tn-parks", "tn-trec", "ridb"] as const;
+export const PLACE_SOURCES = [
+  "osm",
+  "usfs",
+  "va-parks",
+  "nc-parks",
+  "tn-parks",
+  "tn-trec",
+  "ridb",
+  "crags",
+] as const;
 export type PlaceSource = (typeof PLACE_SOURCES)[number];
 
 export const FOLDER_OF: Record<PlaceSource, PlaceFolder> = {
@@ -31,6 +41,7 @@ export const FOLDER_OF: Record<PlaceSource, PlaceFolder> = {
   "tn-parks": "official",
   "tn-trec": "official",
   ridb: "official",
+  crags: "curated",
 };
 
 export const TRAILHEAD_RANK_SOURCE: Record<PlaceSource, "usfs" | "state" | "osm"> = {
@@ -42,6 +53,8 @@ export const TRAILHEAD_RANK_SOURCE: Record<PlaceSource, "usfs" | "state" | "osm"
   "tn-trec": "state",
   // Launches only (lib/places/ridb.ts); a federal list, ranked with the Forest Service's were it ever a trailhead.
   ridb: "usfs",
+  // Climbing areas only; never a trailhead.
+  crags: "osm",
 };
 
 const DateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -102,17 +115,40 @@ const LaunchSchema = z.strictObject({
   trail: z.string().min(1).optional(),
 });
 
+/** What climbing a crag has (step 17 plan §2.1); a rope area is one with sport or trad. */
+export const CRAG_TYPES = ["sport", "trad", "bouldering", "top-rope"] as const;
+export type CragType = (typeof CRAG_TYPES)[number];
+
+/**
+ * A climbing area (step 17 plan §2): one climbers' lot, hand-curated in lib/screen/data/crags.json, with what climbing
+ * it has, a one-line access note in our own words, the page the note was read from, and when it was checked.
+ */
+const CragSchema = z.strictObject({
+  kind: z.literal("crag"),
+  ...Base,
+  types: z.array(z.enum(CRAG_TYPES)).min(1),
+  access: z.string().min(1).max(160),
+  url: z.string().url(),
+  checked: DateSchema,
+});
+
 export const PlaceSchema = z.discriminatedUnion("kind", [
   GrocerSchema,
   TrailheadSchema,
   ParkingSchema,
   LaunchSchema,
+  CragSchema,
 ]);
 export type Place = z.infer<typeof PlaceSchema>;
 export type Grocer = z.infer<typeof GrocerSchema>;
 export type BakedTrailhead = z.infer<typeof TrailheadSchema>;
 export type BakedParking = z.infer<typeof ParkingSchema>;
 export type BakedLaunch = z.infer<typeof LaunchSchema>;
+export type BakedCrag = z.infer<typeof CragSchema>;
+
+/** Sport or trad: the brief's "rope area" (step 17 plan §2.1). Top-rope alone doesn't count. */
+export const isRopeArea = (types: readonly CragType[]): boolean =>
+  types.includes("sport") || types.includes("trad");
 
 export const PlaceCellSchema = z.strictObject({
   version: z.literal(PLACES_VERSION),
@@ -152,6 +188,8 @@ export const PlacesIndexSchema = z.strictObject({
   cells: z.strictObject({
     osm: z.record(z.string(), z.number().int().nonnegative()),
     official: z.record(z.string(), z.number().int().nonnegative()),
+    /** Step 17: absent from an index saved before it (offline), which still reads. */
+    curated: z.record(z.string(), z.number().int().nonnegative()).optional(),
   }),
 });
 export type PlacesIndex = z.infer<typeof PlacesIndexSchema>;

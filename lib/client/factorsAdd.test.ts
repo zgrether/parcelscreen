@@ -81,12 +81,20 @@ describe("adding the new factors once, at boot", () => {
     // Hospital after Town; Internet at the bottom of Nice to have, its default tier (plan §2.7).
     expect(r.mine.ranked.map((c) => c.factor)).toEqual(["trails", "town", "hospital", "garden", "internet"]);
     // The questions that place the others unanswered: Don't care.
-    expect(r.mine.wonts).toEqual(["climate", "privacy", "longView", "airport", "longTrail", "paddling"]);
+    expect(r.mine.wonts).toEqual([
+      "climate",
+      "privacy",
+      "longView",
+      "airport",
+      "longTrail",
+      "paddling",
+      "climbing",
+    ]);
     expect(r.factorsAdded).toEqual(marked("new"));
     expect(getPref("ps.interview")!.base!.ranked.map((c) => c.factor)).toContain("hospital");
     expect(pendingFactors()).toEqual(NEW_FACTORS);
     expect(factorsNote(pendingFactors())).toBe(
-      "New factors to place: Hospital, Climate, Privacy, Long view, Airport, Bike to a long trail, Satellite internet, Paddling",
+      "New factors to place: Hospital, Climate, Privacy, Long view, Airport, Bike to a long trail, Satellite internet, Paddling, Climbing",
     );
     expect(newQuestionsHref(pendingFactors())).toBe("/interview?ask=climate");
     expect(newQuestionsHref(["hospital"])).toBeNull();
@@ -131,6 +139,7 @@ describe("adding the new factors once, at boot", () => {
       "airport",
       "longTrail",
       "paddling",
+      "climbing",
       "hospital",
       "internet",
     ]);

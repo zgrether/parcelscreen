@@ -1,5 +1,11 @@
 {
   "about": "Asks .github/workflows/places.yml to run its jobs on this PR's branch (step 14d plan §7). Change `request` to run them again; the workflow records the last one it finished in places-done.json.",
-  "request": "14d-tailwater-1",
-  "jobs": ["areas"]
+  "request": "17-shortoff-record-1",
+  "jobs": ["record"],
+  "append": [
+    "grayson-mud-creek-6273",
+    "ferney-creek-52-47A",
+    "macks-mountain-35-3",
+    "roan-hwy-143-099-046-02"
+  ]
 }

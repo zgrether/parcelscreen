@@ -40,6 +40,16 @@
       "count": 12
     },
     {
+      "id": "crags",
+      "name": "Climbing areas, kept by hand (lib/screen/data/crags.json): the land managers' and climbing coalitions' pages",
+      "licence": "Parcel Screen's own list of facts; each lot's point © OpenStreetMap contributors (an insubstantial extract)",
+      "attribution": "Parcel Screen; parking © OpenStreetMap contributors",
+      "url": "https://github.com/zgrether/parcelscreen/blob/main/lib/screen/data/crags.json",
+      "fetched": "2026-10-30",
+      "folder": "curated",
+      "count": 48
+    },
+    {
       "id": "va-parks",
       "name": "VA state parks (VGIN)",
       "folder": "official",
@@ -220,6 +230,29 @@
       "39_-78": 1,
       "39_-79": 3,
       "39_-80": 11
+    },
+    "curated": {
+      "33_-87": 1,
+      "34_-86": 3,
+      "35_-82": 4,
+      "35_-83": 5,
+      "35_-84": 2,
+      "35_-85": 1,
+      "35_-86": 7,
+      "36_-81": 3,
+      "36_-82": 2,
+      "36_-83": 1,
+      "36_-85": 2,
+      "36_-88": 1,
+      "37_-81": 1,
+      "37_-83": 1,
+      "37_-84": 3,
+      "38_-78": 2,
+      "38_-79": 3,
+      "38_-80": 1,
+      "38_-81": 1,
+      "38_-82": 3,
+      "39_-80": 1
     }
   }
 }

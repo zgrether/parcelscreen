@@ -28,10 +28,20 @@ describe("rank-sum weights", () => {
     expect(round1(rows.map((k) => w[k]))).toEqual(
       round1(rows.map((_, i) => ((n - i) / ((n * (n + 1)) / 2)) * 100)),
     );
-    // Sixteen rows since step 14d's Paddling: 16 down to 1 over 136.
+    // Seventeen rows since step 17's Climbing: 17 down to 1 over 153.
     expect(
-      round1([w.elevation, w.climate, w.privacy, w.longView, w.airport, w.longTrail, w.internet, w.paddling]),
-    ).toEqual([11.8, 5.1, 4.4, 3.7, 2.9, 2.2, 1.5, 0.7]);
+      round1([
+        w.elevation,
+        w.climate,
+        w.privacy,
+        w.longView,
+        w.airport,
+        w.longTrail,
+        w.internet,
+        w.paddling,
+        w.climbing,
+      ]),
+    ).toEqual([11.1, 5.2, 4.6, 3.9, 3.3, 2.6, 2, 1.3, 0.7]);
     expect(Object.values(w).reduce((a, b) => a + b, 0)).toBeCloseTo(100, 9);
   });
 
@@ -67,6 +77,7 @@ describe("rank-sum weights", () => {
       longTrail: 0,
       internet: 0,
       paddling: 0,
+      climbing: 0,
       budget: 0,
     });
     expect(weightsOf(explicit)).toEqual(explicit.weights.mode === "explicit" ? explicit.weights.of : null);

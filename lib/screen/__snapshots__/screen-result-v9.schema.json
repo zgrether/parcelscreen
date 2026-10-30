@@ -1464,6 +1464,109 @@
       ],
       "additionalProperties": false
     },
+    "climbing": {
+      "type": "object",
+      "properties": {
+        "rope": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "types": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "min": {
+                  "type": "number"
+                },
+                "mi": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "types",
+                "min",
+                "mi"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "boulder": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "min": {
+                  "type": "number"
+                },
+                "mi": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "min",
+                "mi"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ropeWithin": {
+          "type": "number"
+        },
+        "timed": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "min": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "id",
+              "min"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "rope",
+        "boulder",
+        "ropeWithin",
+        "timed"
+      ],
+      "additionalProperties": false
+    },
     "dish": {
       "anyOf": [
         {
