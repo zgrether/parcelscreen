@@ -5230,8 +5230,8 @@
     "types": [
      "trad"
     ],
-    "min": 95,
-    "mi": 51.4
+    "min": 97,
+    "mi": 51.8
    },
    "boulder": {
     "id": "grayson-highlands",
@@ -5247,7 +5247,7 @@
     },
     {
      "id": "linville-gorge-shortoff",
-     "min": 95
+     "min": 97
     },
     {
      "id": "grayson-highlands",
@@ -10225,8 +10225,8 @@
     "types": [
      "trad"
     ],
-    "min": 95,
-    "mi": 51.4
+    "min": 97,
+    "mi": 51.8
    },
    "boulder": {
     "id": "grayson-highlands",
@@ -10242,7 +10242,7 @@
     },
     {
      "id": "linville-gorge-shortoff",
-     "min": 95
+     "min": 97
     },
     {
      "id": "grayson-highlands",
