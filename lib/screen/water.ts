@@ -304,9 +304,10 @@ export function soilWater(
 
 /**
  * Flow and wetness on the fine grid. Accumulation is its own (the driveway's is untouched): depressions filled, D8,
- * each edge cell flowing inward from the watershed seeded with the 10 m catchment that arrives across its width. Lines over
- * water.flowLineAc; wet ground where the index is in water.twiWet's band and the soil is poorly drained (or the index
- * alone passes water.twiWetAlone); pond sites inside the parcel and out of the flood zone.
+ * each edge cell flowing inward from the watershed seeded with the 10 m catchment that arrives across its width; the
+ * margin outside the parcel counts only where it's in the watershed. Lines over water.flowLineAc, on the parcel; wet
+ * ground where the index is in water.twiWet's band and the soil is poorly drained (or the index alone passes
+ * water.twiWetAlone); pond sites inside the parcel and out of the flood zone.
  */
 export function measureWater(
   fine: { d: Dem; slope: Float32Array; inside: Uint8Array },
@@ -325,23 +326,30 @@ export function measureWater(
     const cd = shed.d;
     for (let r = 0; r < h; r++)
       for (let c = 0; c < w; c++) {
-        if (r > 0 && c > 0 && r < h - 1 && c < w - 1) continue;
         const i = r * w + c;
-        if (downstream(dir, w, h, i) < 0) continue;
+        if (inside[i]) continue;
         const [x, y] = rcToUTM(d, r, c);
         const [cr, cc] = utmToRC(cd, x, y).map(Math.round) as [number, number];
-        if (cr < 0 || cc < 0 || cr >= cd.h || cc >= cd.w || !shed.mask[cr * cd.w + cc]) continue;
-        // Only the watershed's water, so the lines agree with it (a creek that skirts the parcel stays off it).
-        // The coarse cell's upslope area per metre of its width, times this cell's width, in fine cells.
-        seed[i] = 1 + (shed.acc[cr * cd.w + cc]! * cd.res * cd.resY) / cd.res / d.res;
+        const k = cr * cd.w + cc;
+        // Only the watershed's water, so the lines agree with it (a creek that skirts the parcel stays off it): the
+        // margin around the parcel counts where it's in the watershed, and nowhere else.
+        if (cr < 0 || cc < 0 || cr >= cd.h || cc >= cd.w || !shed.mask[k]) {
+          seed[i] = 0;
+          continue;
+        }
+        const edge = r === 0 || c === 0 || r === h - 1 || c === w - 1;
+        // An edge cell flowing inward: the coarse cell's upslope area per metre of its width, times this cell's
+        // width, in fine cells.
+        if (edge && downstream(dir, w, h, i) >= 0)
+          seed[i] = 1 + (shed.acc[k]! * cd.res * cd.resY) / cd.res / d.res;
       }
   }
   const acc = accumulate(dir, w, h, seed);
   // The wetness index on flow spread over every lower neighbour (D8 would pile a flat's water into one line).
   const twi = wetness(accumulateMfd(f, w, h, d.res, d.resY, seed), slope, d.res, d.resY, K.minSlopeDeg);
 
-  // Flow lines, longest first, simplified for the map.
-  const lines = flowLines(dir, acc, w, h, (K.flowLineAc * M2_PER_ACRE) / cell)
+  // Flow lines on the parcel (the grid's margin is only there to feed it), longest first, simplified for the map.
+  const lines = flowLines(dir, acc, w, h, (K.flowLineAc * M2_PER_ACRE) / cell, inside)
     .sort((a, b) => b.cells.length - a.cells.length || b.acc - a.acc)
     .slice(0, K.maxLines)
     .map((l) => {
