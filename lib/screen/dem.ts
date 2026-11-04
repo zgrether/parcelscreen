@@ -91,13 +91,14 @@ export function bilinear(d: Dem, x: number, y: number): number {
 
 /**
  * In-memory, per session: DEMs keyed by (bbox to 1e-5°, cell size) and decoded terrarium tiles. Small LRU;
- * a parcel needs two DEMs, so four entries keep the last two parcels.
+ * a parcel needs two DEMs and its watershed's 10 m grid (one to three boxes, docs/plans/water.md), so eight entries
+ * keep the last two parcels.
  */
 export class DemCache {
   private readonly dems = new Map<string, Promise<Dem>>();
   readonly tiles = new Map<string, Promise<Float32Array>>();
 
-  constructor(private readonly maxDems = 4) {}
+  constructor(private readonly maxDems = 8) {}
 
   static key(b: BboxLL, resM: number): string {
     return `${b.map((v) => v.toFixed(5)).join(",")}@${resM}`;

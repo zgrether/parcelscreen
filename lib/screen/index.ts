@@ -350,7 +350,7 @@ export async function screen(
   const pondsAsk = settle(fetchWaterbodies(cfg.endpoints.nhdWaterbody, usesLand, io));
   const countyAsk = settle(findCounty(s.centre, usesLand, io, cfg.endpoints.counties));
   // Water on the land (docs/plans/water.md): the 10 m watershed and the soil-water query, read in the near step.
-  const watershedAsk = settle(readWatershed(usesLand, io));
+  const watershedAsk = settle(readWatershed(usesLand, { ...io, cache: s.deps.demCache }));
   const soilWaterAsk = settle(fetchSoilWater(usesLand, io));
 
   await step("dem", async () => {

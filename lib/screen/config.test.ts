@@ -1587,6 +1587,7 @@ describe("config", () => {
           "twiWet": 9,
           "twiWetAlone": 11,
           "watershedCoverSamples": 20000,
+          "watershedEdgeCells": 2,
           "watershedKm": [
             1,
             2.5,

@@ -415,6 +415,9 @@ export const SCREEN_CONSTANTS = deepFreeze({
   water: {
     watershedResM: 10, // 3DEP at 10 m for the upslope watershed
     watershedKm: [1, 2.5, 5], // the box around the parcel, grown until the catchment closes; the last is the cap
+    // Water must run this many 10 m cells inside the boundary to count as draining onto the parcel: a creek whose path
+    // only clips a corner (Mud Creek's, by one cell) passes it by.
+    watershedEdgeCells: 2,
     watershedCoverSamples: 20_000, // land-cover samples over the watershed at most
     outlineToleranceDeg: 0.00005, // the watershed's outline simplified to about 5 m
     outlineToleranceFineDeg: 0.00002, // a wet patch's to about 2 m
