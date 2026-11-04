@@ -85,6 +85,13 @@ function rowsOf(json: unknown): Record<string, unknown>[] {
   return rows.slice(1).map((v) => Object.fromEntries(cols.map((c, i) => [c, v[i]])));
 }
 
+/** A query's rows, by column name; throws on an HTTP error (the area catalog's boulder share, lib/areas/boulders.ts). */
+export async function sdaRows(query: string, deps: SoilDeps): Promise<Record<string, unknown>[]> {
+  const r = await sda(query, deps);
+  if (!r.ok) throw new Error("SDA " + r.status);
+  return rowsOf(await r.json());
+}
+
 /** Major soil components on the parcel, one row per component (proto L772–789). */
 export async function fetchSoils(
   parcel: Feature<Polygon | MultiPolygon>,

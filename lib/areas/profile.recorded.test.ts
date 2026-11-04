@@ -46,6 +46,12 @@ describe("Grayson Highlands, from its recording", () => {
     expect(m.airportMin!).toBeGreaterThan(45);
   }, 60_000);
 
+  it("bouldery: some of its rural land is in a bouldery or rocky map unit (docs/plans/boulders.md §2)", async () => {
+    const { file } = await run();
+    expect(file.boulderShare).not.toBeNull();
+    expect(file.boulderShare!).toBeGreaterThan(0);
+  }, 60_000);
+
   it("the same file twice", async () => {
     expect((await run()).file).toEqual((await run()).file);
   }, 120_000);
