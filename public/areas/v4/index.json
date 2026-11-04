@@ -112,6 +112,17 @@
    ]
   },
   {
+   "id": "bath",
+   "name": "Bath County",
+   "profiledAt": "2026-11-04",
+   "bbox": [
+    -80.0561,
+    37.8445,
+    -79.4367,
+    38.2661
+   ]
+  },
+  {
    "id": "nelson-highlands",
    "name": "Nelson highlands (Montebello)",
    "profiledAt": "2026-11-04",
