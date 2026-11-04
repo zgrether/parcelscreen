@@ -8,7 +8,14 @@ import type { SessionView } from "../screen/worker-protocol";
 import type { PrototypeSlug } from "@/test/support/fixtures";
 import { replayRun } from "@/test/support/session";
 import { prototypeFn } from "@/test/support/prototypeFns";
-import { heat, SURFACE_MODES, surfaceCorners, surfaceImage, type SurfaceMode } from "./surface";
+import {
+  heat,
+  SURFACE_MODES,
+  surfaceCorners,
+  surfaceImage,
+  wetnessColour,
+  type SurfaceMode,
+} from "./surface";
 
 const viewOf = async (slug: PrototypeSlug): Promise<SessionView> => (await replayRun(slug)).view;
 
@@ -96,5 +103,16 @@ describe("surface image (15a) vs the prototype", () => {
 
   it("is null for a session without surfaces (a run that stopped early)", () => {
     expect(surfaceImage({ parcel: null as never, house: null }, "house")).toBeNull();
+  });
+});
+
+describe("Shading › Wetness (docs/plans/water.md §2)", () => {
+  it("clear where dry, blue and more opaque where wet; nothing without the session's index", () => {
+    expect(wetnessColour(2)).toBeNull();
+    const mid = wetnessColour(8)!,
+      wet = wetnessColour(14)!;
+    expect(wet[3]).toBeGreaterThan(mid[3]);
+    expect(wet[2]).toBeGreaterThan(wet[0]);
+    expect(surfaceImage({ parcel: null as never, house: null }, "wetness")).toBeNull();
   });
 });

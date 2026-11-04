@@ -8,7 +8,13 @@ import { SURFACE_LABEL } from "@/lib/render/surface";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
 import { nextSurface, setSurfaceMode, useSurfaceMode, type SurfaceChoice } from "./useSurfaceMode";
 
-const SHORT: Record<SurfaceChoice, string> = { house: "House", garden: "Garden", slope: "Slope", off: "Off" };
+const SHORT: Record<SurfaceChoice, string> = {
+  house: "House",
+  garden: "Garden",
+  slope: "Slope",
+  wetness: "Wet",
+  off: "Off",
+};
 
 /** Whether the shown screen has a live surface to draw (and so the controls do something). */
 export function useHasSurface(): boolean {

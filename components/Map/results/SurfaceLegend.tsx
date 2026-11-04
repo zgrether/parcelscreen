@@ -8,7 +8,7 @@
  *     colours drawn over it (house sites and shelves; garden patches).
  * Every colour is the image's own (lib/render/surface.ts), so the legend can't drift from the map.
  */
-import { heat, SLOPE_BANDS, SURFACE_SOLIDS } from "@/lib/render/surface";
+import { heat, SLOPE_BANDS, SURFACE_SOLIDS, wetnessColour, WETNESS_RANGE } from "@/lib/render/surface";
 import { useHasSurface } from "./SurfaceButton";
 import { useSurfaceMode } from "./useSurfaceMode";
 
@@ -22,7 +22,32 @@ const pct = (g: number) => `${Math.round(g * 100)}%`;
 export function SurfaceLegend() {
   const mode = useSurfaceMode();
   if (!useHasSurface() || mode === "off") return null;
+  if (mode === "wetness") return <WetnessLegend />;
   return mode === "slope" ? <SlopeLegend /> : <ScoreLegend kind={mode} />;
+}
+
+/** Water on the land's wetness: clear (dry) at the bottom to deep blue (wet) at the top, the image's own colours. */
+function WetnessLegend() {
+  const { dry, wet } = WETNESS_RANGE;
+  const stops = Array.from({ length: 11 }, (_, i) => {
+    const c = wetnessColour(dry + ((wet - dry) * i) / 10);
+    return `${c ? `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${(c[3] / 255).toFixed(2)})` : "transparent"} ${i * 10}%`;
+  }).join(", ");
+  const title =
+    "Wetness: where water gathers and soaks, from the 3 m lidar's flow and slope. Clear is dry ground; deep blue is wettest.";
+  return (
+    <div className="surface-legend" role="img" aria-label={title} title={title}>
+      <span className="sl-title">Wet</span>
+      <div className="sl-bar ramp" style={{ background: `linear-gradient(to top, ${stops})` }}>
+        <span className="sl-tick" style={{ bottom: "100%" }}>
+          wet
+        </span>
+        <span className="sl-tick" style={{ bottom: "0%" }}>
+          dry
+        </span>
+      </div>
+    </div>
+  );
 }
 
 function SlopeLegend() {

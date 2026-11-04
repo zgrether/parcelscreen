@@ -75,6 +75,8 @@ export interface SessionView {
   decAltByAz?: (number | null)[];
   /** Soil units with their pieces, for the 3D soil walls (the result has the same, as `geometries`). */
   units?: SoilUnit[] | null;
+  /** Water on the land's wetness index on the fine grid (Shading › Wetness); the session's only, never stored. */
+  twi?: Float32Array;
 }
 
 export function sessionView(s: ScreenSession): SessionView {
@@ -95,6 +97,7 @@ export function sessionView(s: ScreenSession): SessionView {
     ...(s.horizon ? { horizon: s.horizon } : {}),
     ...(s.decAltByAz ? { decAltByAz: s.decAltByAz } : {}),
     ...(s.units !== undefined ? { units: s.units } : {}),
+    ...(s.water ? { twi: s.water.twi } : {}),
   };
 }
 
