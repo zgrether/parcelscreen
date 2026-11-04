@@ -71,10 +71,12 @@ test("Uses on Mud Creek: from Grade's shortcut, seven answers, What decides it, 
   await expect(page.getByRole("tab", { name: "Uses" })).toHaveAttribute("aria-selected", "true");
 
   const uses = page.getByRole("region", { name: "Uses" });
-  // Step 15: How it could pay is the second panel, under What limits you; Panel 1's rows are the first list.
+  // Step 15: How it could pay is the second panel, under What limits you; Panel 1's rows are the first list. Boulder
+  // potential's one line comes between them.
   await expect(uses.locator(".uses-head")).toHaveText([
     "What you can do here",
     "What limits you",
+    "Boulders",
     "How it could pay",
   ]);
   const panel1 = uses.locator(".uses-list").first();
@@ -267,7 +269,7 @@ test("One page has the Divide and Could pay lines; Full has What you can do here
   );
 });
 
-test("Map layers' Power lines draws the lines near the graded parcel; off by default", async ({
+test("Map layers' Power lines and Boulder ground draw from the graded parcel; both off by default", async ({
   page,
   context,
 }) => {
@@ -301,4 +303,47 @@ test("Map layers' Power lines draws the lines near the graded parcel; off by def
   await expect(page.locator(".mp-key")).toContainText(
     "A power line near the parcel, when Power lines is on.",
   );
+
+  // Boulder ground (docs/plans/boulders.md §2): Macks's stony soils and its rough patches, off until turned on.
+  const boulders = () =>
+    page.evaluate(() => {
+      const map = (
+        window as unknown as {
+          __psMap: { getLayer(id: string): unknown; getSource(id: string): Src | undefined };
+        }
+      ).__psMap;
+      const src = map.getLayer("boulder-fill") ? map.getSource("boulder-ground") : undefined;
+      return src ? src.serialize().data.features.length : 0;
+    });
+  expect(await boulders()).toBe(0);
+  const ground = page
+    .getByRole("group", { name: "On the map" })
+    .getByRole("button", { name: "Boulder ground" });
+  await expect(ground).toHaveAttribute("aria-pressed", "false");
+  await ground.click();
+  await expect(ground).toHaveAttribute("aria-pressed", "true");
+  await expect.poll(boulders).toBeGreaterThan(0);
+  await expect(page.locator(".mp-key")).toContainText(
+    "Rough lidar texture: possible boulders, when Boulder ground is on.",
+  );
+});
+
+test("Boulders on Mud Creek: one line outside the grade, its soils and the winter note on a tap", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(180_000);
+  await replayHar(context, GRAYSON);
+  await openGraded(page, GRAYSON);
+  await page.getByRole("tab", { name: "Uses" }).click();
+  const uses = page.getByRole("region", { name: "Uses" });
+  const line = uses.locator(".boulders-row");
+  await expect(line).toHaveText("Possible boulder ground: 16 ac (bouldery soils)");
+  // No chip: it's not one of the seven answers the Grade tab counts.
+  await expect(uses.locator(".boulders .use-chip")).toHaveCount(0);
+  await line.click();
+  const detail = uses.locator(".boulders-detail");
+  await expect(detail).toContainText(/very stony/);
+  await expect(detail).toContainText("Rough lidar texture: none found");
+  await expect(detail).toContainText("Walk it in winter, when the leaves are down.");
 });

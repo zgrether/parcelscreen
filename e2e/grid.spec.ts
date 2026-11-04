@@ -48,6 +48,18 @@ test("a header sorts and turns around; Columns ▾ hides a factor and remembers 
   await page.getByRole("tab", { name: "Shortlist" }).click();
   await expect(page.locator(".lib-grid thead th").filter({ hasText: /^Sky/ })).toHaveCount(0);
 
+  // Boulder ground (docs/plans/boulders.md §2): off by default; added in Columns ▾, it sorts most first.
+  const boulders = page.locator(".lib-grid thead th").filter({ hasText: "Boulder ground" });
+  await expect(boulders).toHaveCount(0);
+  await page.getByRole("button", { name: "Columns ▾" }).click();
+  await page
+    .getByRole("group", { name: "Columns" })
+    .getByLabel(/^Boulder ground/)
+    .check();
+  await expect(boulders).toHaveCount(1);
+  await boulders.getByRole("button").click();
+  await expect(page.locator(".lib-grid tbody tr").first()).toContainText("Macks");
+
   // The header row and the Name column are sticky in the grid's own scroll box.
   expect(
     await page

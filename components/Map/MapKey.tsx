@@ -5,10 +5,28 @@
  * the map's key line opens it ("All map marks"), and its Every pin turns on the pins beyond the best homesite.
  */
 import { useEffect, useRef } from "react";
-import { POWER_MAP } from "@/lib/uses/words";
+import { BOULDERS_MAP, POWER_MAP } from "@/lib/uses/words";
 import { KEY_WORDS } from "@/lib/render/keyLine";
 import { setOverlay, useOverlayPrefs } from "./results/useOverlayPrefs";
 import { POWER_CASING, POWER_COLOR } from "./results/PowerLayer";
+import { BOULDER_COLOR } from "./results/BouldersLayer";
+
+/** An area as the map draws it: a fill at its opacity, and its outline when it has one. */
+const Fill = ({ color, opacity, edge }: { color: string; opacity: number; edge?: boolean }) => (
+  <svg className="mk-line" width="28" height="12" viewBox="0 0 28 12" aria-hidden="true">
+    <rect
+      x="1"
+      y="1"
+      width="26"
+      height="10"
+      rx="2"
+      fill={color}
+      fillOpacity={opacity}
+      stroke={edge ? color : "none"}
+      strokeWidth="1.5"
+    />
+  </svg>
+);
 
 /** A pin as the map draws it (the .sitepin classes). */
 const Pin = ({ cls, text }: { cls: string; text: string }) => (
@@ -79,6 +97,13 @@ const ROWS: { key: string; swatch: React.ReactNode; text: string; wide?: boolean
     key: "soils",
     swatch: <Line color="#8a5ea8" dash="4 3" />,
     text: "Soil units: each map unit's outline, dashed in a colour of its own. Its tip names the soil.",
+  },
+  // Boulder potential (docs/plans/boulders.md §2): added last, so the rows above keep their order.
+  { key: "boulder-soil", swatch: <Fill color={BOULDER_COLOR} opacity={0.2} />, text: BOULDERS_MAP.keySoil },
+  {
+    key: "boulder-rough",
+    swatch: <Fill color={BOULDER_COLOR} opacity={0.5} edge />,
+    text: BOULDERS_MAP.keyRough,
   },
 ];
 

@@ -31,6 +31,8 @@ export interface MapLayerPrefs {
   publicLand: boolean;
   /** Step 16: the Forest Service's MVUM roads and trails (off). */
   mvum: boolean;
+  /** Boulder potential: the graded parcel's bouldery soils and rough lidar texture (off). */
+  boulders: boolean;
 }
 
 /** Topo and Streets already draw roads and names: the overlay is for the aerials (owner, 17d §7). */
@@ -53,6 +55,7 @@ function read(): MapLayerPrefs {
     places: getPref("ps.places"),
     publicLand: getPref("ps.publicLand"),
     mvum: getPref("ps.mvum"),
+    boulders: getPref("ps.boulders"),
   };
 }
 
@@ -73,6 +76,7 @@ export function setMapLayerPrefs(patch: Partial<MapLayerPrefs>): void {
   if (patch.places !== undefined) setPref("ps.places", patch.places);
   if (patch.publicLand !== undefined) setPref("ps.publicLand", patch.publicLand);
   if (patch.mvum !== undefined) setPref("ps.mvum", patch.mvum);
+  if (patch.boulders !== undefined) setPref("ps.boulders", patch.boulders);
   listeners.forEach((l) => l());
 }
 
