@@ -1412,6 +1412,27 @@ until step 5 (Q14).
       bouldering only (brown is the trailhead's); a tap shows the types, the access note, the date, the drive the open
       parcel's grade timed and a link to the access page.
 
+78. **Boulder potential** (owner, 2026-11-04, pre-approved; the plan `docs/plans/boulders.md`, #399; built in #400
+    onwards). Where on a parcel bouldering on one's own land might be, outside the grade.
+    - **The measurement** (#400): an optional `boulders` on the result (§9.65's exception, as §9.77; the schema stays v9).
+      - **Soils:** the NRCS map units whose name or major components say bouldery, very or extremely stony, rubbly,
+        rubble land or rock outcrop (plain "stony" doesn't count).
+      - **Lidar texture:** the spread of the 3 m bare-earth ground above its 27 m trend, rough at 0.3 m, not on or beside
+        a long cliff band or in or beside a drainage, dense over 5 × 5 cells, in patches of at least 0.25 ac.
+      - The acres of either, a cell counted once. ENGINE_VERSION 35 → 36; `ENGINE_CURRENT_FROM` stays 29;
+        `expected.json` gains `boulders` only (Macks 237 ac, Mud Creek 16 ac, Ferney and Roan none).
+      - **The sanity test:** Grayson Highlands' boulder field north of Massie Gap, read live on the runners and recorded
+        (`test/fixtures/boulders-grayson/`): 235 ac of very bouldery soils and 2.6 ac of rough texture at the planned
+        thresholds.
+    - **The display** (#401): Uses' Boulders line ("Possible boulder ground: 16 ac (bouldery soils)"), its soils and
+      the winter note; Map layers › Boulder ground (off by default); the Favorites grid's Boulder ground column, off by
+      default even in a view stored before it (the view's new opt-in list, `columns.shown`).
+    - **The area catalog** (#402): each area's share of its rural points in such a map unit, `boulderShare` in
+      `/areas/v4` (a clean break); the card's "Bouldery soils: 31% of rural land" and Where to look's sort, Best fit or
+      Most boulder ground. A first query (a spatial join per point) didn't answer within 30 s; SDA's own indexed point
+      lookup did, 50 points a query, filled by `pnpm areas:boulders` without profiling the areas again. Nelson
+      Highlands reads 63%, Grayson Highlands 31%, Ashe 0%.
+
 79. **Water on the land** (owner, 2026-11-04, pre-approved; the plan `docs/plans/water.md`, #403; built in #404
     onwards). Where water comes from, where it gathers on the parcel, and what the soils hold, outside the grade.
     - **The hydrology** (#404, `lib/screen/hydro.ts`): priority-flood depression filling, D8 directions and accumulation,

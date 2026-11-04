@@ -42,6 +42,7 @@
     "areas:outlines": "node scripts/areas-outlines.mts",
     "areas:profile": "vitest run test/tools/area-profile.test.ts --mode areas",
     "areas:record": "vitest run test/tools/area-profile.test.ts --mode areas-record",
+    "areas:boulders": "vitest run test/tools/areas-boulders.test.ts --mode areas-boulders",
     "areas:samples": "vitest run test/tools/area-samples.test.ts --mode areas-samples",
     "data:hospitals": "node scripts/data-hospitals.mts",
     "data:states": "node scripts/data-state-outlines.mts",

@@ -594,6 +594,15 @@ workflow's PR. Two prefs: `ps.areas` (per device) and `ps.areaStars` (per profil
   the areas, rope and bouldering apart, with a card for type, access note and drive.
 - **The details** are in phase-0.md §9.77.
 
+### 3s. Boulder potential
+
+- **The estimate:** soils whose names say bouldery, very or extremely stony, rubbly, rubble land or rock outcrop, and
+  patches of rough texture in the 3 m lidar (off cliffs and drainages), as acres; never graded.
+- **Where it shows:** a Boulders line in Uses with its soils and a note to walk it in winter; Map layers › Boulder
+  ground; a Boulder ground column in the Favorites grid, off by default; each area's share of bouldery soils, and Where
+  to look's Most boulder ground sort.
+- **The details** are in phase-0.md §9.78.
+
 ### 3t. Water on the land
 
 - **The estimate:** the land draining onto the parcel (10 m elevation, its acres, land cover, roads and largest inflow);

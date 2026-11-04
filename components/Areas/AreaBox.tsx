@@ -10,7 +10,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { bbox } from "@turf/turf";
 import { RubricSwitch } from "@/components/Results/card/RubricSwitch";
-import { areaCard, areaLimits, rankAreas, rankOf, regionWideLimit, type AreaCard } from "@/lib/areas/score";
+import {
+  areaCard,
+  areaLimits,
+  byBoulders,
+  rankAreas,
+  rankOf,
+  regionWideLimit,
+  type AreaCard,
+} from "@/lib/areas/score";
 import type { AreaFile } from "@/lib/areas/types";
 import {
   AREA_WORDS as W,
@@ -42,6 +50,8 @@ export function AreaBox({
   const areas = useAreas();
   const { stars, toggle } = useAreaStars();
   const [more, setMore] = useState(false);
+  // Boulder potential (docs/plans/boulders.md §2): Best fit (the ranking) or Most boulder ground.
+  const [sort, setSort] = useState<"fit" | "boulders">("fit");
   const router = useRouter();
   const byId = useMemo(() => new Map(areas.files.map((f) => [f.id, f])), [areas.files]);
   const ranked = useMemo(
@@ -52,8 +62,15 @@ export function AreaBox({
       ),
     [areas.files, rubric],
   );
-  const top = ranked.filter((c) => c.suggestable).slice(0, TOP);
-  const rest = ranked.filter((c) => !top.includes(c));
+  const sorted = useMemo(
+    () =>
+      sort === "boulders"
+        ? byBoulders(ranked, new Map(areas.files.map((f) => [f.id, f.boulderShare])))
+        : ranked,
+    [sort, ranked, areas.files],
+  );
+  const top = sorted.filter((c) => c.suggestable).slice(0, TOP);
+  const rest = sorted.filter((c) => !top.includes(c));
   // Owner, 10/23: every area's place for this person, and a Must that rules out most of the region.
   const ranks = useMemo(() => rankOf(ranked), [ranked]);
   const regionWide = useMemo(() => regionWideLimit(ranked), [ranked]);
@@ -87,6 +104,25 @@ export function AreaBox({
         label="Whose priorities rank the areas"
       />
       <p className="area-note tiny muted">{W.ranked}</p>
+      <div className="area-sort" role="group" aria-label={W.sortBy}>
+        <span className="tiny muted">{W.sortBy}</span>
+        {(
+          [
+            ["fit", W.sortFit],
+            ["boulders", W.sortBoulders],
+          ] as const
+        ).map(([k, label]) => (
+          <button
+            key={k}
+            type="button"
+            className="area-sort-btn"
+            aria-pressed={sort === k}
+            onClick={() => setSort(k)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
       {parcelScale && <p className="area-note tiny muted">{MUSTS_PARCEL_SCALE}</p>}
       {regionWide && <RegionLine limit={regionWide} />}
       {areas.state !== "ready" ? (
@@ -276,6 +312,7 @@ export function AreaCardView({
           </ul>
         </div>
       )}
+      {file.boulderShare !== null && <p className="ac-boulders">{W.bouldery(file.boulderShare)}</p>}
       <p className="ac-typical tiny muted">{W.typical(file.points.ll.length)}</p>
       <button type="button" className="btn small secondary ac-show" onClick={show}>
         {W.showParcel}
