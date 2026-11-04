@@ -13,7 +13,7 @@ import { bbox, buffer, simplify } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { CancelledError, type HttpClient } from "../http";
 import { SCREEN_CONSTANTS } from "./config";
-import { fetchDEM, llToRC, rcToLL, rcToUTM, utmToRC, type BboxLL } from "./dem";
+import { fetchDEM, llToRC, rcToLL, rcToUTM, utmToRC, type BboxLL, type DemCache } from "./dem";
 import {
   accumulate,
   accumulateMfd,
@@ -43,6 +43,8 @@ interface Io {
   http: HttpClient;
   endpoints: Endpoints;
   signal?: AbortSignal;
+  /** The session's DEM cache: a second run of the same parcel asks 3DEP nothing again. */
+  cache?: DemCache;
 }
 
 /** The 10 m catchment, as the fine grid's seeding and the result's watershed read it. */

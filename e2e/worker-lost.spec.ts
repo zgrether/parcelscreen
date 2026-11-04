@@ -81,8 +81,9 @@ test("a slow first step isn't a lost worker: the start is acknowledged at once, 
   const t0 = Date.now();
   expectAllDone(await screenIt(page));
   expect(Date.now() - t0, "the run waited for the slow response").toBeGreaterThan(30_000);
-  // One worker did it all: the fine and the wide DEM were asked once each (a retry would ask again).
-  expect(net.served.filter((k) => k.includes("/3DEPElevation/ImageServer/exportImage"))).toHaveLength(2);
+  // One worker did it all: the fine and the wide DEM, and Water on the land's 10 m watershed grid (Ferney's closes in
+  // its first box), were asked once each (a retry would ask again).
+  expect(net.served.filter((k) => k.includes("/3DEPElevation/ImageServer/exportImage"))).toHaveLength(3);
   await expect(page.getByText(/didn't start|no longer available/i)).toHaveCount(0);
   expect(await live(page)).toBe(true);
   expect(errors, "page errors").toEqual([]);
