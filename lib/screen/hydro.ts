@@ -400,3 +400,53 @@ export function pondSites(
   }
   return out;
 }
+
+/**
+ * Multiple-flow-direction accumulation (Freeman, 1991; Quinn's contour lengths): each cell passes what it gathers to
+ * every lower neighbour, in proportion to (drop per distance)^p × the contour length it shares with it, so flow spreads
+ * over open slopes and flats as it does on the ground. The wetness index reads it; flow lines and pond sites keep D8.
+ * In cells, highest first on the filled grid (every cell drains, so the order is a valid topological one).
+ */
+export function accumulateMfd(
+  f: Float64Array,
+  w: number,
+  h: number,
+  res: number,
+  resY: number,
+  seed?: Float64Array,
+  p = 1.1,
+): Float64Array {
+  const n = w * h;
+  const acc = new Float64Array(n);
+  const order: number[] = [];
+  for (let i = 0; i < n; i++) {
+    acc[i] = seed ? seed[i]! : 1;
+    if (!Number.isNaN(f[i]!)) order.push(i);
+  }
+  order.sort((a, b) => f[b]! - f[a]! || a - b);
+  const dist = DR.map((dr, k) => Math.hypot(dr * resY, DC[k]! * res));
+  const len = DR.map((dr, k) => (dr !== 0 && DC[k] !== 0 ? 0.354 : 0.5));
+  const share = new Float64Array(8);
+  for (const i of order) {
+    const r = (i / w) | 0,
+      c = i % w;
+    let total = 0;
+    for (let k = 0; k < 8; k++) {
+      share[k] = 0;
+      const rr = r + DR[k]!,
+        cc = c + DC[k]!;
+      if (rr < 0 || cc < 0 || rr >= h || cc >= w) continue;
+      const j = rr * w + cc;
+      const drop = f[i]! - f[j]!;
+      if (!(drop > 0)) continue;
+      share[k] = Math.pow(drop / dist[k]!, p) * len[k]!;
+      total += share[k]!;
+    }
+    if (!total) continue;
+    for (let k = 0; k < 8; k++) {
+      if (!share[k]) continue;
+      acc[(r + DR[k]!) * w + c + DC[k]!]! += (acc[i]! * share[k]!) / total;
+    }
+  }
+  return acc;
+}

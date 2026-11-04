@@ -410,6 +410,33 @@ export const SCREEN_CONSTANTS = deepFreeze({
     minAcres: 0.25, // the brief's "at least about 0.25 ac"
     maxPatches: 12, // outlines kept for the map, largest first
   },
+  // Water on the land (docs/plans/water.md §1): the watershed's box and grid, the flow lines, wet ground and pond sites.
+  // Never graded.
+  water: {
+    watershedResM: 10, // 3DEP at 10 m for the upslope watershed
+    watershedKm: [1, 2.5, 5], // the box around the parcel, grown until the catchment closes; the last is the cap
+    // Water must run this many 10 m cells inside the boundary to count as draining onto the parcel: a creek whose path
+    // only clips a corner (Mud Creek's, by one cell) passes it by.
+    watershedEdgeCells: 2,
+    watershedCoverSamples: 20_000, // land-cover samples over the watershed at most
+    outlineToleranceDeg: 0.00005, // the watershed's outline simplified to about 5 m
+    outlineToleranceFineDeg: 0.00002, // a wet patch's to about 2 m
+    lineToleranceDeg: 0.00002, // a flow line's to about 2 m
+    flowLineAc: 0.5, // a flow line gathers at least this much (NHD maps nothing this small)
+    maxLines: 30, // the longest kept
+    minSlopeDeg: 0.5, // the wetness index's floor slope, so a flat is very wet but finite
+    // Likely wet ground: the wetness index, averaged over 3 × 3 cells (a channel one cell wide isn't wet ground), at
+    // least this on poorly drained soil… (on the fixtures' 3 m grids the index's 99th percentile is about 10 to 12)
+    twiWet: 9,
+    twiWetAlone: 11, // …or at least this whatever the soil says
+    wetMinAcres: 0.1,
+    maxWet: 12,
+    pondMinAc: 5, // a pond site gathers this many acres…
+    pondMaxAc: 150, // …and no more (a larger flow wants an engineer)
+    pondMaxSlopeDeg: 3, // on ground gentler than this (about 5%)
+    pondApartM: 100,
+    maxPonds: 3,
+  },
   // Step 14 (plan §3, §9): the land uses' thresholds. None is graded; each decides a Yes / Maybe / No.
   uses: {
     trailSpacingFt: 100, // the trail estimate: one path every 100 ft across the gentle ground

@@ -1571,6 +1571,31 @@ describe("config", () => {
           "openMi": 3,
           "reachKm": 6,
         },
+        "water": {
+          "flowLineAc": 0.5,
+          "lineToleranceDeg": 0.00002,
+          "maxLines": 30,
+          "maxPonds": 3,
+          "maxWet": 12,
+          "minSlopeDeg": 0.5,
+          "outlineToleranceDeg": 0.00005,
+          "outlineToleranceFineDeg": 0.00002,
+          "pondApartM": 100,
+          "pondMaxAc": 150,
+          "pondMaxSlopeDeg": 3,
+          "pondMinAc": 5,
+          "twiWet": 9,
+          "twiWetAlone": 11,
+          "watershedCoverSamples": 20000,
+          "watershedEdgeCells": 2,
+          "watershedKm": [
+            1,
+            2.5,
+            5,
+          ],
+          "watershedResM": 10,
+          "wetMinAcres": 0.1,
+        },
       }
     `);
   });

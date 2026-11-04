@@ -85,6 +85,56 @@ function rowsOf(json: unknown): Record<string, unknown>[] {
   return rows.slice(1).map((v) => Object.fromEntries(cols.map((c, i) => [c, v[i]])));
 }
 
+/**
+ * Water on the land (docs/plans/water.md §1c): each map unit's available water in its top 100 cm (`aws0100wta`, cm)
+ * and its major components' topsoil organic matter (`om_r`, %, the horizon starting at the surface). A query of its
+ * own: the component query's text is what the recordings are keyed on, so it isn't touched.
+ */
+export function soilWaterQuery(parcel: Feature<Polygon | MultiPolygon>): string {
+  const wkt = wktOf(parcel, "polygon");
+  return `SELECT m.mukey, a.aws0100wta, c.cokey, c.comppct_r, h.om_r
+ FROM mapunit m
+ LEFT OUTER JOIN muaggatt a ON a.mukey = m.mukey
+ INNER JOIN component c ON c.mukey = m.mukey AND c.majcompflag = 'Yes'
+ LEFT OUTER JOIN chorizon h ON h.cokey = c.cokey AND h.hzdept_r = 0
+ WHERE m.mukey IN (SELECT * FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('${wkt}'))
+ ORDER BY m.mukey, c.comppct_r DESC`;
+}
+
+/** Each map unit's available water (cm, top 100 cm) and organic matter (%, its major components' topsoil, by share). */
+export async function fetchSoilWater(
+  parcel: Feature<Polygon | MultiPolygon>,
+  deps: SoilDeps,
+): Promise<Map<string, { awsCm: number | null; omPct: number | null }>> {
+  const rows = await sdaRows(soilWaterQuery(parcel), deps);
+  const by = new Map<string, { aws: number | null; om: number; w: number }>();
+  const seen = new Set<string>();
+  for (const r of rows) {
+    const mukey = String(r.mukey);
+    const aws = r.aws0100wta == null || r.aws0100wta === "" ? null : Number(r.aws0100wta);
+    const u = by.get(mukey) ?? { aws: Number.isFinite(aws) ? aws : null, om: 0, w: 0 };
+    by.set(mukey, u);
+    // One topsoil horizon per component counted.
+    const key = `${mukey}:${String(r.cokey)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const om = r.om_r == null || r.om_r === "" ? NaN : Number(r.om_r);
+    const pct = Number(r.comppct_r) || 0;
+    if (Number.isFinite(om) && pct > 0) {
+      u.om += om * pct;
+      u.w += pct;
+    }
+  }
+  return new Map([...by].map(([k, u]) => [k, { awsCm: u.aws, omPct: u.w ? u.om / u.w : null }] as const));
+}
+
+/** A query's rows, by column name; throws on an HTTP error (the area catalog's boulder share, lib/areas/boulders.ts). */
+export async function sdaRows(query: string, deps: SoilDeps): Promise<Record<string, unknown>[]> {
+  const r = await sda(query, deps);
+  if (!r.ok) throw new Error("SDA " + r.status);
+  return rowsOf(await r.json());
+}
+
 /** Major soil components on the parcel, one row per component (proto L772–789). */
 export async function fetchSoils(
   parcel: Feature<Polygon | MultiPolygon>,
