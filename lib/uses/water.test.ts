@@ -53,14 +53,14 @@ describe("waterView", () => {
     expect(v.sections[0]!.lines).toEqual([
       "46 ac of land drains onto the parcel",
       "Land cover: 71% forest, 22% open land and pasture",
-      "Roads in it: 0.4 mi",
-      "Most of it enters at one point, from 31 ac",
+      "Roads in that land: 0.4 mi",
+      "Its largest inflow: 31 ac of it enters at one point",
     ]);
     expect(v.soils).toEqual([
       {
         name: "Codorus loam",
         facts:
-          "holds 8.0 in of water in the top 40 in; somewhat poorly drained; water table at 18 in; group B/D (sheds most rain); 3.0% organic matter",
+          "holds 8.0 in of water in the top 40 in; somewhat poorly drained; water table at 18 in; runoff group B/D (sheds most rain); 3.0% organic matter",
       },
     ]);
   });

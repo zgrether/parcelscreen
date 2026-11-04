@@ -163,7 +163,9 @@ for (const phone of [false, true]) {
       await page.screenshot({ path: `${OUT}/${device}-macks-wetness.png` });
 
       // Mud Creek's watershed on the USGS topo map: Water on the land on, the shading off.
-      await openGraded(page, MUD_CREEK);
+      // Its saved grade (the recording is of the fixture's boundary, not the county's): the watershed is in it.
+      await visit(page, "/library");
+      await openFromList(page, loadFixture(MUD_CREEK).input.name);
       await low(page, phone);
       const mud = await layers(page, { shading: "Off", basemap: "Topo (USGS)" });
       await press(

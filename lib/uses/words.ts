@@ -454,12 +454,12 @@ export const WATER = {
   shedLine: (ac: number) => `${fmt(ac, ac < 10 ? 1 : 0)} ac of land drains onto the parcel`,
   capped: (km: number) => `The watershed reaches past ${fmt(km, 1)} km; shown to there`,
   cover: (parts: string) => `Land cover: ${parts}`,
-  roads: (mi: number) => (mi < 0.05 ? "No roads in it" : `Roads in it: ${fmt(mi, 1)} mi`),
-  inflow: (ac: number) => `Most of it enters at one point, from ${fmt(ac, ac < 10 ? 1 : 0)} ac`,
+  roads: (mi: number) => (mi < 0.05 ? "No roads in that land" : `Roads in that land: ${fmt(mi, 1)} mi`),
+  inflow: (ac: number) => `Its largest inflow: ${fmt(ac, ac < 10 ? 1 : 0)} ac of it enters at one point`,
   noShed: "The 10 m elevation didn't load: grade again for the watershed",
   onParcel: "On the parcel",
   lines: (n: number, ac: number) =>
-    `${n} flow ${n === 1 ? "line" : "lines"}, the largest gathering ${fmt(ac, ac < 10 ? 1 : 0)} ac`,
+    `${n} flow ${n === 1 ? "line" : "lines"} where water gathers; the largest carries ${fmt(ac, ac < 10 ? 1 : 0)} ac, the parcel's own land included`,
   noLines: "No flow lines: water spreads rather than gathers",
   wetLine: (ac: number) => `Likely wet ground or seeps: ${fmt(ac, 2)} ac`,
   pondLine: (ac: number) => `Possible pond site (check with a site visit), gathering ${fmt(ac, 0)} ac`,
@@ -468,7 +468,7 @@ export const WATER = {
   awc: (inches: number) => `holds ${fmt(inches, 1)} in of water in the top 40 in`,
   table: (inches: number) => `water table at ${fmt(inches, 0)} in`,
   om: (pct: number) => `${fmt(pct, 1)}% organic matter`,
-  hydGroup: (g: string) => `group ${g} (${HYD_GROUP[g.charAt(g.length - 1)] ?? "runoff unrated"})`,
+  hydGroup: (g: string) => `runoff group ${g} (${HYD_GROUP[g.charAt(g.length - 1)] ?? "unrated"})`,
   honesty:
     "An estimate from 10 m and 3 m elevation and NRCS soil maps. Water follows the bare ground here, not pipes or culverts. Walk it after a heavy rain.",
   /** Septic's panel, after its existing text (declared, docs/plans/water.md §2, §3). */
