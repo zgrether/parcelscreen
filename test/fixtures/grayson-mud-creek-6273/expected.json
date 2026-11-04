@@ -1204,6 +1204,24 @@
     ]
    }
   ],
+  "boulders": {
+   "acres": 16.45518641626107,
+   "soilAcres": 16.453456773161694,
+   "soils": [
+    {
+     "mukey": "1670599",
+     "name": "Pigeonroost gravelly loam, 35 to 55 percent slopes, very stony",
+     "acres": 16.453456773161694,
+     "terms": [
+      "very stony"
+     ]
+    }
+   ],
+   "rough": {
+    "acres": 0,
+    "patches": []
+   }
+  },
   "focus": {
    "ll": [
     36.586323449527896,
@@ -7955,7 +7973,7 @@
    ]
   },
   "schemaVersion": 9,
-  "engine": 35,
+  "engine": 36,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -9165,6 +9183,24 @@
     ]
    }
   ],
+  "boulders": {
+   "acres": 16.45518641626107,
+   "soilAcres": 16.453456773161694,
+   "soils": [
+    {
+     "mukey": "1670599",
+     "name": "Pigeonroost gravelly loam, 35 to 55 percent slopes, very stony",
+     "acres": 16.453456773161694,
+     "terms": [
+      "very stony"
+     ]
+    }
+   ],
+   "rough": {
+    "acres": 0,
+    "patches": []
+   }
+  },
   "focus": {
    "ll": [
     36.58632583986769,
@@ -15916,7 +15952,7 @@
    ]
   },
   "schemaVersion": 9,
-  "engine": 35,
+  "engine": 36,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

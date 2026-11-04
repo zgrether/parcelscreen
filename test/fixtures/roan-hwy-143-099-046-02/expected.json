@@ -645,6 +645,15 @@
     ]
    }
   ],
+  "boulders": {
+   "acres": 0,
+   "soilAcres": 0,
+   "soils": [],
+   "rough": {
+    "acres": 0,
+    "patches": []
+   }
+  },
   "focus": {
    "ll": [
     36.18505293216952,
@@ -5296,7 +5305,7 @@
    ]
   },
   "schemaVersion": 9,
-  "engine": 35,
+  "engine": 36,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -5947,6 +5956,15 @@
     ]
    }
   ],
+  "boulders": {
+   "acres": 0,
+   "soilAcres": 0,
+   "soils": [],
+   "rough": {
+    "acres": 0,
+    "patches": []
+   }
+  },
   "focus": {
    "ll": [
     36.185878,
@@ -10291,7 +10309,7 @@
    ]
   },
   "schemaVersion": 9,
-  "engine": 35,
+  "engine": 36,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
