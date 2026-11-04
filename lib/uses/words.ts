@@ -403,3 +403,36 @@ export const EASEMENT_TYPE_WORD: Record<EasementType, string> = {
 };
 
 export const HOA_WORD: Record<Hoa, string> = { yes: "Yes", no: "No", unknown: "Not known" };
+
+/**
+ * Boulder potential (docs/plans/boulders.md §2): Uses' Boulders block, outside the grade (no chip, no tally), and Map
+ * layers' Boulder ground. All new (CLAUDE.md rule 7).
+ */
+export const BOULDERS = {
+  section: "Boulders",
+  /** The two readings, as the line names them. */
+  soils: "bouldery soils",
+  rough: "rough lidar texture",
+  line: (acres: number, readings: readonly string[]) =>
+    `Possible boulder ground: ${fmt(acres, acres < 10 ? 1 : 0)} ac (${readings.join(", ")})`,
+  none: "No sign of boulder ground",
+  /** The detail's lines: each flagged soil, then the rough patches. */
+  soil: (name: string, acres: number, terms: readonly string[]) =>
+    `${name}: ${fmt(acres, 1)} ac (${terms.join(", ")})`,
+  /** `more`: the result keeps only the largest patches' outlines, so there may be more than `n`. */
+  patches: (n: number, acres: number, more: boolean) =>
+    `Rough lidar texture: ${fmt(acres, 1)} ac in ${n}${more ? " or more" : ""} ${n === 1 && !more ? "patch" : "patches"}`,
+  noRough: "Rough lidar texture: none found",
+  noGrid: "No 3 m lidar here: only the soil maps were read.",
+  honesty:
+    "An estimate from soil maps and 3 m lidar, which smooths small boulders and can't see under trees. Walk it in winter, when the leaves are down.",
+} as const;
+
+/** Map layers' Boulder ground (§2): the toggle, the key's rows, and a tap's tip. */
+export const BOULDERS_MAP = {
+  toggle: "Boulder ground",
+  keySoil: "Bouldery or rocky soil (NRCS), when Boulder ground is on.",
+  keyRough: "Rough lidar texture: possible boulders, when Boulder ground is on.",
+  tipRough: (acres: number) => `Rough lidar texture, ${fmt(acres, 1)} ac: possible boulders`,
+  tipSoil: (name: string) => name,
+} as const;

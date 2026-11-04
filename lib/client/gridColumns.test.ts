@@ -24,6 +24,7 @@ const row = (key: string, over: Partial<LibraryRow> = {}): LibraryRow =>
     acres: 10,
     price: null,
     perAcre: null,
+    boulderAcres: null,
     costBuild: null,
     states: ["VA"],
     status: "saved",
@@ -122,7 +123,7 @@ describe("the grid's sorts", () => {
 describe("the remembered columns (ps.library)", () => {
   it("a view stored before step 10b reads with the default columns; a stored choice is kept", () => {
     const { columns: _c, ...old } = DEFAULT_VIEW;
-    expect(readLibraryView(JSON.stringify(old)).columns).toEqual({ hidden: ["state", "updated"] });
+    expect(readLibraryView(JSON.stringify(old)).columns).toEqual({ hidden: ["state", "updated"], shown: [] });
     const mine = {
       ...DEFAULT_VIEW,
       columns: { hidden: ["factor:sky"] },
@@ -131,5 +132,30 @@ describe("the remembered columns (ps.library)", () => {
     const back = readLibraryView(JSON.stringify(mine));
     expect(back.columns.hidden).toEqual(["factor:sky"]);
     expect(back.sort).toEqual({ key: "factor:sky", reversed: true });
+  });
+});
+
+describe("Boulder ground (docs/plans/boulders.md §2): off until added, even in a view stored before it", () => {
+  const rows = [
+    row("a", { boulderAcres: 3.2 }),
+    row("b", { boulderAcres: null }),
+    row("c", { boulderAcres: 0 }),
+  ];
+  it("is offered after the factors when a row has a reading, and starts hidden", () => {
+    const { all, shown } = gridColumns(rows, DEFAULT_VIEW.columns.hidden, noStatus);
+    const ids = all.map((c) => c.id);
+    expect(ids.indexOf("boulders")).toBe(ids.indexOf("factor:sky") + 1);
+    expect(shown.some((c) => c.id === "boulders")).toBe(false);
+    // A view stored before the column (its hidden list doesn't name it) still leaves it off.
+    expect(gridColumns(rows, [], noStatus).shown.some((c) => c.id === "boulders")).toBe(false);
+    expect(gridColumns([row("x")], [], noStatus).all.some((c) => c.id === "boulders")).toBe(false);
+  });
+  it("shows once added; sorts most first, a parcel without a reading last", () => {
+    expect(gridColumns(rows, [], noStatus, ["boulders"]).shown.some((c) => c.id === "boulders")).toBe(true);
+    expect(sortRows(rows, { key: "boulders", reversed: false }).map((r) => r.key)).toEqual(["a", "c", "b"]);
+  });
+  it("the added list is remembered", () => {
+    const v = { ...DEFAULT_VIEW, columns: { hidden: [], shown: ["boulders"] } };
+    expect(readLibraryView(JSON.stringify(v)).columns.shown).toEqual(["boulders"]);
   });
 });

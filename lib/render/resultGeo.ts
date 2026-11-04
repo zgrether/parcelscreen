@@ -12,7 +12,7 @@ import type { LatLon } from "../geo/types";
 import { steepLandingLine } from "../report/driveway";
 import { drivenRoute } from "../report/lines";
 import type { PartialScreenResult } from "../screen/types";
-import { POWER_MAP } from "../uses/words";
+import { BOULDERS_MAP, POWER_MAP } from "../uses/words";
 
 type FC<G extends Polygon | MultiPolygon | LineString | Point, P> = FeatureCollection<G, P>;
 const point = (ll: LatLon): Point => ({ type: "Point", coordinates: [ll[1], ll[0]] });
@@ -180,3 +180,37 @@ const entrancePins = (entrances: Entrances): EntrancePin[] =>
     text: `E${i + 1}`,
     tip: `Entrance ${i + 1} on ${e.name}: road grade ${e.roadGrade.toFixed(0)}%, bend ${e.bend.toFixed(0)}°, bank ${e.bankFt.toFixed(0)} ft`,
   }));
+
+export interface BoulderProps {
+  /** A flagged soil's piece (a light fill) or a rough patch (a stronger fill and its outline). */
+  kind: "soil" | "rough";
+  tip: string;
+}
+
+/**
+ * Boulder ground (docs/plans/boulders.md §2, Map layers › Boulder ground): the flagged soils' pieces inside the boundary,
+ * then the rough patches' outlines, each with its tip. Empty for a grade from before the measurement.
+ */
+export function boulderFeatures(r: PartialScreenResult): FC<Polygon | MultiPolygon, BoulderProps> {
+  const b = r.boulders;
+  if (!b) return { type: "FeatureCollection", features: [] };
+  const flagged = new Map(b.soils.map((s) => [s.mukey, s.name]));
+  const features: Feature<Polygon | MultiPolygon, BoulderProps>[] = [];
+  for (const u of r.soilUnits ?? []) {
+    const name = flagged.get(u.mukey);
+    if (name === undefined) continue;
+    for (const g of u.geometries)
+      features.push({
+        type: "Feature",
+        properties: { kind: "soil", tip: BOULDERS_MAP.tipSoil(name) },
+        geometry: g.geometry,
+      });
+  }
+  for (const p of b.rough?.patches ?? [])
+    features.push({
+      type: "Feature",
+      properties: { kind: "rough", tip: BOULDERS_MAP.tipRough(p.acres) },
+      geometry: p.outline.geometry,
+    });
+  return { type: "FeatureCollection", features };
+}

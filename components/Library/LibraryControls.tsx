@@ -22,7 +22,7 @@ import { parsePrice } from "@/lib/client/askingPrice";
 import { MILESTONE_WORD, MILESTONES } from "@/lib/client/parcelStatus";
 import { switchLabel } from "@/lib/client/rubrics";
 import type { NamedRubric } from "@/lib/rubric/types";
-import type { GridColumn } from "@/lib/client/gridColumns";
+import { columnShown, OPT_IN_COLUMNS, type GridColumn } from "@/lib/client/gridColumns";
 
 const CHOICE_WORD: Record<VerdictChoice, string> = {
   Contender: "Contender",
@@ -63,16 +63,25 @@ const sortsFor = (
 function Columns({
   columns,
   hidden,
-  setHidden,
+  shown,
+  setColumns,
 }: {
   columns: readonly GridColumn[];
   hidden: readonly string[];
-  setHidden(h: string[]): void;
+  /** The opt-in columns added (Boulder ground). */
+  shown: readonly string[];
+  setColumns(c: { hidden: string[]; shown: string[] }): void;
 }) {
   const [open, setOpen] = useState(false);
   const factors = columns.filter((c) => c.kind === "factor").map((c) => c.id);
+  const setHidden = (h: string[]) => setColumns({ hidden: h, shown: [...shown] });
+  const toggled = (list: readonly string[], id: string) =>
+    list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
   const flip = (id: string) =>
-    setHidden(hidden.includes(id) ? hidden.filter((x) => x !== id) : [...hidden, id]);
+    OPT_IN_COLUMNS.includes(id)
+      ? setColumns({ hidden: [...hidden], shown: toggled(shown, id) })
+      : setHidden(toggled(hidden, id));
+  const isShown = (id: string) => columnShown(id, hidden, shown);
   return (
     <div className="lib-columns">
       <button className="btn small secondary" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
@@ -84,7 +93,7 @@ function Columns({
             .filter((c) => c.kind !== "factor")
             .map((c) => (
               <label key={c.id} className="lib-columns-item">
-                <input type="checkbox" checked={!hidden.includes(c.id)} onChange={() => flip(c.id)} />
+                <input type="checkbox" checked={isShown(c.id)} onChange={() => flip(c.id)} />
                 {c.title}
               </label>
             ))}
@@ -109,7 +118,7 @@ function Columns({
             .filter((c) => c.kind === "factor")
             .map((c) => (
               <label key={c.id} className="lib-columns-item">
-                <input type="checkbox" checked={!hidden.includes(c.id)} onChange={() => flip(c.id)} />
+                <input type="checkbox" checked={isShown(c.id)} onChange={() => flip(c.id)} />
                 {c.title}
               </label>
             ))}
@@ -248,7 +257,8 @@ export function LibraryControls({
           <Columns
             columns={columns}
             hidden={view.columns.hidden}
-            setHidden={(hidden) => setView({ ...view, columns: { hidden } })}
+            shown={view.columns.shown}
+            setColumns={(columns) => setView({ ...view, columns })}
           />
         )}
         {/* My order is the household's own (WF3): it's rearranged, not turned around. */}
