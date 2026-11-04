@@ -1412,4 +1412,30 @@ until step 5 (Q14).
       bouldering only (brown is the trailhead's); a tap shows the types, the access note, the date, the drive the open
       parcel's grade timed and a link to the access page.
 
+79. **Water on the land** (owner, 2026-11-04, pre-approved; the plan `docs/plans/water.md`, #403; built in #404
+    onwards). Where water comes from, where it gathers on the parcel, and what the soils hold, outside the grade.
+    - **The hydrology** (#404, `lib/screen/hydro.ts`): priority-flood depression filling, D8 directions and accumulation,
+      the upslope area of a target, a wetness index ln(a / tan β) on multiple-flow (Freeman) accumulation, flow lines,
+      pond sites and a mask's outline; pure functions, tested on synthetic valleys and planes.
+    - **The measurement** (#405): an optional `water` on the result (§9.65's exception; the schema stays v9).
+      ENGINE_VERSION 36 → 37; `ENGINE_CURRENT_FROM` stays 29; `expected.json` gains `water` only.
+      - **The watershed:** 3DEP at 10 m over the parcel plus 1 km, grown to 2.5 and 5 km until it closes (`capped` if it
+        doesn't). Water counts only if it reaches 20 m inside the boundary (`water.watershedEdgeCells`), so a creek
+        that clips a corner isn't counted. Its acres, outline, NLCD land cover, TIGER road miles and largest inflow.
+        Ferney 135 ac, Macks 114 ac, Mud Creek 4.8 ac, Roan 6.4 ac, all closed within 1 km.
+      - **Mud Creek's sanity check** first read 1,031 ac: on the 10 m grid Mud Creek's path ran through one parcel
+        cell at a corner, while NHD puts the creek 742 ft away. The 20 m rule fixed it; 4.8 ac is the slope above the
+        parcel, as the topo map shows.
+      - **On the parcel**, on the 3 m grid, fed only by the watershed (#409): flow lines over 0.5 ac; likely wet
+        ground (the smoothed index ≥ 9 on poorly drained soil, or ≥ 11 on any, in patches ≥ 0.1 ac); up to 3 possible
+        pond sites gathering 5–150 ac on ground under 3°, out of the flood zone. The wetness index itself is kept on
+        the session only (a DEM derivative, never stored).
+      - **Soil water:** a separate SDA query (`aws0100wta`, topsoil `om_r`) with the drainage, water table and
+        hydrologic group already read, per unit and for the best garden patch.
+      - **The driveway's crossings** already came from 3 m flow accumulation (≥ 2 ha), so they're unchanged.
+    - **The display** (#406): Uses' Water on the land line and its three parts (where it comes from, on the parcel, what
+      the soils hold) with "Walk it after a heavy rain."; Map layers › Water on the land (off by default); Shading ›
+      Wetness; Garden's "Water it holds"; and Septic's line when the build site is on likely wet ground or a water table
+      within 2 ft (declared report text; no fixture's build site shows it).
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.
