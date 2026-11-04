@@ -114,7 +114,7 @@ for (const phone of [false, true]) {
       await liveImagery(page);
       await openExplorer(page, MACKS);
       await importParcels(page, SLUGS);
-      await seedScreens(page, SLUGS, { current: true });
+      await seedScreens(page, SLUGS, { current: true, settings: true });
       await settled(page);
 
       // Uses on Macks: Water on the land, opened; then Garden, orchard, animals, opened to its water.
