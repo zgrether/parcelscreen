@@ -1,0 +1,67 @@
+name: Boulder potential
+
+# The boulders mission (docs/plans/boulders.md), on CI's runners, since the cloud sessions that build the app can't
+# reach 3DEP or NRCS:
+# - record: Grayson Highlands' boulder field read live (`pnpm record:boulders`), when test/fixtures/boulders-grayson/
+#   has no recording (delete it to record again), pushed to the PR's branch; what it found goes to the job summary.
+#   lib/screen/boulders-grayson.test.ts then replays it in CI's unit tests.
+# Nothing here gates a merge.
+on:
+  pull_request:
+    paths:
+      - lib/screen/boulders.ts
+      - test/tools/record-boulders.test.ts
+      - test/support/bouldersGrayson.ts
+      - .github/workflows/boulders.yml
+  workflow_dispatch: {}
+
+concurrency:
+  group: boulders-${{ github.head_ref || github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  record:
+    # A fork's PR gets a read-only token: nothing to push to.
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+      - id: has
+        run: |
+          if [ -f test/fixtures/boulders-grayson/network.har ]; then echo "har=true" >> "$GITHUB_OUTPUT"; else echo "har=false" >> "$GITHUB_OUTPUT"; fi
+      - uses: pnpm/action-setup@v6
+        if: steps.has.outputs.har == 'false'
+      - uses: actions/setup-node@v7
+        if: steps.has.outputs.har == 'false'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - if: steps.has.outputs.har == 'false'
+        run: pnpm install --frozen-lockfile
+      - if: steps.has.outputs.har == 'false'
+        run: pnpm record:boulders
+      - name: The reading, into the job summary
+        if: always() && steps.has.outputs.har == 'false'
+        run: cat test-results/boulders-grayson.md >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Push the recording to the PR's branch
+        # Whatever the reading found: the unit test judges it, and the thresholds can be tried on the recording.
+        if: always() && steps.has.outputs.har == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ -f test/fixtures/boulders-grayson/network.har ] || exit 1
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add test/fixtures/boulders-grayson
+          git commit -m "Grayson Highlands' boulder field recorded (record:boulders)" || exit 0
+          git pull --rebase origin "${{ github.head_ref }}"
+          git push origin "HEAD:${{ github.head_ref }}"
+          # A push made with GITHUB_TOKEN starts no workflow (places.yml).
+          gh workflow run ci.yml --ref "${{ github.head_ref }}"
