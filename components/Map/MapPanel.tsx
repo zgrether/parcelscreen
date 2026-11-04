@@ -22,7 +22,7 @@ import { PublicLandControls } from "./PublicLandControls";
 import { MvumControls } from "./MvumControls";
 import { setMapLayerPrefs, useMapLayerPrefs } from "./useMapLayerPrefs";
 import { AREA_WORDS } from "@/lib/areas/words";
-import { BOULDERS_MAP, POWER_MAP } from "@/lib/uses/words";
+import { BOULDERS_MAP, POWER_MAP, WATER_MAP } from "@/lib/uses/words";
 
 /** Step 8b: the one show/hide for the open parcel's lines, marks and house site. */
 export const MARKS_LABEL = "Your lines and marks";
@@ -102,6 +102,8 @@ function Panel({ onClose }: { onClose: () => void }) {
           {toggle(POWER_MAP.toggle, p.power, () => setMapLayerPrefs({ power: !p.power }))}
           {/* Boulder potential: the graded parcel's bouldery soils and rough lidar texture, from its result. */}
           {toggle(BOULDERS_MAP.toggle, p.boulders, () => setMapLayerPrefs({ boulders: !p.boulders }))}
+          {/* Water on the land: the watershed, flow lines, wet ground and pond sites, from the result. */}
+          {toggle(WATER_MAP.toggle, p.water, () => setMapLayerPrefs({ water: !p.water }))}
           {/* Step 14c: USGS 3DEP lidar, as shaded relief or slope. */}
           <LidarControls />
           {/* Step 14d: the baked places and the lists a grade times, by kind. */}

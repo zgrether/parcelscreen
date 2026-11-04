@@ -33,6 +33,8 @@ export interface MapLayerPrefs {
   mvum: boolean;
   /** Boulder potential: the graded parcel's bouldery soils and rough lidar texture (off). */
   boulders: boolean;
+  /** Water on the land: the watershed, flow lines, wet ground and pond sites (off). */
+  water: boolean;
 }
 
 /** Topo and Streets already draw roads and names: the overlay is for the aerials (owner, 17d §7). */
@@ -56,6 +58,7 @@ function read(): MapLayerPrefs {
     publicLand: getPref("ps.publicLand"),
     mvum: getPref("ps.mvum"),
     boulders: getPref("ps.boulders"),
+    water: getPref("ps.water"),
   };
 }
 
@@ -77,6 +80,7 @@ export function setMapLayerPrefs(patch: Partial<MapLayerPrefs>): void {
   if (patch.publicLand !== undefined) setPref("ps.publicLand", patch.publicLand);
   if (patch.mvum !== undefined) setPref("ps.mvum", patch.mvum);
   if (patch.boulders !== undefined) setPref("ps.boulders", patch.boulders);
+  if (patch.water !== undefined) setPref("ps.water", patch.water);
   listeners.forEach((l) => l());
 }
 

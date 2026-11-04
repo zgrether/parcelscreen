@@ -12,6 +12,7 @@ import { USE_ORDER } from "@/lib/uses";
 import { DIVIDE, USE_NAME, USE_WORDS } from "@/lib/uses/words";
 import { PAY_WORDS } from "@/lib/pay/words";
 import { Boulders } from "./Boulders";
+import { Water } from "./Water";
 import { HowItCouldPay } from "./HowItCouldPay";
 import { Facts, UseRow } from "./UseRow";
 
@@ -81,6 +82,8 @@ export function Uses({ s }: { s: ScreenIt }) {
           <Facts facts={v.limits} />
           {/* Boulder potential (docs/plans/boulders.md §2): one line, outside the grade. */}
           <Boulders boulders={s.display?.boulders} />
+          {/* Water on the land (docs/plans/water.md §2): one line, outside the grade. */}
+          <Water water={s.display?.water} />
         </>
       )}
       {/* Step 15: How it could pay, Uses' second panel, directly under What limits you (plan §6, §12 Q2). */}

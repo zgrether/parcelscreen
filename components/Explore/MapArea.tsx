@@ -13,6 +13,7 @@ import { FanLayer } from "@/components/Map/results/FanLayer";
 import { ResultLayers } from "@/components/Map/results/ResultLayers";
 import { PowerLayer } from "@/components/Map/results/PowerLayer";
 import { BouldersLayer } from "@/components/Map/results/BouldersLayer";
+import { WaterLayer } from "@/components/Map/results/WaterLayer";
 import { ResultPins } from "@/components/Map/results/ResultPins";
 import { StandHere } from "@/components/Map/results/StandHere";
 import { ResultTips } from "@/components/Map/results/ResultTips";
@@ -77,6 +78,7 @@ export function MapArea({
       <ResultLayers />
       <PowerLayer />
       <BouldersLayer />
+      <WaterLayer />
       <FanLayer />
       <ResultPins />
       <StandHere />

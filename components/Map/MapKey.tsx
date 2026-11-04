@@ -5,11 +5,19 @@
  * the map's key line opens it ("All map marks"), and its Every pin turns on the pins beyond the best homesite.
  */
 import { useEffect, useRef } from "react";
-import { BOULDERS_MAP, POWER_MAP } from "@/lib/uses/words";
+import { BOULDERS_MAP, POWER_MAP, WATER_MAP } from "@/lib/uses/words";
 import { KEY_WORDS } from "@/lib/render/keyLine";
 import { setOverlay, useOverlayPrefs } from "./results/useOverlayPrefs";
 import { POWER_CASING, POWER_COLOR } from "./results/PowerLayer";
 import { BOULDER_COLOR } from "./results/BouldersLayer";
+import { WATER_COLOR, WATER_DEEP } from "./results/WaterLayer";
+
+/** A ring, as a pond site is drawn. */
+const Ring = () => (
+  <svg className="mk-line" width="28" height="16" viewBox="0 0 28 16" aria-hidden="true">
+    <circle cx="14" cy="8" r="5.5" fill="#fff" stroke={WATER_DEEP} strokeWidth="2.5" />
+  </svg>
+);
 
 /** An area as the map draws it: a fill at its opacity, and its outline when it has one. */
 const Fill = ({ color, opacity, edge }: { color: string; opacity: number; edge?: boolean }) => (
@@ -105,6 +113,11 @@ const ROWS: { key: string; swatch: React.ReactNode; text: string; wide?: boolean
     swatch: <Fill color={BOULDER_COLOR} opacity={0.5} edge />,
     text: BOULDERS_MAP.keyRough,
   },
+  // Water on the land (docs/plans/water.md §2).
+  { key: "water-shed", swatch: <Line color={WATER_COLOR} dash="3 2" />, text: WATER_MAP.keyShed },
+  { key: "water-line", swatch: <Line color={WATER_COLOR} />, text: WATER_MAP.keyLines },
+  { key: "water-wet", swatch: <Fill color={WATER_COLOR} opacity={0.45} />, text: WATER_MAP.keyWet },
+  { key: "water-pond", swatch: <Ring />, text: WATER_MAP.keyPond },
 ];
 
 /** Asked by the key line: the next MapKey to mount opens, and comes into view. */

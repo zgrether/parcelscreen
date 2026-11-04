@@ -9158,22 +9158,49 @@ button.use-row[aria-expanded="true"] .use-name::after {
 }
 
 /* ---------- Boulder potential (docs/plans/boulders.md §2): Uses' Boulders block, one line and no chip ---------- */
-.boulders-row {
+.boulders-row,
+.water-row {
   grid-template-columns: 1fr;
 }
-.boulders-line {
+.boulders-line,
+.water-line {
   font-weight: 600;
 }
-.boulders-line::after {
+.boulders-line::after,
+.water-line::after {
   content: " ▸";
   color: var(--color-ink-2);
   font-weight: 400;
 }
-.boulders-row[aria-expanded="true"] .boulders-line::after {
+.boulders-row[aria-expanded="true"] .boulders-line::after,
+.water-row[aria-expanded="true"] .water-line::after {
   content: " ▾";
 }
-.boulders-note {
+.boulders-note,
+.water-note {
   margin: 8px 0 0;
+}
+/* Water on the land (docs/plans/water.md §2): the detail's sections, and each soil unit as a small card. */
+.water-detail section + section {
+  margin-top: 10px;
+}
+.water-soils {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.water-soils li + li {
+  margin-top: 6px;
+}
+.water-soil-name {
+  display: block;
+  font-weight: 600;
+}
+.water-soil-facts {
+  display: block;
+  color: var(--color-ink-2);
 }
 
 /* ---------- Step 15: How it could pay, Uses' second panel (docs/plans/step-15-how-it-could-pay.md §6, §7) ---------- */

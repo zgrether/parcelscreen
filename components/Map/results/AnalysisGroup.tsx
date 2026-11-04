@@ -12,7 +12,7 @@ import { setOverlay, useOverlayPrefs } from "./useOverlayPrefs";
 import { setSurfaceMode, SURFACE_CYCLE, useSurfaceMode } from "./useSurfaceMode";
 import { KEY_WORDS } from "@/lib/render/keyLine";
 
-const NAME = { house: "House", garden: "Garden", slope: "Slope", off: "Off" } as const;
+const NAME = { house: "House", garden: "Garden", slope: "Slope", wetness: "Wetness", off: "Off" } as const;
 
 export function AnalysisGroup() {
   const s = useScreenItContext();

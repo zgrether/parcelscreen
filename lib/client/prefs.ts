@@ -63,7 +63,7 @@ export interface Prefs {
   "ps.marks": boolean;
   /** Roads & labels over the aerials (17d): a UI pref, never part of UserConfig or a run. */
   "ps.roads": boolean;
-  "ps.omode": "house" | "garden" | "slope" | "off";
+  "ps.omode": "house" | "garden" | "slope" | "wetness" | "off";
   /** New in the port (step 13d): the parcel being worked on and the house, kept across a refresh. */
   "ps.current": CurrentParcel | null;
   /** Step 13e: the open parcel and History. Replaces ps.current, which converts on first read. */
@@ -122,6 +122,8 @@ export interface Prefs {
   "ps.mvum": boolean;
   /** Boulder potential: Map layers' Boulder ground, per device (off). */
   "ps.boulders": boolean;
+  /** Water on the land: Map layers' overlay, per device (off). */
+  "ps.water": boolean;
 }
 
 /** Step 14d: the Places layer's toggle and which kinds it shows. */
@@ -174,6 +176,7 @@ const DEFAULTS: Prefs = {
   "ps.publicLand": false,
   "ps.mvum": false,
   "ps.boulders": false,
+  "ps.water": false,
 };
 
 /** How each key is stored: the prototype kept flags as "1"/"0" and the rest as plain strings or JSON. */
@@ -227,6 +230,7 @@ const CODEC: { [K in keyof Prefs]: { read(raw: string): Prefs[K]; write(v: Prefs
   "ps.publicLand": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
   "ps.mvum": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
   "ps.boulders": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
+  "ps.water": { read: (r) => r === "1", write: (v) => (v ? "1" : "0") },
   "ps.areaStars": {
     read: (r) => {
       const v = JSON.parse(r) as unknown;

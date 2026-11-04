@@ -7,7 +7,7 @@
  */
 import { SCREEN_CONSTANTS } from "../screen/config";
 import type { Fact, UseAnswer, UsesInput } from "./types";
-import { GARDEN, MISSING, SOURCE } from "./words";
+import { GARDEN, GARDEN_WATER, MISSING, SOURCE } from "./words";
 
 const K = SCREEN_CONSTANTS.uses;
 /** Below the thermal belt's lower edge, cold air pools: the frost scale's Pocket band (config bands.frostAboveFloorFt). */
@@ -74,6 +74,16 @@ export function garden(input: UsesInput): UseAnswer {
           date: String(r.cover!.year),
         }
       : { label: GARDEN.openLabel, value: MISSING.cover("open ground") },
+    // Water on the land (docs/plans/water.md §2): the best patch's soil water, when the measurement read it. Last.
+    ...(r.water?.garden?.awcIn != null
+      ? [
+          {
+            label: GARDEN_WATER.label,
+            value: GARDEN_WATER.value(r.water.garden.awcIn),
+            source: GARDEN_WATER.source,
+          },
+        ]
+      : []),
   ];
   const say = (answer: UseAnswer["answer"], reason: string): UseAnswer => ({ answer, reason, decides });
 

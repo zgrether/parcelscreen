@@ -15,6 +15,7 @@ import { useHelp } from "@/components/Help/HelpDialog";
 import { KIND_NAME, type LineMarkup } from "@/lib/client/parcelStore";
 import { fmt } from "@/lib/format";
 import { digCost, foundationAt, soilUnder } from "@/lib/report/derived";
+import { septicWetLine } from "@/lib/uses/water";
 import { DEFAULT_USER_CONFIG, SCREEN_CONSTANTS } from "@/lib/screen/config";
 import { BOTTOMLAND_LEAD, bottomland } from "@/lib/screen/soils";
 import type { Card, GateStatus } from "@/lib/report/card";
@@ -190,6 +191,8 @@ export function CardPanel({
         ))}
         {panel === "homesite" && <BuildingHere result={result} dw={dw} />}
         {panel === "septic" && <BottomlandHere result={result} />}
+        {/* Water on the land (docs/plans/water.md §2): after the panel's existing text, declared. */}
+        {panel === "septic" && <WetGroundHere result={result} />}
         {(panel === "cost" || panel === "budget") && <CostBreakdown cost={card.cost} />}
         {panel === "easement" && (
           <YourRouteChoice
@@ -360,6 +363,14 @@ function BottomlandHere({ result }: { result: ScreenResult | PartialScreenResult
   return why ? (
     <p className="panel-derived">The build site&apos;s own soil is bottomland ({why}): see Best homesite.</p>
   ) : null;
+}
+
+/** The Septic panel's warning when the build site sits on likely wet ground or a shallow water table (water.md §2). */
+function WetGroundHere({ result }: { result: ScreenResult | PartialScreenResult }) {
+  const h = result.house;
+  const ll = h && !("outside" in h) ? h.ll : result.sites?.[0]?.ll;
+  const line = ll ? septicWetLine(result, ll) : null;
+  return line ? <p className="panel-derived">{line}</p> : null;
 }
 
 /** The flags this row's step raised (owner, #110), as the Verdict section shows them. */

@@ -8,7 +8,7 @@ import { getPref, setPref, type Prefs } from "@/lib/client/prefs";
 
 export type SurfaceChoice = Prefs["ps.omode"];
 /** The prototype's cycle order (L540). */
-export const SURFACE_CYCLE: readonly SurfaceChoice[] = ["house", "garden", "slope", "off"];
+export const SURFACE_CYCLE: readonly SurfaceChoice[] = ["house", "garden", "slope", "wetness", "off"];
 
 let current: SurfaceChoice | null = null;
 const listeners = new Set<() => void>();

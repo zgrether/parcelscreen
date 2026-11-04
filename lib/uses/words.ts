@@ -436,3 +436,83 @@ export const BOULDERS_MAP = {
   tipRough: (acres: number) => `Rough lidar texture, ${fmt(acres, 1)} ac: possible boulders`,
   tipSoil: (name: string) => name,
 } as const;
+
+/**
+ * Water on the land (docs/plans/water.md §2): Uses' section, outside the grade (no chip, no tally), and Map layers'
+ * overlay. All new (CLAUDE.md rule 7).
+ */
+export const WATER = {
+  section: "Water on the land",
+  /** The summary line's parts, named only when found. */
+  drains: (ac: number) => `${fmt(ac, ac < 10 ? 1 : 0)} ac drains onto it`,
+  mostly: (what: string) => `mostly ${what}`,
+  noneDrains: "No land drains onto it",
+  wet: (n: number) => `${n} likely wet ${n === 1 ? "spot" : "spots"}`,
+  ponds: (n: number) => `${n} possible pond ${n === 1 ? "site" : "sites"}`,
+  /** The detail's headings and lines. */
+  watershed: "Where it comes from",
+  shedLine: (ac: number) => `${fmt(ac, ac < 10 ? 1 : 0)} ac of land drains onto the parcel`,
+  capped: (km: number) => `The watershed reaches past ${fmt(km, 1)} km; shown to there`,
+  cover: (parts: string) => `Land cover: ${parts}`,
+  roads: (mi: number) => (mi < 0.05 ? "No roads in it" : `Roads in it: ${fmt(mi, 1)} mi`),
+  inflow: (ac: number) => `Most of it enters at one point, from ${fmt(ac, ac < 10 ? 1 : 0)} ac`,
+  noShed: "The 10 m elevation didn't load: grade again for the watershed",
+  onParcel: "On the parcel",
+  lines: (n: number, ac: number) =>
+    `${n} flow ${n === 1 ? "line" : "lines"}, the largest gathering ${fmt(ac, ac < 10 ? 1 : 0)} ac`,
+  noLines: "No flow lines: water spreads rather than gathers",
+  wetLine: (ac: number) => `Likely wet ground or seeps: ${fmt(ac, 2)} ac`,
+  pondLine: (ac: number) => `Possible pond site (check with a site visit), gathering ${fmt(ac, 0)} ac`,
+  noFlow: "The 3 m lidar didn't load: grade again for flow and wet ground",
+  soils: "What the soils hold",
+  awc: (inches: number) => `holds ${fmt(inches, 1)} in of water in the top 40 in`,
+  table: (inches: number) => `water table at ${fmt(inches, 0)} in`,
+  om: (pct: number) => `${fmt(pct, 1)}% organic matter`,
+  hydGroup: (g: string) => `group ${g} (${HYD_GROUP[g.charAt(g.length - 1)] ?? "runoff unrated"})`,
+  honesty:
+    "An estimate from 10 m and 3 m elevation and NRCS soil maps. Water follows the bare ground here, not pipes or culverts. Walk it after a heavy rain.",
+  /** Septic's panel, after its existing text (declared, docs/plans/water.md §2, §3). */
+  septicWet: "The build site is on likely wet ground; a drainfield needs drier soil.",
+  septicTable: (inches: number) =>
+    `The build site's soil has a water table at ${fmt(inches, 0)} in; a drainfield needs drier soil.`,
+  /** NLCD groups, as the land-cover line names them. */
+  coverName: {
+    forest: "forest",
+    open: "open land and pasture",
+    crops: "crops",
+    developed: "developed",
+    water: "water and wetland",
+    other: "other",
+  } as Record<string, string>,
+} as const;
+
+/**
+ * NRCS's hydrologic soil groups, in plain words. A dual group such as B/D is read by its second letter: the ground as it
+ * is, undrained (the first is with tile drains in).
+ */
+const HYD_GROUP: Record<string, string> = {
+  A: "soaks up rain fast",
+  B: "soaks up rain moderately",
+  C: "soaks up rain slowly",
+  D: "sheds most rain",
+};
+
+/** Garden ground's water (docs/plans/water.md §2): the best patch's soil, last in Garden's facts. */
+export const GARDEN_WATER = {
+  label: "Water it holds",
+  value: (inches: number) => `${fmt(inches, 1)} in in the top 40 in`,
+  source: "NRCS available water storage",
+} as const;
+
+/** Map layers' Water on the land (§2): the toggle, the key's rows and the tips. */
+export const WATER_MAP = {
+  toggle: "Water on the land",
+  keyShed: "The land draining onto the parcel, when Water on the land is on.",
+  keyLines: "Where water gathers on the parcel: thicker as more gathers.",
+  keyWet: "Likely wet ground or seeps.",
+  keyPond: "A possible pond site (check with a site visit).",
+  tipShed: (ac: number) => `${fmt(ac, ac < 10 ? 1 : 0)} ac drains onto the parcel`,
+  tipLine: (ac: number) => `Flow gathering ${fmt(ac, ac < 10 ? 1 : 0)} ac`,
+  tipWet: (ac: number) => `Likely wet ground or seeps, ${fmt(ac, 2)} ac`,
+  tipPond: (ac: number) => `Possible pond site, gathering ${fmt(ac, 0)} ac (check with a site visit)`,
+} as const;
