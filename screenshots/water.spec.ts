@@ -114,7 +114,10 @@ for (const phone of [false, true]) {
       await liveImagery(page);
       await openExplorer(page, MACKS);
       await importParcels(page, SLUGS);
-      await seedScreens(page, SLUGS, { current: true, settings: true });
+      // Macks is graded here (Wetness is the live session's); Mud Creek shows its saved grade, settings and all, since
+      // grading it again would ask for the county boundary's data, which the recording (the fixture's) doesn't hold.
+      await seedScreens(page, [MACKS], { current: true });
+      await seedScreens(page, [MUD_CREEK], { current: true, settings: true });
       await settled(page);
 
       // Uses on Macks: Water on the land, opened; then Garden, orchard, animals, opened to its water.
