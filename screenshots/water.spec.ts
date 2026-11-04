@@ -84,11 +84,13 @@ async function openGraded(page: Page, slug: FixtureSlug): Promise<void> {
 /** Map layers open, with the shading set and the basemap picked. */
 async function layers(
   page: Page,
-  o: { shading: string; basemap?: string },
+  /** No shading for a saved grade: it needs a live run (the row says "grade again to show"). */
+  o: { shading?: string; basemap?: string },
 ): Promise<ReturnType<Page["getByRole"]>> {
   await page.getByRole("button", { name: "Map layers" }).click();
   const panel = page.getByRole("region", { name: "Map layers" });
-  await press(panel.getByRole("radiogroup", { name: "Shading" }).getByRole("radio", { name: o.shading }));
+  if (o.shading)
+    await press(panel.getByRole("radiogroup", { name: "Shading" }).getByRole("radio", { name: o.shading }));
   if (o.basemap)
     await press(page.getByRole("radiogroup", { name: "Basemap" }).getByRole("radio", { name: o.basemap }));
   return panel;
@@ -165,12 +167,12 @@ for (const phone of [false, true]) {
       await settle(page);
       await page.screenshot({ path: `${OUT}/${device}-macks-wetness.png` });
 
-      // Mud Creek's watershed on the USGS topo map: Water on the land on, the shading off.
+      // Mud Creek's watershed on the USGS topo map: Water on the land on (no shading: it's the saved grade).
       // Its saved grade (the recording is of the fixture's boundary, not the county's): the watershed is in it.
       await visit(page, "/library");
       await openFromList(page, loadFixture(MUD_CREEK).input.name);
       await low(page, phone);
-      const mud = await layers(page, { shading: "Off", basemap: "Topo (USGS)" });
+      const mud = await layers(page, { basemap: "Topo (USGS)" });
       await press(
         mud.getByRole("group", { name: "On the map" }).getByRole("button", { name: "Water on the land" }),
       );
