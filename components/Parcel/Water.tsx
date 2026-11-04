@@ -20,12 +20,12 @@ export function Water({ water }: { water: ScreenResult["water"] }) {
       <div className="use water">
         <button
           type="button"
-          className="use-row boulders-row water-row"
+          className="use-row water-row"
           aria-expanded={open}
           aria-controls={id}
           onClick={() => setOpen((x) => !x)}
         >
-          <span className="boulders-line">{v.line}</span>
+          <span className="water-line">{v.line}</span>
         </button>
         {open && (
           <div id={id} className="use-decides water-detail">
@@ -52,7 +52,7 @@ export function Water({ water }: { water: ScreenResult["water"] }) {
                 </ul>
               </section>
             )}
-            <p className="tiny muted boulders-note">{WATER.honesty}</p>
+            <p className="tiny muted water-note">{WATER.honesty}</p>
           </div>
         )}
       </div>
