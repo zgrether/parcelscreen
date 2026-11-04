@@ -109,7 +109,14 @@ export async function readWatershed(
   parcel: Feature<Polygon | MultiPolygon>,
   io: Io,
 ): Promise<WatershedRead | null> {
-  let last: { d: Dem; acc: Float64Array; up: ReturnType<typeof upslope>; km: number } | null = null;
+  let last: {
+    d: Dem;
+    dir: Int8Array;
+    acc: Float64Array;
+    target: Uint8Array;
+    up: ReturnType<typeof upslope>;
+    km: number;
+  } | null = null;
   for (const km of K.watershedKm) {
     const box = bbox(buffer(parcel, km, { units: "kilometers" })!) as BboxLL;
     const d = await fetchDEM(box, K.watershedResM, io);
@@ -118,20 +125,31 @@ export async function readWatershed(
     const acc = accumulate(dir, d.w, d.h);
     const target = insideMask(d, parcel);
     const up = upslope(dir, d.w, d.h, target, acc);
-    last = { d, acc, up, km };
+    last = { d, dir, acc, target, up, km };
     if (!up.open) break;
   }
   if (!last) return null;
-  const { d, acc, up, km } = last;
+  const { d, dir, acc, target, up, km } = last;
   const cellAc = (d.res * d.resY) / M2_PER_ACRE;
   const acres = up.cells * cellAc;
   const outline = up.cells ? maskOutline(d, up.mask, K.outlineToleranceDeg) : null;
-  const inflow = up.inflow
-    ? {
-        ll: roundLL(rcToLL(d, (up.inflow.cell / d.w) | 0, up.inflow.cell % d.w)),
-        acres: up.inflow.acc * cellAc,
-      }
-    : null;
+  // The largest inflow: the watershed cell flowing straight into the parcel that gathers the most of the watershed
+  // itself (all of a cell's upstream would count water that left the parcel and came back in).
+  let inflow: { ll: LatLon; acres: number } | null = null;
+  if (up.cells) {
+    const own = new Float64Array(d.w * d.h);
+    for (let i = 0; i < own.length; i++) own[i] = up.mask[i] ? 1 : 0;
+    const within = accumulate(dir, d.w, d.h, own);
+    let best = -1;
+    for (let i = 0; i < own.length; i++) {
+      if (!up.mask[i]) continue;
+      const j = downstream(dir, d.w, d.h, i);
+      if (j < 0 || !target[j]) continue;
+      if (best < 0 || within[i]! > within[best]!) best = i;
+    }
+    if (best >= 0)
+      inflow = { ll: roundLL(rcToLL(d, (best / d.w) | 0, best % d.w)), acres: within[best]! * cellAc };
+  }
 
   // What it's made of: land cover over its cells (sampled at most watershedCoverSamples times), and road miles.
   let cover: CoverShares | null = null;
