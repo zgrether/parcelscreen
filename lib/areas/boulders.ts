@@ -9,23 +9,26 @@ import { boulderTerms } from "../screen/boulders";
 import { sdaRows } from "../screen/soils";
 import type { Endpoints } from "../screen/types";
 
-/** Points per SDA query: about 200 points make two. */
-export const POINTS_PER_QUERY = 100;
+/** Points per SDA query: about 200 points make four. */
+export const POINTS_PER_QUERY = 50;
 
 /**
  * Each point's map unit and its major components: one row per point and component (a point outside the survey has
- * none). `i` is the point's index in the list given.
+ * none). `i` is the point's index in the list given. Each point is looked up by SDA's own intersection function, which
+ * uses the map units' spatial index (a CROSS APPLY with STIntersects over the polygons didn't answer within 30 s).
  */
 export function pointSoilsQuery(pts: readonly LatLon[], from = 0): string {
-  const values = pts
-    .map(([lat, lon], k) => `(${from + k}, geometry::Point(${lon}, ${lat}, 4326))`)
-    .join(",\n  ");
+  const each = pts
+    .map(
+      ([lat, lon], k) =>
+        `SELECT ${from + k} AS i, mukey FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('point(${lon} ${lat})')`,
+    )
+    .join("\n  UNION ALL ");
   return `SELECT p.i, mu.mukey, mu.muname, c.compname
- FROM (VALUES
-  ${values}
- ) AS p(i, g)
- CROSS APPLY (SELECT TOP 1 mp.mukey FROM mupolygon mp WHERE mp.mupolygongeo.STIntersects(p.g) = 1) AS m
- INNER JOIN mapunit mu ON mu.mukey = m.mukey
+ FROM (
+  ${each}
+ ) AS p
+ INNER JOIN mapunit mu ON mu.mukey = p.mukey
  LEFT OUTER JOIN component c ON c.mukey = mu.mukey AND c.majcompflag = 'Yes'
  ORDER BY p.i`;
 }

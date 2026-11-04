@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { boulderShareOf, pointSoilsQuery } from "./boulders";
 
 describe("pointSoilsQuery", () => {
-  it("one row of values per point, [lon lat], numbered from where the batch starts", () => {
+  it("one lookup per point, [lon lat], numbered from where the batch starts", () => {
     const q = pointSoilsQuery(
       [
         [36.6, -81.5],
@@ -11,8 +11,12 @@ describe("pointSoilsQuery", () => {
       ],
       100,
     );
-    expect(q).toContain("(100, geometry::Point(-81.5, 36.6, 4326))");
-    expect(q).toContain("(101, geometry::Point(-81.4, 36.7, 4326))");
+    expect(q).toContain(
+      "SELECT 100 AS i, mukey FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('point(-81.5 36.6)')",
+    );
+    expect(q).toContain(
+      "UNION ALL SELECT 101 AS i, mukey FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('point(-81.4 36.7)')",
+    );
     expect(q).toContain("c.majcompflag = 'Yes'");
   });
 });
