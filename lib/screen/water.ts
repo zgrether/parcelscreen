@@ -125,9 +125,16 @@ export async function readWatershed(
     const f = fillDepressions(d.z, d.w, d.h);
     const dir = d8(f, d.w, d.h, d.res, d.resY);
     const acc = accumulate(dir, d.w, d.h);
-    const target = insideMask(d, parcel);
+    const inside = insideMask(d, parcel);
+    const target = erode(inside, d.w, d.h, K.watershedEdgeCells);
     const up = upslope(dir, d.w, d.h, target, acc);
-    last = { d, dir, acc, target, up, km };
+    // The edge band drains to the core but is the parcel's own land, not the watershed.
+    for (let i = 0; i < inside.length; i++)
+      if (inside[i] && up.mask[i]) {
+        up.mask[i] = 0;
+        up.cells--;
+      }
+    last = { d, dir, acc, target: inside, up, km };
     if (!up.open) break;
   }
   if (!last) return null;
@@ -223,6 +230,40 @@ export async function readWatershed(
   };
 }
 
+/**
+ * The mask shrunk by n cells (8-neighbour), so only land well inside counts as the target. The mask itself when that
+ * would leave nothing (a parcel narrower than the band).
+ */
+export function erode(mask: Uint8Array, w: number, h: number, n: number): Uint8Array {
+  let cur = mask;
+  for (let k = 0; k < n; k++) {
+    const next = new Uint8Array(w * h);
+    let any = false;
+    for (let r = 0; r < h; r++)
+      for (let c = 0; c < w; c++) {
+        const i = r * w + c;
+        if (!cur[i]) continue;
+        let keep = true;
+        for (let dr = -1; dr <= 1 && keep; dr++)
+          for (let dc = -1; dc <= 1; dc++) {
+            const rr = r + dr,
+              cc = c + dc;
+            if (rr < 0 || cc < 0 || rr >= h || cc >= w || !cur[rr * w + cc]) {
+              keep = false;
+              break;
+            }
+          }
+        if (keep) {
+          next[i] = 1;
+          any = true;
+        }
+      }
+    if (!any) return cur;
+    cur = next;
+  }
+  return cur;
+}
+
 const roundLL = ([lat, lon]: LatLon): LatLon => [+lat.toFixed(5), +lon.toFixed(5)];
 
 /** The session's wetness index, for Surface › Wetness: never stored (CLAUDE.md, the fine grid's derivatives). */
@@ -263,7 +304,7 @@ export function soilWater(
 
 /**
  * Flow and wetness on the fine grid. Accumulation is its own (the driveway's is untouched): depressions filled, D8,
- * each edge cell flowing inward seeded with the 10 m catchment that arrives across its width. Lines over
+ * each edge cell flowing inward from the watershed seeded with the 10 m catchment that arrives across its width. Lines over
  * water.flowLineAc; wet ground where the index is in water.twiWet's band and the soil is poorly drained (or the index
  * alone passes water.twiWetAlone); pond sites inside the parcel and out of the flood zone.
  */
@@ -289,7 +330,8 @@ export function measureWater(
         if (downstream(dir, w, h, i) < 0) continue;
         const [x, y] = rcToUTM(d, r, c);
         const [cr, cc] = utmToRC(cd, x, y).map(Math.round) as [number, number];
-        if (cr < 0 || cc < 0 || cr >= cd.h || cc >= cd.w) continue;
+        if (cr < 0 || cc < 0 || cr >= cd.h || cc >= cd.w || !shed.mask[cr * cd.w + cc]) continue;
+        // Only the watershed's water, so the lines agree with it (a creek that skirts the parcel stays off it).
         // The coarse cell's upslope area per metre of its width, times this cell's width, in fine cells.
         seed[i] = 1 + (shed.acc[cr * cd.w + cc]! * cd.res * cd.resY) / cd.res / d.res;
       }

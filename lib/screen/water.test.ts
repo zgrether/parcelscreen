@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import type { SoilUnit } from "./soils";
 import type { SoilRow } from "./types";
-import { soilWater } from "./water";
+import { erode, soilWater } from "./water";
 
 const unit = (mukey: string, muname: string, acres: number) =>
   ({ mukey, muname, acres, geos: [], color: "#000" }) as SoilUnit;
@@ -49,5 +49,19 @@ describe("soilWater", () => {
   it("is empty without map units, and the query's values are null when it didn't answer", () => {
     expect(soilWater(null, [], null)).toEqual([]);
     expect(soilWater([unit("1", "Tate loam", 2)], [], null)[0]).toMatchObject({ awcIn: null, omPct: null });
+  });
+});
+
+describe("erode", () => {
+  const grid = (rows: string[]) => Uint8Array.from(rows.join("").split(""), (ch) => (ch === "#" ? 1 : 0));
+  it("shrinks a block by a cell per step, so a path that only clips the edge misses the core", () => {
+    const m = grid(["......", ".####.", ".####.", ".####.", ".####.", "......"]);
+    expect(Array.from(erode(m, 6, 6, 1))).toEqual(
+      Array.from(grid(["......", "......", "..##..", "..##..", "......", "......"])),
+    );
+  });
+  it("keeps the mask when shrinking would leave nothing", () => {
+    const m = grid(["....", ".##.", ".##.", "...."]);
+    expect(Array.from(erode(m, 4, 4, 2))).toEqual(Array.from(erode(m, 4, 4, 1)));
   });
 });
