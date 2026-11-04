@@ -1,0 +1,64 @@
+name: Water on the land
+
+# The water mission (docs/plans/water.md), on CI's runners, for what the cloud sessions that build the app can't reach:
+# - screenshots: the hand-back's shots (screenshots/water.spec.ts), at 1280 and 375, with the live basemaps (the USGS
+#   topo map under Mud Creek's watershed), pushed to pr-assets/water/.
+# Nothing here gates a merge.
+on:
+  pull_request:
+    paths:
+      - screenshots/water.spec.ts
+      - .github/workflows/water.yml
+  workflow_dispatch: {}
+
+concurrency:
+  group: water-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  screenshots:
+    # A fork's PR gets a read-only token: nothing to push to.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm build
+      - run: pnpm exec playwright test -c playwright.screenshots.config.ts screenshots/water.spec.ts
+        env:
+          E2E_SKIP_BUILD: "1"
+      - name: To pr-assets/water
+        if: always()
+        run: |
+          ls test-results/screenshots/water || exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin pr-assets
+          git worktree add ../assets origin/pr-assets
+          mkdir -p ../assets/water
+          cp test-results/screenshots/water/*.png ../assets/water/
+          cd ../assets
+          git add -A water
+          git commit -m "Water on the land screenshots (${GITHUB_SHA::7})" || exit 0
+          # Other workflows push here too: take theirs and try again.
+          for i in 1 2 3; do
+            git push origin HEAD:pr-assets && exit 0
+            git pull --rebase origin pr-assets
+          done
+          exit 1
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: water-shots-test-results
+          path: test-results/
+          retention-days: 7

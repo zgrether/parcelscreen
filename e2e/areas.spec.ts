@@ -41,6 +41,18 @@ test("after the interview: Where to look, five cards, and Show me a parcel here"
   // The starting list's must-haves are all parcel-scale: said once, under the title.
   await expect(box.locator(".area-note")).toHaveText([W.ranked, MUSTS_PARCEL_SCALE]);
   await expect(box.locator(".ac-share")).toHaveCount(0);
+  // Boulder potential (docs/plans/boulders.md §2): each card's bouldery share, and the sort by it, most first.
+  const sort = box.getByRole("group", { name: W.sortBy });
+  await expect(sort.getByRole("button", { name: W.sortFit })).toHaveAttribute("aria-pressed", "true");
+  await sort.getByRole("button", { name: W.sortBoulders }).click();
+  await expect(box.locator(".area-card")).toHaveCount(5);
+  const shares = (await box.locator(".ac-boulders").allInnerTexts()).map((t) => {
+    expect(t).toMatch(/^Bouldery soils: \d+% of rural land$/);
+    return Number(/(\d+)%/.exec(t)![1]);
+  });
+  expect(shares.length).toBeGreaterThan(1);
+  expect(shares).toEqual([...shares].sort((x, y) => y - x));
+  await sort.getByRole("button", { name: W.sortFit }).click();
   const first = (await box.locator(".ac-name").first().innerText()).trim();
   await box.getByRole("button", { name: W.showParcel }).first().click();
   await expect(page).toHaveURL(/\/explore/);

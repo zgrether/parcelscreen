@@ -131,13 +131,21 @@ describe.runIf(import.meta.env.MODE === "areas-record")("record Grayson Highland
     "records only what Mud Creek's recording lacks",
     async () => {
       const added: HarEntry[] = [];
-      const fetchImpl = recordingFetch(loadHar(MUD_HAR), live(), added);
+      // AREA_APPEND=1: the existing recording answers first and is kept, so only what it lacks is asked live (the
+      // boulder share's SDA queries, docs/plans/boulders.md), and Overpass isn't asked again.
+      const kept: HarEntry[] =
+        process.env.AREA_APPEND && existsSync(AREA_HAR) ? loadHar(AREA_HAR).log.entries : [];
+      const fetchImpl = recordingFetch(
+        { log: { entries: [...loadHar(MUD_HAR).log.entries, ...kept] } },
+        live(),
+        added,
+      );
       const deps = await profileDeps(fetchImpl, realClock, RECORDED.today, placesFromDir(AREA_PLACES));
       const def = AREAS.find((a) => a.id === RECORDED.id)!;
       const { file } = await profileArea(def, await outlineOf(def.id), deps, RECORDED.scale);
       AreaFileSchema.parse(file);
       mkdirSync(dirname(AREA_HAR), { recursive: true });
-      const har = scrubHar({ log: { entries: added } }).har;
+      const har = scrubHar({ log: { entries: [...kept, ...added] } }).har;
       writeFileSync(
         AREA_HAR,
         JSON.stringify({

@@ -205,6 +205,18 @@ export function rankAreas(cards: readonly AreaCard[], names: ReadonlyMap<string,
   );
 }
 
+/**
+ * Where to look's Most boulder ground (docs/plans/boulders.md §2): the ranking re-sorted by each area's boulder share,
+ * most first, an area without one last; ties keep the fit order.
+ */
+export function byBoulders(
+  ranked: readonly AreaCard[],
+  share: ReadonlyMap<string, number | null>,
+): AreaCard[] {
+  const v = (c: AreaCard) => share.get(c.id) ?? -1;
+  return [...ranked].sort((a, b) => v(b) - v(a));
+}
+
 /** Each area's place in the ranking, 1 first: "#3 of 30 for you". */
 export function rankOf(ranked: readonly AreaCard[]): Map<string, number> {
   return new Map(ranked.map((c, i) => [c.id, i + 1]));
