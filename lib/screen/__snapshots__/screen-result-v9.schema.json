@@ -1667,6 +1667,391 @@
       ],
       "additionalProperties": false
     },
+    "water": {
+      "type": "object",
+      "properties": {
+        "watershed": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "acres": {
+                  "type": "number"
+                },
+                "outline": {
+                  "anyOf": [
+                    {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "const": "Polygon"
+                            },
+                            "coordinates": {
+                              "type": "array",
+                              "items": {
+                                "type": "array",
+                                "items": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "number"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "coordinates"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "const": "MultiPolygon"
+                            },
+                            "coordinates": {
+                              "type": "array",
+                              "items": {
+                                "type": "array",
+                                "items": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "number"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "coordinates"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "capped": {
+                  "type": "boolean"
+                },
+                "reachKm": {
+                  "type": "number"
+                },
+                "cover": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "forest": {
+                          "type": "number"
+                        },
+                        "open": {
+                          "type": "number"
+                        },
+                        "crops": {
+                          "type": "number"
+                        },
+                        "developed": {
+                          "type": "number"
+                        },
+                        "water": {
+                          "type": "number"
+                        },
+                        "other": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "forest",
+                        "open",
+                        "crops",
+                        "developed",
+                        "water",
+                        "other"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "roadMi": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "inflow": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "ll": {
+                          "type": "array",
+                          "prefixItems": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "items": false,
+                          "minItems": 2,
+                          "maxItems": 2
+                        },
+                        "acres": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "ll",
+                        "acres"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "acres",
+                "outline",
+                "capped",
+                "reachKm",
+                "cover",
+                "roadMi",
+                "inflow"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "flow": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "lines": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "coords": {
+                        "type": "array",
+                        "items": {
+                          "type": "array",
+                          "prefixItems": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "items": false,
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      },
+                      "acres": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "coords",
+                      "acres"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "wet": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "ll": {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ],
+                        "items": false,
+                        "minItems": 2,
+                        "maxItems": 2
+                      },
+                      "acres": {
+                        "type": "number"
+                      },
+                      "outline": {}
+                    },
+                    "required": [
+                      "ll",
+                      "acres",
+                      "outline"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "ponds": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "ll": {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ],
+                        "items": false,
+                        "minItems": 2,
+                        "maxItems": 2
+                      },
+                      "acres": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "ll",
+                      "acres"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "lines",
+                "wet",
+                "ponds"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "soils": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "mukey": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "acres": {
+                "type": "number"
+              },
+              "awcIn": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "drainage": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "waterTableIn": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "hydGroup": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "omPct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "mukey",
+              "name",
+              "acres",
+              "awcIn",
+              "drainage",
+              "waterTableIn",
+              "hydGroup",
+              "omPct"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "garden": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "awcIn": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "name",
+                "awcIn"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "watershed",
+        "flow",
+        "soils",
+        "garden"
+      ],
+      "additionalProperties": false
+    },
     "dish": {
       "anyOf": [
         {

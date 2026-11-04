@@ -61,6 +61,45 @@ export async function fetchRoads(
   return perLayer.flat();
 }
 
+/**
+ * Road centrelines crossing a box, from the same TIGER layers (Water on the land, docs/plans/water.md §1a: the roads in
+ * the upslope watershed). A failed layer adds nothing.
+ */
+export async function fetchRoadsInBox(
+  [w, s, e, n]: [number, number, number, number],
+  deps: RoadDeps,
+): Promise<RoadFeature[]> {
+  const perLayer = await Promise.all(
+    K.layers.map(async (lyr) => {
+      const q = new URLSearchParams({
+        geometry: `${w.toFixed(5)},${s.toFixed(5)},${e.toFixed(5)},${n.toFixed(5)}`,
+        geometryType: "esriGeometryEnvelope",
+        inSR: "4326",
+        spatialRel: "esriSpatialRelIntersects",
+        outFields: "MTFCC",
+        returnGeometry: "true",
+        outSR: "4326",
+        f: "geojson",
+      });
+      try {
+        const r = await deps.http.fetch(`${deps.endpoints.tiger}/${lyr}/query`, {
+          method: "POST",
+          body: q,
+          timeoutMs: K.timeoutMs,
+          ...(deps.signal ? { signal: deps.signal } : {}),
+        });
+        if (!r.ok) return [];
+        const j = (await r.json()) as { features?: RoadFeature[] };
+        return (j.features || []).filter((f) => f.geometry);
+      } catch (e) {
+        if (e instanceof CancelledError) throw e;
+        return [];
+      }
+    }),
+  );
+  return perLayer.flat();
+}
+
 export interface NearestRoad {
   name: string;
   distM: number;

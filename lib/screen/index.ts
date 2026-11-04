@@ -41,6 +41,7 @@ import { loadClimate, withClimate, type ClimateSource } from "./climate";
 import { loadBuildings, withPrivacy, type BuildingSource } from "./privacy";
 import { LONG_TRAIL_DRIVES, longTrailDrive } from "./longTrail";
 import { measureBoulders } from "./boulders";
+import { gardenWater, measureWater, readWatershed, soilWater, type WaterSession } from "./water";
 import { CLIMB_DRIVES, climbingNear } from "./climbing";
 import { PADDLE_DRIVES, paddlingNear } from "./paddling";
 import { dishSpot } from "./dish";
@@ -82,6 +83,7 @@ import {
   fetchSoilLimits,
   fetchSoilPolygons,
   fetchSoils,
+  fetchSoilWater,
   screenableRows,
   vetBenches,
   vetGardens,
@@ -189,6 +191,8 @@ export interface ScreenSession {
   hospitalPool?: HospitalCandidate[];
   soilMask?: Uint8Array;
   flowAcc?: Float32Array;
+  /** Water on the land's wetness index (Surface › Wetness): the session's only, never stored. */
+  water?: WaterSession;
   bedrockCm?: Float32Array;
   wetSoil?: Uint8Array;
   deps: {
@@ -345,6 +349,9 @@ export async function screen(
   const streamsAsk = settle(fetchFlowlines(cfg.endpoints.nhd, usesLand, io));
   const pondsAsk = settle(fetchWaterbodies(cfg.endpoints.nhdWaterbody, usesLand, io));
   const countyAsk = settle(findCounty(s.centre, usesLand, io, cfg.endpoints.counties));
+  // Water on the land (docs/plans/water.md): the 10 m watershed and the soil-water query, read in the near step.
+  const watershedAsk = settle(readWatershed(usesLand, io));
+  const soilWaterAsk = settle(fetchSoilWater(usesLand, io));
 
   await step("dem", async () => {
     // Fine, then wide, as in the prototype: a wide-DEM failure leaves the fine DEM in place.
@@ -515,6 +522,24 @@ export async function screen(
     }
     if (s.dFine && s.slope && s.inside)
       R.trails = trailNetwork(s.dFine, s.slope, s.inside, (s.flowAcc ??= flowAccum(s.dFine)), sfhaGrid(s));
+    // Water on the land (docs/plans/water.md): never graded, and a part that can't be read is null.
+    const [ws, sw] = await Promise.all([watershedAsk, soilWaterAsk]);
+    for (const a of [ws, sw]) if (!a.ok && a.error instanceof CancelledError) throw a.error;
+    const shed = ws.ok ? ws.value : null;
+    const waterSoils = soilWater(s.units ?? null, s.rows ?? [], sw.ok ? sw.value : null);
+    let flow: NonNullable<ScreenResult["water"]>["flow"] = null;
+    if (s.dFine && s.slope && s.inside) {
+      const wetSoil = (s.wetSoil ??= poorlyDrained(s.units ?? null, s.rows ?? null, s.dFine, s.inside));
+      const m = measureWater({ d: s.dFine, slope: s.slope, inside: s.inside }, shed, wetSoil, sfhaGrid(s));
+      flow = m.flow;
+      s.water = m.session;
+    }
+    R.water = {
+      watershed: shed?.watershed ?? null,
+      flow,
+      soils: waterSoils,
+      garden: gardenWater(R.gardens?.[0], s.units ?? null, s.rows ?? [], waterSoils),
+    };
     if (n.near) R.near = n.near;
     s.roads = n.roads;
     if (n.otherGrocers) s.otherGrocers = n.otherGrocers;
@@ -703,6 +728,7 @@ export async function reroute(
     if (before.climbing !== undefined) R.climbing = before.climbing;
     // Boulder potential: the parcel's, not a spot's.
     if (before.boulders !== undefined) R.boulders = before.boulders;
+    if (before.water !== undefined) R.water = before.water;
     for (const n of before.noResponse)
       if (
         n === TRAILHEAD_PARKING ||

@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vitest";
 import {
   accumulate,
+  accumulateMfd,
   d8,
   fillDepressions,
   flowLines,
@@ -153,5 +154,24 @@ describe("flow lines and pond sites", () => {
     expect(Math.abs((sites[0]!.cell % W) - 29.5)).toBeLessThan(5);
     // Three sites at most, each 100 m from the others.
     expect(sites.length).toBeLessThanOrEqual(3);
+  });
+});
+
+describe("multiple-flow accumulation (the wetness index's)", () => {
+  it("keeps every cell's water: what leaves at the outlets is the grid's cells", () => {
+    const d = grid((c, r) => 0.3 * Math.abs(c - 29.5) * 10 + (59 - r));
+    const f = fillDepressions(d.z, W, H);
+    const acc = accumulateMfd(f, W, H, d.res, d.resY);
+    // Cells that pass nothing on are the outlets; together they hold all the water.
+    const dir = d8(f, W, H, d.res, d.resY);
+    let out = 0;
+    for (let i = 0; i < W * H; i++) if (dir[i]! < 0) out += acc[i]!;
+    expect(out).toBeCloseTo(W * H, 6);
+  });
+  it("spreads over a plane: the same across, rising downslope", () => {
+    const d = grid((_c, r) => 100 - 2 * r);
+    const acc = accumulateMfd(fillDepressions(d.z, W, H), W, H, d.res, d.resY);
+    expect(acc[30 * W + 20]!).toBeCloseTo(acc[30 * W + 40]!, 6);
+    expect(acc[50 * W + 30]!).toBeGreaterThan(acc[10 * W + 30]!);
   });
 });

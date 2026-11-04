@@ -1,6 +1,6 @@
 {
   "about": "Asks .github/workflows/places.yml to run its jobs on this PR's branch (step 14d plan §7). Change `request` to run them again; the workflow records the last one it finished in places-done.json.",
-  "request": "17-shortoff-record-1",
+  "request": "water-record-1",
   "jobs": ["record"],
   "append": [
     "grayson-mud-creek-6273",
