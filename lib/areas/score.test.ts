@@ -8,7 +8,7 @@ import { expectedOf } from "@/test/support/expected";
 import { defaultRubric } from "../rubric/default";
 import { MINE, type NamedRubric, type Rubric } from "../rubric/types";
 import { reportCard } from "../report/card";
-import { AREA_FACTORS, areaCard, areaLetter, fitLabel, rankAreas } from "./score";
+import { AREA_FACTORS, areaCard, areaLetter, byBoulders, fitLabel, rankAreas } from "./score";
 import { AREA_FILE_VERSION, MEASURES, type AreaFile, type Measure } from "./types";
 
 const nr = (rubric: Rubric = defaultRubric()): NamedRubric => ({ id: MINE, name: "Mine", rubric });
@@ -52,6 +52,7 @@ function area(id: string, cols: Partial<Record<Measure, (number | null)[]>>, n =
       Measure,
       number | null
     >,
+    boulderShare: null,
   };
 }
 
@@ -208,5 +209,19 @@ describe("the fit's sign (owner, #298 answers)", () => {
   it("an area's card carries it; a parcel's grade is untouched", () => {
     const c = areaCard(area("x", {}), nr());
     expect(c.fit!.startsWith(c.grade!)).toBe(true);
+  });
+});
+
+describe("Where to look's Most boulder ground (docs/plans/boulders.md §2)", () => {
+  it("most boulder share first, an area without one last, ties in the fit order", () => {
+    const ids = ["a", "b", "c", "d"];
+    const ranked = ids.map((id) => ({ id }) as unknown as Parameters<typeof byBoulders>[0][number]);
+    const share = new Map<string, number | null>([
+      ["a", 0.05],
+      ["b", null],
+      ["c", 0.3],
+      ["d", 0.05],
+    ]);
+    expect(byBoulders(ranked, share).map((c) => c.id)).toEqual(["c", "a", "d", "b"]);
   });
 });

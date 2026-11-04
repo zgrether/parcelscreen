@@ -260,6 +260,11 @@ export const AREA_WORDS = {
   legend:
     "Colour: your fit (green A–B, amber C, red D–F). A stronger fill: more of the land passes your must-haves.",
   changeIt: "Change it",
+  /** Boulder potential (docs/plans/boulders.md §2): the card's line, and Where to look's sort. */
+  bouldery: (share: number) => `Bouldery soils: ${Math.round(share * 100)}% of rural land`,
+  sortBy: "Sort",
+  sortFit: "Best fit",
+  sortBoulders: "Most boulder ground",
 } as const;
 
 /** A sample parcel's words (§5, §8). */

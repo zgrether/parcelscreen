@@ -8877,6 +8877,37 @@ button.use-row[aria-expanded="true"] .use-name::after {
 .area-note {
   margin: 0 0 8px;
 }
+/* Boulder potential (docs/plans/boulders.md §2): Where to look's sort, two pressed-or-not buttons; the card's line. */
+.area-sort {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+.area-sort-btn {
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-rule);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-ink);
+  font: 500 14px/1.2 var(--font-sans);
+  cursor: pointer;
+}
+.area-sort-btn[aria-pressed="true"] {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: #fff;
+}
+.area-sort-btn:focus-visible {
+  outline: 2px solid var(--color-water);
+  outline-offset: 2px;
+}
+.ac-boulders {
+  margin: 2px 0;
+  font-size: 14px;
+}
 /* Step 13: a sample parcel's tag and its other sample, on the header's second line. */
 .sh-sample {
   padding: 1px 6px;

@@ -36,8 +36,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # data.cms.gov answers a browser, not a script (scripts/data-er.mts).
       - run: pnpm exec playwright install --with-deps chromium
+      # The area files' folder follows the format's version (lib/areas/types.ts), not a fixed v2.
+      - id: v
+        run: echo "areas=public/areas/v$(node -p "require('fs').readFileSync('lib/areas/types.ts','utf8').match(/AREA_FILE_VERSION = (\\d+)/)[1]")" >> "$GITHUB_OUTPUT"
       - name: Keep last month's files to compare
-        run: mkdir -p tmp && cp -r public/areas/v2 tmp/areas-before && cp -r public/places/v1 tmp/places-before
+        run: mkdir -p tmp && cp -r ${{ steps.v.outputs.areas }} tmp/areas-before && cp -r public/places/v1 tmp/places-before
       - name: The places
         # A source that doesn't answer keeps last month's (lib/places/bake.ts); a bake that fails whole leaves them all.
         run: pnpm data:places || { echo "::warning::The places bake failed; last month's places stand."; git checkout -- public/places; }
@@ -49,7 +52,7 @@ jobs:
         run: pnpm areas:profile
       - id: summary
         name: What moved
-        run: node scripts/areas-summary.mts tmp/areas-before public/areas/v2 tmp/areas-summary.md tmp/ers-to-confirm.json tmp/er-overrides-can-remove.json >> "$GITHUB_OUTPUT"
+        run: node scripts/areas-summary.mts tmp/areas-before ${{ steps.v.outputs.areas }} tmp/areas-summary.md tmp/ers-to-confirm.json tmp/er-overrides-can-remove.json >> "$GITHUB_OUTPUT"
       - id: places
         name: What the bake moved
         run: node scripts/places-summary.mts tmp/places-before public/places/v1 tmp/places-summary.md tmp/places-kept.json >> "$GITHUB_OUTPUT"

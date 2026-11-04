@@ -34,6 +34,7 @@ import { erDestinations, type AirportList, type ErList } from "./data";
 import type { ErOverride } from "../screen/hospitals";
 import { osrmMatrix, pointDrives, type Matrix } from "./drives";
 import { sampleArea, type Sample } from "./sample";
+import { boulderShare } from "./boulders";
 import {
   fetchDemTiles,
   fetchLandCover,
@@ -234,6 +235,9 @@ export async function profileArea(
     cols.climbMin.push(d.climbMin);
   }
 
+  // 4. Boulder potential: the share of the points in a bouldery or rocky map unit (docs/plans/boulders.md §2).
+  const boulders = await boulderShare(pts, { http: deps.http, endpoints: deps.endpoints });
+
   const medians = Object.fromEntries(MEASURES.map((m) => [m, round(m, median(cols[m]))])) as Record<
     Measure,
     number | null
@@ -258,11 +262,13 @@ export async function profileArea(
       launches: "Paddle launches: OpenStreetMap and USFS, classified with NHD (the baked places)",
       crags: "Climbing areas: Parcel Screen's own list (the baked places' curated folder)",
       drives: `OSRM, ${deps.today}`,
+      soils: "NRCS SSURGO via Soil Data Access",
     },
     candidates: sample.candidates,
     thin: sample.thin,
     points: { ll: pts, ...cols },
     medians,
+    boulderShare: boulders,
   };
   return { file, sample };
 }
