@@ -22,6 +22,7 @@ import { replayHar } from "../e2e/replay";
 const OUT = "test-results/screenshots/water";
 const MACKS = "macks-mountain-35-3" satisfies FixtureSlug;
 const MUD_CREEK = "grayson-mud-creek-6273" satisfies FixtureSlug;
+const ROAN = "roan-hwy-143-099-046-02" satisfies FixtureSlug;
 const SLUGS: readonly FixtureSlug[] = [MACKS, MUD_CREEK];
 
 /** The basemaps and terrain live (the replay aborts them). */
@@ -180,6 +181,105 @@ for (const phone of [false, true]) {
       await low(page, phone);
       await settle(page);
       await page.screenshot({ path: `${OUT}/${device}-mud-creek-watershed-topo.png` });
+    });
+  });
+}
+
+/**
+ * The review's fixes (owner, 2026-11-05): Roan's Garden line with a flow line at its patch; the key line naming the
+ * overlays that are on (Water on the land, Boulder ground); Wetness's legend, its range and note, placed on a phone
+ * above the key line and the sheet. The legend's placement on two more phone sizes.
+ */
+for (const phone of [false, true]) {
+  const device = phone ? "phone" : "desktop";
+  test.describe(`${device}, the review's fixes`, () => {
+    test.use(
+      phone
+        ? { viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true }
+        : { viewport: { width: 1280, height: 800 } },
+    );
+
+    test("Roan's garden water, the key line with overlays on, Wetness's legend", async ({
+      page,
+      context,
+    }) => {
+      test.setTimeout(600_000);
+      await replayHar(context, [MACKS, ROAN]);
+      await liveImagery(page);
+      await openExplorer(page, MACKS);
+      await importParcels(page, [MACKS, ROAN]);
+      await seedScreens(page, [MACKS], { current: true });
+      await seedScreens(page, [ROAN], { current: true, settings: true });
+      await settled(page);
+
+      // Roan's saved grade: Uses › Garden, a flow line at its patch.
+      await visit(page, "/library");
+      await openFromList(page, loadFixture(ROAN).input.name);
+      const tilt = page.locator(".tilt-hint button");
+      if (await tilt.count()) await tilt.first().click();
+      // Opened from the list, a phone's sheet sits at its peek, the tabs below the fold: raised first.
+      await tall(page, phone);
+      await press(page.getByRole("tab", { name: "Uses" }));
+      const uses = page.getByRole("region", { name: "Uses" });
+      const garden = uses.locator(".use", { hasText: "Garden, orchard, animals" });
+      await expect(garden).toContainText("water gathers here in rain (flow line)");
+      await garden.evaluate((el) => el.scrollIntoView({ block: "center" }));
+      await page.waitForTimeout(400);
+      await page.screenshot({ path: `${OUT}/${device}-fix-garden-flow.png` });
+
+      // Macks graded here: Water on the land and Boulder ground on, and Shading › Wetness.
+      await openGraded(page, MACKS);
+      await page.getByRole("tab", { name: "Grade" }).click();
+      await low(page, phone);
+      const panel = await layers(page, { shading: "Wetness" });
+      const onTheMap = panel.getByRole("group", { name: "On the map" });
+      await press(onTheMap.getByRole("button", { name: "Water on the land" }));
+      await press(onTheMap.getByRole("button", { name: "Boulder ground" }));
+      await closeLayers(page);
+      await low(page, phone);
+      await settle(page);
+      const line = page.locator(".map-key-line");
+      await expect(line).toContainText("Water on the land");
+      await expect(line).toContainText("Boulder ground");
+      await expect(page.locator(".surface-legend.wet")).toContainText("wetter ← → drier");
+      await page.screenshot({ path: `${OUT}/${device}-fix-key-and-wetness.png` });
+    });
+  });
+}
+
+for (const [w, h] of [
+  [375, 667],
+  [360, 780],
+] as const) {
+  test.describe(`phone ${w} × ${h}, Wetness's legend`, () => {
+    test.use({ viewport: { width: w, height: h }, isMobile: true, hasTouch: true });
+
+    test("sits above the key line and the sheet, clear of Your list", async ({ page, context }) => {
+      test.setTimeout(600_000);
+      await replayHar(context, [MACKS]);
+      await liveImagery(page);
+      await openExplorer(page, MACKS);
+      await importParcels(page, [MACKS]);
+      await seedScreens(page, [MACKS], { current: true });
+      await settled(page);
+      await openGraded(page, MACKS);
+      await page.getByRole("tab", { name: "Grade" }).click();
+      await low(page, true);
+      const panel = await layers(page, { shading: "Wetness" });
+      await press(
+        panel.getByRole("group", { name: "On the map" }).getByRole("button", { name: "Water on the land" }),
+      );
+      await closeLayers(page);
+      await low(page, true);
+      await settle(page);
+      // Clear of Your list above, of the key line below.
+      const legend = await page.locator(".surface-legend.wet").boundingBox();
+      const back = await page.locator(".back-chip").first().boundingBox();
+      const key = await page.locator(".map-key-line").boundingBox();
+      expect(legend).not.toBeNull();
+      if (back) expect(legend!.y).toBeGreaterThanOrEqual(back.y + back.height);
+      if (key) expect(legend!.y + legend!.height).toBeLessThanOrEqual(key.y);
+      await page.screenshot({ path: `${OUT}/phone-${w}x${h}-wetness.png` });
     });
   });
 }

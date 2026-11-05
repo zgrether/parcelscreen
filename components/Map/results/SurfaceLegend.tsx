@@ -9,6 +9,8 @@
  * Every colour is the image's own (lib/render/surface.ts), so the legend can't drift from the map.
  */
 import { heat, SLOPE_BANDS, SURFACE_SOLIDS, wetnessColour, WETNESS_RANGE } from "@/lib/render/surface";
+import { WETNESS_WORDS } from "@/lib/uses/words";
+import { useLayoutEffect } from "react";
 import { useHasSurface } from "./SurfaceButton";
 import { useSurfaceMode } from "./useSurfaceMode";
 
@@ -21,31 +23,39 @@ const pct = (g: number) => `${Math.round(g * 100)}%`;
 
 export function SurfaceLegend() {
   const mode = useSurfaceMode();
-  if (!useHasSurface() || mode === "off") return null;
+  const shown = useHasSurface() && mode !== "off";
+  // Its height, for a phone's placement above the key line and the sheet (CSS: --lg-h; owner, 2026-11-05).
+  useLayoutEffect(() => {
+    const el = shown ? document.querySelector<HTMLElement>(".map-col .surface-legend") : null;
+    if (!el) return;
+    const set = () => el.style.setProperty("--lg-h", `${el.offsetHeight}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [shown, mode]);
+  if (!shown) return null;
   if (mode === "wetness") return <WetnessLegend />;
   return mode === "slope" ? <SlopeLegend /> : <ScoreLegend kind={mode} />;
 }
 
-/** Water on the land's wetness: clear (dry) at the bottom to deep blue (wet) at the top, the image's own colours. */
+/**
+ * Water on the land's wetness (owner, 2026-11-05): a strip from wet (deep blue) to dry (clear), the image's own colours,
+ * labelled as a range, "wetter ← → drier", with the note that "wet ground" counts only the wettest spots.
+ */
 function WetnessLegend() {
   const { dry, wet } = WETNESS_RANGE;
   const stops = Array.from({ length: 11 }, (_, i) => {
-    const c = wetnessColour(dry + ((wet - dry) * i) / 10);
+    const c = wetnessColour(wet - ((wet - dry) * i) / 10);
     return `${c ? `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${(c[3] / 255).toFixed(2)})` : "transparent"} ${i * 10}%`;
   }).join(", ");
   const title =
-    "Wetness: where water gathers and soaks, from the 3 m lidar's flow and slope. Clear is dry ground; deep blue is wettest.";
+    "Wetness: where water gathers and soaks, from the 3 m lidar's flow and slope. Deep blue is wettest; clear is driest.";
   return (
-    <div className="surface-legend" role="img" aria-label={title} title={title}>
-      <span className="sl-title">Wet</span>
-      <div className="sl-bar ramp" style={{ background: `linear-gradient(to top, ${stops})` }}>
-        <span className="sl-tick" style={{ bottom: "100%" }}>
-          wet
-        </span>
-        <span className="sl-tick" style={{ bottom: "0%" }}>
-          dry
-        </span>
-      </div>
+    <div className="surface-legend wet" role="img" aria-label={title} title={title}>
+      <div className="sl-strip" style={{ background: `linear-gradient(to right, ${stops})` }} />
+      <span className="sl-range">{WETNESS_WORDS.range}</span>
+      <span className="sl-note">{WETNESS_WORDS.note}</span>
     </div>
   );
 }

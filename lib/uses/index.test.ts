@@ -99,7 +99,7 @@ describe("the uses on the fixtures", () => {
           "build": "maybe: The driveway needs an easement across neighbouring land",
           "camp": "maybe: The way in needs an easement first",
           "divide": "maybe: Up to 2 lots without subdivision review (an exempt division with no new street or utility; limited by 13.29 ac at 5 ac a lot); each new lot still needs legal access to a road",
-          "garden": "yes: A 0.34 ac garden out of the frost pocket, with water (from the well; no stream or spring mapped)",
+          "garden": "yes: A 0.34 ac garden out of the frost pocket, with water (water gathers here in rain (flow line); a mapped stream or spring: none; otherwise from the well)",
           "hunt": "maybe: 35 houses within a quarter mile of the boundary",
           "ride": "no: No public land next door, and the nearest long trail is 17 mi away by road; neighbours' land is private unless they agree",
           "trails": "no: Mostly steeper than 15%",
