@@ -72,7 +72,8 @@ describe("Garden, orchard, animals", () => {
   });
 
   it("a flow line at the garden patch: water gathers there in rain; one farther than 100 ft keeps the well", () => {
-    const FLOW = "water gathers here in rain (flow line); a mapped stream or spring: none; otherwise from the well";
+    const FLOW =
+      "water gathers here in rain (flow line); a mapped stream or spring: none; otherwise from the well";
     const [lat, lon] = MUD.gardens![0]!.ll;
     // About 30 m (100 ft) to a degree of latitude: 1 / 111 320 per metre.
     const line = (dm: number) => ({
