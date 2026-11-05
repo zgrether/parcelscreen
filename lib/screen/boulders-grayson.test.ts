@@ -15,4 +15,12 @@ describe.runIf(existsSync(BOULDERS_HAR))("Grayson Highlands' boulder field", () 
     expect(boulders.rough!.patches.length).toBeGreaterThan(0);
     expect(boulders.acres).toBeGreaterThanOrEqual(boulders.rough!.acres);
   }, 60_000);
+
+  it("reads likely boulders where its bouldery soils and the rough texture overlap; no stony soil counts", async () => {
+    const { boulders } = await readGraysonBoulders(graysonReplay(), true);
+    expect(boulders.soils.length).toBeGreaterThan(0);
+    expect(boulders.soils.every((s) => !s.terms.some((t) => t.includes("stony")))).toBe(true);
+    expect(boulders.likelyAcres).toBeGreaterThan(0);
+    expect(boulders.likelyAcres).toBeLessThanOrEqual(boulders.rough!.acres);
+  }, 60_000);
 });

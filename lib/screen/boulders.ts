@@ -2,14 +2,16 @@
  * Boulder potential (docs/plans/boulders.md): where on the parcel bouldering on one's own land might be, from two
  * readings the screen already has. Both are estimates, never graded.
  *
- * - **Soils:** the NRCS map units whose name, or one of whose major components, says bouldery, very or extremely
- *   stony, rubbly, rubble land or rock outcrop (`boulderTerms`).
+ * - **Soils:** the NRCS map units whose name, or one of whose major components, says bouldery (very and extremely
+ *   bouldery among them), rubbly, rubble land or rock outcrop (`boulderTerms`). Stony soils (stony, very or extremely
+ *   stony: stones of 10–24 in, not boulders) don't count; they're listed apart (`stonyTerms`).
  * - **Lidar texture:** fine-scale roughness of the 3 m bare-earth elevation once the slope's trend is taken out
  *   (`roughness`), kept where rough cells are dense over at least about a quarter acre, off cliffs and out of
  *   drainages (`roughPatches`).
  *
- * The result's `boulders` (an optional field, §9.65's exception, as Climbing's): the acres of either, each map unit
- * flagged with its acres, and the rough patches with their outlines for the map.
+ * The result's `boulders` (an optional field, §9.65's exception, as Climbing's): the acres of either, the likely acres
+ * where both agree, each map unit flagged with its acres, the stony units apart, and the rough patches with their
+ * outlines for the map.
  */
 import { booleanPointInPolygon, convex, featureCollection, point } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
@@ -21,20 +23,37 @@ import { M2_PER_ACRE, type LatLon } from "./util";
 
 const K = SCREEN_CONSTANTS.boulders;
 
-/** The words in a soil name that mean boulders or bare rock at the surface. "Stony" alone doesn't count. */
+/**
+ * The words in a soil name that mean boulders or bare rock at the surface: "bouldery" (very and extremely bouldery
+ * too), rubbly, rubble land, rock outcrop. Stony, very stony and extremely stony mean stones of 10–24 in, not boulders.
+ */
 const TERMS: readonly [RegExp, string][] = [
-  [/\bbouldery\b/i, "bouldery"],
-  [/\bextremely stony\b/i, "extremely stony"],
-  [/\bvery stony\b/i, "very stony"],
+  [/\bextremely bouldery\b/i, "extremely bouldery"],
+  [/\bvery bouldery\b/i, "very bouldery"],
+  [/(?<!(?:very|extremely) )\bbouldery\b/i, "bouldery"],
   [/\brubble land\b/i, "rubble land"],
   [/\brubbly\b/i, "rubbly"],
   [/\brock outcrop\b/i, "rock outcrop"],
 ];
 
+/** The stone words, for the units listed apart ("Stony ground: rocks, not climbing boulders"). */
+const STONY: readonly [RegExp, string][] = [
+  [/\bextremely stony\b/i, "extremely stony"],
+  [/\bvery stony\b/i, "very stony"],
+  [/(?<!(?:very|extremely) )\bstony\b/i, "stony"],
+];
+
+const termsOf = (list: readonly [RegExp, string][], name: string | null | undefined) =>
+  name ? list.filter(([re]) => re.test(name)).map(([, word]) => word) : [];
+
 /** The boulder words a soil map unit's or component's name carries, in the order above; none for most soils. */
 export function boulderTerms(name: string | null | undefined): string[] {
-  if (!name) return [];
-  return TERMS.filter(([re]) => re.test(name)).map(([, word]) => word);
+  return termsOf(TERMS, name);
+}
+
+/** The stone words a name carries (stony, very or extremely stony); they don't make it boulder ground. */
+export function stonyTerms(name: string | null | undefined): string[] {
+  return termsOf(STONY, name);
 }
 
 /** A map unit on the parcel whose name or major components say boulders or rock. */
@@ -47,10 +66,13 @@ export interface BoulderSoil {
   terms: string[];
 }
 
-/** The flagged map units, largest first. A unit's acres are its area inside the parcel (soils.ts fetchSoilPolygons). */
-export function boulderSoils(
-  units: readonly { mukey: string; muname: string; acres: number }[] | null,
+type Unit = { mukey: string; muname: string; acres: number };
+
+/** The map units whose name or major components carry one of `terms`' words, largest first. */
+function unitsWith(
+  units: readonly Unit[] | null,
   rows: readonly SoilRow[],
+  terms: (name: string | null | undefined) => string[],
 ): BoulderSoil[] {
   if (!units) return [];
   const out: BoulderSoil[] = [];
@@ -59,10 +81,21 @@ export function boulderSoils(
       u.muname,
       ...rows.filter((r) => String(r.mukey) === u.mukey).map((r) => String(r.compname ?? "")),
     ];
-    const terms = [...new Set(names.flatMap(boulderTerms))];
-    if (terms.length) out.push({ mukey: u.mukey, name: u.muname, acres: u.acres, terms });
+    const found = [...new Set(names.flatMap(terms))];
+    if (found.length) out.push({ mukey: u.mukey, name: u.muname, acres: u.acres, terms: found });
   }
   return out.sort((a, b) => b.acres - a.acres);
+}
+
+/** The flagged map units, largest first. A unit's acres are its area inside the parcel (soils.ts fetchSoilPolygons). */
+export function boulderSoils(units: readonly Unit[] | null, rows: readonly SoilRow[]): BoulderSoil[] {
+  return unitsWith(units, rows, boulderTerms);
+}
+
+/** The stony map units that aren't boulder ground too, largest first: listed apart, never counted. */
+export function stonySoils(units: readonly Unit[] | null, rows: readonly SoilRow[]): BoulderSoil[] {
+  const boulder = new Set(boulderSoils(units, rows).map((s) => s.mukey));
+  return unitsWith(units, rows, stonyTerms).filter((s) => !boulder.has(s.mukey));
 }
 
 /** A box mean of `v` over (2r+1)² cells, NaN cells left out; NaN where the window has none. */
@@ -226,18 +259,25 @@ export function roughPatches(
   return { patches, acres, cells };
 }
 
-/** The parcel's boulder ground: the soils, the rough patches, and the acres of either (a cell counted once). */
+/**
+ * The parcel's boulder ground: the soils, the rough patches, the acres of either (a cell counted once), and the likely
+ * acres where both agree. Stony units are listed apart and never counted.
+ */
 export interface Boulders {
   acres: number;
+  /** Where a flagged soil and rough lidar texture overlap; 0 without the elevation grid. */
+  likelyAcres: number;
   soilAcres: number;
   soils: BoulderSoil[];
+  stony: BoulderSoil[];
   /** Null when there was no fine elevation to read. */
   rough: { acres: number; patches: RoughPatch[] } | null;
 }
 
 /**
- * The measurement. With both readings, the acres of either are counted on the elevation grid, a cell inside a flagged
- * map unit or a rough patch counted once; without the grid, the flagged map units' acres.
+ * The measurement. With both readings, the acres are counted on the elevation grid: a cell inside a flagged map unit
+ * or a rough patch counted once, and likely where it's in both. Without the grid, the flagged map units' acres, none
+ * of them likely.
  */
 export function measureBoulders(
   units:
@@ -247,25 +287,34 @@ export function measureBoulders(
   grid: { d: Dem; slope: Float32Array; inside: Uint8Array } | null,
 ): Boulders {
   const soils = boulderSoils(units, rows);
+  const stony = stonySoils(units, rows);
   const soilAcres = soils.reduce((n, s) => n + s.acres, 0);
-  if (!grid) return { acres: soilAcres, soilAcres, soils, rough: null };
+  if (!grid) return { acres: soilAcres, likelyAcres: 0, soilAcres, soils, stony, rough: null };
   const { d, slope, inside } = grid;
   const { patches, acres: roughAcres, cells } = roughPatches(d, slope, inside);
   const flagged = new Set(soils.map((s) => s.mukey));
   const geos = (units ?? []).filter((u) => flagged.has(u.mukey)).flatMap((u) => u.geos);
-  let n = 0;
+  let n = 0,
+    both = 0;
   for (let r = 0; r < d.h; r++)
     for (let c = 0; c < d.w; c++) {
       const i = r * d.w + c;
       if (!inside[i]) continue;
-      if (cells[i]) {
-        n++;
-        continue;
+      let soil = false;
+      if (geos.length) {
+        const [lat, lon] = rcToLL(d, r, c);
+        soil = geos.some((g) => booleanPointInPolygon([lon, lat], g));
       }
-      if (!geos.length) continue;
-      const [lat, lon] = rcToLL(d, r, c);
-      if (geos.some((g) => booleanPointInPolygon([lon, lat], g))) n++;
+      if (soil || cells[i]) n++;
+      if (soil && cells[i]) both++;
     }
-  const acres = (n * d.res * d.resY) / M2_PER_ACRE;
-  return { acres, soilAcres, soils, rough: { acres: roughAcres, patches } };
+  const cellAc = (d.res * d.resY) / M2_PER_ACRE;
+  return {
+    acres: n * cellAc,
+    likelyAcres: both * cellAc,
+    soilAcres,
+    soils,
+    stony,
+    rough: { acres: roughAcres, patches },
+  };
 }

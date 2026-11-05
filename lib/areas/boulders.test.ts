@@ -37,7 +37,8 @@ describe("boulderShareOf", () => {
       row(2, "Chandler-Ashe complex, 25 to 45 percent slopes", "Rock outcrop"),
       row(3, "Edneyville loam, stony", "Edneyville"),
     ];
-    expect(boulderShareOf(rows)).toBe(0.5);
+    // Only the Rock outcrop component counts: very stony and stony are stones, not boulders.
+    expect(boulderShareOf(rows)).toBe(0.25);
   });
   it("null when no point has a map unit", () => {
     expect(boulderShareOf([])).toBeNull();

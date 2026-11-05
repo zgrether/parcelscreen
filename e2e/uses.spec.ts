@@ -304,7 +304,8 @@ test("Map layers' Power lines and Boulder ground draw from the graded parcel; bo
     "A power line near the parcel, when Power lines is on.",
   );
 
-  // Boulder ground (docs/plans/boulders.md §2): Macks's stony soils and its rough patches, off until turned on.
+  // Boulder ground (docs/plans/boulders.md §2): Macks's rough patches (its soils are stony, not bouldery), off until
+  // turned on.
   const boulders = () =>
     page.evaluate(() => {
       const map = (
@@ -328,7 +329,7 @@ test("Map layers' Power lines and Boulder ground draw from the graded parcel; bo
   );
 });
 
-test("Boulders on Mud Creek: one line outside the grade, its soils and the winter note on a tap", async ({
+test("Boulders on Mud Creek: no boulder ground, its very stony soil listed apart, the winter note on a tap", async ({
   page,
   context,
 }) => {
@@ -338,12 +339,13 @@ test("Boulders on Mud Creek: one line outside the grade, its soils and the winte
   await page.getByRole("tab", { name: "Uses" }).click();
   const uses = page.getByRole("region", { name: "Uses" });
   const line = uses.locator(".boulders-row");
-  await expect(line).toHaveText("Possible boulder ground: 16 ac (bouldery soils)");
+  // Stony soils are stones of 10–24 in, not boulders (owner, 2026-11-05).
+  await expect(line).toHaveText("No sign of boulder ground");
   // No chip: it's not one of the seven answers the Grade tab counts.
   await expect(uses.locator(".boulders .use-chip")).toHaveCount(0);
   await line.click();
   const detail = uses.locator(".boulders-detail");
-  await expect(detail).toContainText(/very stony/);
   await expect(detail).toContainText("Rough lidar texture: none found");
+  await expect(detail).toContainText(/Stony ground: rocks, not climbing boulders \(Pigeonroost/);
   await expect(detail).toContainText("Walk it in winter, when the leaves are down.");
 });

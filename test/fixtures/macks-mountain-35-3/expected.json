@@ -3122,9 +3122,11 @@
    }
   ],
   "boulders": {
-   "acres": 237.3065338180343,
-   "soilAcres": 237.39983356968435,
-   "soils": [
+   "acres": 0.576745892116106,
+   "likelyAcres": 0,
+   "soilAcres": 0,
+   "soils": [],
+   "stony": [
     {
      "mukey": "1914835",
      "name": "Unicoi-Marbleyard complex, 35 to 55 percent slopes, extremely stony",
@@ -10089,9 +10091,11 @@
    }
   ],
   "boulders": {
-   "acres": 237.3065338180343,
-   "soilAcres": 237.39983356968435,
-   "soils": [
+   "acres": 0.576745892116106,
+   "likelyAcres": 0,
+   "soilAcres": 0,
+   "soils": [],
+   "stony": [
     {
      "mukey": "1914835",
      "name": "Unicoi-Marbleyard complex, 35 to 55 percent slopes, extremely stony",

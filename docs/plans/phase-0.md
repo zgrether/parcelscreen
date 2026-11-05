@@ -1415,15 +1415,22 @@ until step 5 (Q14).
 78. **Boulder potential** (owner, 2026-11-04, pre-approved; the plan `docs/plans/boulders.md`, #399; built in #400
     onwards). Where on a parcel bouldering on one's own land might be, outside the grade.
     - **The measurement** (#400): an optional `boulders` on the result (§9.65's exception, as §9.77; the schema stays v9).
-      - **Soils:** the NRCS map units whose name or major components say bouldery, very or extremely stony, rubbly,
-        rubble land or rock outcrop (plain "stony" doesn't count).
+      - **Soils:** the NRCS map units whose name or major components say bouldery (very and extremely bouldery among
+        them), rubbly, rubble land or rock outcrop. Stony, very and extremely stony units (stones of 10–24 in, not
+        boulders) don't count (owner, 2026-11-05): they're listed apart, "Stony ground: rocks, not climbing boulders".
       - **Lidar texture:** the spread of the 3 m bare-earth ground above its 27 m trend, rough at 0.3 m, not on or beside
         a long cliff band or in or beside a drainage, dense over 5 × 5 cells, in patches of at least 0.25 ac.
+      - **Two tiers** (owner, 2026-11-05): likely where a flagged soil and rough texture overlap, possible where
+        only one does; the line leads with the likely acres: "Likely boulders (for bouldering): …; possible boulder
+        ground: … more (…)", else "Possible boulder ground (for bouldering): …" (declared report text).
       - The acres of either, a cell counted once. ENGINE_VERSION 35 → 36; `ENGINE_CURRENT_FROM` stays 29;
-        `expected.json` gains `boulders` only (Macks 237 ac, Mud Creek 16 ac, Ferney and Roan none).
+        `expected.json` gains `boulders` only (Macks 0.6 ac of rough texture, none likely; Mud Creek, Ferney and Roan
+        none; the stony units of Macks, Mud Creek and Roan listed apart).
+      - **1 m roughness is a follow-up:** Mapterhorn's 1 m tiles are lossless WebP, which the engine can't decode in a
+        worker without a new WASM dependency, and the roughness windows and threshold would need setting again at 1 m.
       - **The sanity test:** Grayson Highlands' boulder field north of Massie Gap, read live on the runners and recorded
         (`test/fixtures/boulders-grayson/`): 235 ac of very bouldery soils and 2.6 ac of rough texture at the planned
-        thresholds.
+        thresholds, all of it inside the bouldery soils: 2.6 ac likely.
     - **The display** (#401): Uses' Boulders line ("Possible boulder ground: 16 ac (bouldery soils)"), its soils and
       the winter note; Map layers › Boulder ground (off by default); the Favorites grid's Boulder ground column, off by
       default even in a view stored before it (the view's new opt-in list, `columns.shown`).
