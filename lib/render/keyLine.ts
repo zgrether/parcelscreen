@@ -2,8 +2,14 @@
  * The map's key line (UX part 2 PR 3b2; the audit's P-2 and its finding 21, unexplained marks after a grade): one line
  * under the map naming what a graded parcel draws, "1 Best homesite · The app's driveway · Skyline rays", then "All map
  * marks", which opens the full key. The other pins (more sites, shelves, gardens, road entrances) stay off until the
- * full key's "Every pin" turns them on. Pure: which entries show, from what's drawn.
+ * full key's "Every pin" turns them on. Then every overlay that's on (owner, 2026-11-05: water, boulders and the rest,
+ * not just the grade's marks), from the one list below. Pure: which entries show, from what's drawn.
  */
+import { AREA_WORDS } from "../areas/words";
+import { MVUM_WORDS } from "../mvum/card";
+import { PLACES_WORDS } from "../places/layer";
+import { PUBLIC_LAND_WORDS } from "../publicLand/card";
+import { BOULDERS_MAP, POWER_MAP, WATER_MAP } from "../uses/words";
 
 export type KeyEntry =
   "best" | "standHere" | "driveway" | "yourRoute" | "second" | "over" | "direct" | "fan" | "allPins";
@@ -53,4 +59,40 @@ export function keyEntries(i: KeyInputs): KeyEntry[] {
   if (i.fan) out.push("fan");
   if (i.allPins) out.push("allPins");
   return out;
+}
+
+/**
+ * The overlays a toggle puts on the map, in Map layers' order: the key line names each one that's on and drawing
+ * (owner, 2026-11-05). An overlay added later is added here, and nowhere else.
+ */
+export type OverlayKey =
+  | "soils"
+  | "trailheads"
+  | "power"
+  | "boulders"
+  | "water"
+  | "lidar"
+  | "places"
+  | "publicLand"
+  | "mvum"
+  | "areas";
+
+export const OVERLAY_WORDS: Record<OverlayKey, string> = {
+  soils: "Soil units",
+  trailheads: "Trailheads",
+  power: POWER_MAP.toggle,
+  boulders: BOULDERS_MAP.toggle,
+  water: WATER_MAP.toggle,
+  lidar: "Lidar terrain",
+  places: PLACES_WORDS.toggle,
+  publicLand: PUBLIC_LAND_WORDS.toggle,
+  mvum: MVUM_WORDS.toggle,
+  areas: AREA_WORDS.outlines,
+};
+
+const OVERLAY_ORDER = Object.keys(OVERLAY_WORDS) as OverlayKey[];
+
+/** The overlays to name, in Map layers' order: those on, and drawing something for the open parcel or the map. */
+export function keyOverlays(on: Partial<Record<OverlayKey, boolean>>): OverlayKey[] {
+  return OVERLAY_ORDER.filter((k) => on[k]);
 }

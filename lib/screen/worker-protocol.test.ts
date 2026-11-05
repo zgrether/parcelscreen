@@ -125,15 +125,12 @@ describe("the start acknowledgement (17e)", () => {
 describe("heartbeats (18b)", () => {
   it("beat while a run waits on the network, and stop when it ends", async () => {
     const replay = fx.replayFetch();
-    let first = true;
-    // The first elevation response takes 60 ms: the worker's event loop is free meanwhile, so it beats (every 5 ms
-    // here). The elevation, not the first request: since step 14 the land cover, streams and county are asked first,
-    // and they answer while the terrain work holds the loop.
+    // Each elevation response takes 60 ms: the worker's event loop is free meanwhile, so it beats (every 5 ms here).
+    // The elevation, not the first request: since step 14 the land cover, streams and county are asked first, and they
+    // answer while the terrain work holds the loop. Every elevation grid, not only the first: since the water mission
+    // the watershed's 10 m grid is asked first, and the 3 m grid's terrain work would hold the loop through its wait.
     const slow = (async (u: string, i?: RequestInit) => {
-      if (first && u.includes("3DEPElevation")) {
-        first = false;
-        await new Promise((r) => setTimeout(r, 60));
-      }
+      if (u.includes("3DEPElevation")) await new Promise((r) => setTimeout(r, 60));
       return replay(u, i);
     }) as typeof fetch;
     const posted: FromWorker[] = [];

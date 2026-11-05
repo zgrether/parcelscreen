@@ -604,6 +604,16 @@ workflow's PR. Two prefs: `ps.areas` (per device) and `ps.areaStars` (per profil
   to look's Most boulder ground sort.
 - **The details** are in phase-0.md §9.78.
 
+### 3t. Water on the land
+
+- **The estimate:** the land draining onto the parcel (10 m elevation, its acres, land cover, roads and largest inflow);
+  on the parcel, where water gathers (flow lines), likely wet ground and possible pond sites (3 m lidar); and what each
+  soil holds (NRCS). Never graded.
+- **Where it shows:** a Water on the land line in Uses with its detail and a note to walk it after a heavy rain; Map
+  layers › Water on the land; Shading › Wetness; the garden's water-holding capacity; a Septic line when the build site
+  is on wet ground.
+- **The details** are in phase-0.md §9.79.
+
 ## 4. The parcel page (the export)
 
 Blocks, in order; each is computed, placeholder, or user-authored:

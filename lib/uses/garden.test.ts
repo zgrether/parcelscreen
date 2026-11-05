@@ -27,6 +27,8 @@ const r = (over: Partial<PartialScreenResult>): PartialScreenResult => ({
   cover: cover(0.2),
   streams: streams(0),
   ponds: { count: 0, acres: 0, names: [] },
+  // No flow lines unless a test gives them (Garden's flow-line wording, below).
+  water: undefined,
   ...over,
 });
 const at = (result: PartialScreenResult, marks: Mark[] = []) => garden(synthetic(result, {}, { marks }));
@@ -67,6 +69,34 @@ describe("Garden, orchard, animals", () => {
     expect(at(r({ streams: { ...streams(0), intermittentFt: 900 } })).reason).toContain(`(${WELL})`);
     // A grade from before ponds were read: the streams still decide.
     expect(at(r({ ponds: undefined })).reason).toContain(`(${WELL})`);
+  });
+
+  it("a flow line at the garden patch: water gathers there in rain; one farther than 100 ft keeps the well", () => {
+    const FLOW =
+      "water gathers here in rain (flow line); a mapped stream or spring: none; otherwise from the well";
+    const [lat, lon] = MUD.gardens![0]!.ll;
+    // About 30 m (100 ft) to a degree of latitude: 1 / 111 320 per metre.
+    const line = (dm: number) => ({
+      coords: [
+        [lon - 0.001, lat + dm / 111_320],
+        [lon + 0.001, lat + dm / 111_320],
+      ] as [number, number][],
+      acres: 3,
+    });
+    const water = (dm: number): PartialScreenResult["water"] => ({
+      ...MUD.water!,
+      flow: { lines: [line(dm)], wet: [], ponds: [] },
+    });
+    // The 0.60 ac patch is about 28 m across from its centre; a line 40 m off is within 100 ft of its edge.
+    expect(at(r({ water: water(40) })).reason).toBe(
+      `A 0.60 ac garden out of the frost pocket, with water (${FLOW})`,
+    );
+    expect(at(r({ water: water(0) })).reason).toContain(`(${FLOW})`);
+    expect(at(r({ water: water(80) })).reason).toContain(`(${WELL})`);
+    // A mark, a stream or a pond still names the water first.
+    expect(at(r({ water: water(0), ponds: { count: 1, acres: 0.4, names: [] } })).reason).toContain(
+      "(a pond on the parcel)",
+    );
   });
 
   it("room for animals too: said after the garden", () => {

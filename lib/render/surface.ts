@@ -11,7 +11,8 @@ import { inv } from "../geo/utm";
 import type { SessionView } from "../screen/worker-protocol";
 import type { Dem } from "../screen/types";
 
-export type SurfaceMode = "house" | "garden" | "slope";
+export type SurfaceMode = "house" | "garden" | "slope" | "wetness";
+/** The prototype's three surfaces (the pixel test compares them); Water on the land's wetness is the app's own. */
 export const SURFACE_MODES: readonly SurfaceMode[] = ["house", "garden", "slope"];
 
 /** The map button's label, verbatim from the prototype (L1227). */
@@ -19,6 +20,7 @@ export const SURFACE_LABEL: Record<SurfaceMode | "off", string> = {
   house: "house suitability",
   garden: "garden suitability",
   slope: "slope",
+  wetness: "wetness",
   off: "off",
 };
 
@@ -79,6 +81,25 @@ function slopeColour(deg: number): Rgba {
   return SLOPE_BANDS.find((b) => g <= b.upTo)!.rgba;
 }
 
+/**
+ * Water on the land (docs/plans/water.md §2): the wetness index's span on the map, dry (clear) to wet (deep blue). On
+ * the fixtures' 3 m grids the index runs about 3 (ridges) to 12 and over (hollows and seeps).
+ */
+export const WETNESS_RANGE = { dry: 4, wet: 12 } as const;
+
+/** A wetness index → RGBA: the driest clear, then pale to deep blue, more opaque as it gets wetter. */
+export function wetnessColour(twi: number): Rgba | null {
+  if (Number.isNaN(twi)) return null;
+  const t = Math.max(0, Math.min(1, (twi - WETNESS_RANGE.dry) / (WETNESS_RANGE.wet - WETNESS_RANGE.dry)));
+  if (t <= 0) return null;
+  return [
+    Math.round(170 - 150 * t),
+    Math.round(210 - 120 * t),
+    Math.round(240 - 40 * t),
+    Math.round(40 + 170 * t),
+  ];
+}
+
 /** The grid's corners, cell edges included, from UTM 17N to [lon, lat]. */
 export function surfaceCorners(d: Dem): Corners {
   const east = d.x0 + d.w * d.res,
@@ -92,6 +113,7 @@ export function surfaceCorners(d: Dem): Corners {
 
 /** The image for one mode, or null when the session has no surfaces (a run that stopped before them). */
 export function surfaceImage(view: SessionView, mode: SurfaceMode): SurfaceImage | null {
+  if (mode === "wetness") return wetnessImage(view);
   const { dFine: d, inside, slope, surfaces, labels } = view;
   if (!d || !inside || !slope || !surfaces || !labels) return null;
   const best = view.bestId;
@@ -111,6 +133,19 @@ export function surfaceImage(view: SessionView, mode: SurfaceMode): SurfaceImage
   for (let i = 0; i < d.w * d.h; i++) {
     if (!inside[i] || Number.isNaN(slope[i]!)) continue;
     const c = colour(i);
+    if (c) rgba.set(c, i * 4);
+  }
+  return { width: d.w, height: d.h, rgba, corners: surfaceCorners(d) };
+}
+
+/** Shading › Wetness: the session's wetness index inside the parcel; null without one (an older grade, or a reload). */
+function wetnessImage(view: SessionView): SurfaceImage | null {
+  const { dFine: d, inside, twi } = view;
+  if (!d || !inside || !twi) return null;
+  const rgba = new Uint8ClampedArray(d.w * d.h * 4);
+  for (let i = 0; i < d.w * d.h; i++) {
+    if (!inside[i]) continue;
+    const c = wetnessColour(twi[i]!);
     if (c) rgba.set(c, i * 4);
   }
   return { width: d.w, height: d.h, rgba, corners: surfaceCorners(d) };

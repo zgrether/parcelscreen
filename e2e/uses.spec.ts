@@ -77,6 +77,7 @@ test("Uses on Mud Creek: from Grade's shortcut, seven answers, What decides it, 
     "What you can do here",
     "What limits you",
     "Boulders",
+    "Water on the land",
     "How it could pay",
   ]);
   const panel1 = uses.locator(".uses-list").first();
@@ -327,6 +328,47 @@ test("Map layers' Power lines and Boulder ground draw from the graded parcel; bo
   await expect(page.locator(".mp-key")).toContainText(
     "Rough lidar texture: possible boulders, when Boulder ground is on.",
   );
+
+  // Water on the land (docs/plans/water.md §2): Macks's flow lines, wet ground and pond sites, off until turned on.
+  const waterDrawn = () =>
+    page.evaluate(() => {
+      const map = (
+        window as unknown as {
+          __psMap: { getLayer(id: string): unknown; getSource(id: string): Src | undefined };
+        }
+      ).__psMap;
+      const src = map.getLayer("water-line") ? map.getSource("water-on-land") : undefined;
+      return src ? src.serialize().data.features.length : 0;
+    });
+  expect(await waterDrawn()).toBe(0);
+  const waterToggle = page
+    .getByRole("group", { name: "On the map" })
+    .getByRole("button", { name: "Water on the land" });
+  await expect(waterToggle).toHaveAttribute("aria-pressed", "false");
+  await waterToggle.click();
+  await expect(waterToggle).toHaveAttribute("aria-pressed", "true");
+  await expect.poll(waterDrawn).toBeGreaterThan(0);
+  await expect(page.locator(".mp-key")).toContainText("Where water gathers on the parcel");
+});
+
+test("Water on the land on Macks: one line outside the grade; a tap shows the parcel's flow and the soils", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(180_000);
+  await replayHar(context, MACKS);
+  await openGraded(page, MACKS);
+  await page.getByRole("tab", { name: "Uses" }).click();
+  const uses = page.getByRole("region", { name: "Uses" });
+  const line = uses.locator(".water-row");
+  await expect(line).toContainText(/possible pond sites?/);
+  await expect(uses.locator(".water .use-chip")).toHaveCount(0);
+  await line.click();
+  const detail = uses.locator(".water-detail");
+  await expect(detail).toContainText("On the parcel");
+  await expect(detail).toContainText("Possible pond site (check with a site visit)");
+  await expect(detail).toContainText("What the soils hold");
+  await expect(detail).toContainText("Walk it after a heavy rain.");
 });
 
 test("Boulders on Mud Creek: no boulder ground, its very stony soil listed apart, the winter note on a tap", async ({

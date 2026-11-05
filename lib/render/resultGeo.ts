@@ -3,7 +3,7 @@
  * L1129, drawDriveway L1402–1408), as GeoJSON with the prototype's tooltips. Pure, from a result: a kept
  * result draws all of them, no session needed.
  */
-import type { Feature, FeatureCollection, LineString, MultiPolygon, Point, Polygon } from "geojson";
+import type { Feature, FeatureCollection, Geometry, LineString, MultiPolygon, Point, Polygon } from "geojson";
 import { lineSliceAlong } from "@turf/turf";
 import { fmt } from "../format";
 import { routeLabel } from "../screen/routeLabel";
@@ -12,7 +12,7 @@ import type { LatLon } from "../geo/types";
 import { steepLandingLine } from "../report/driveway";
 import { drivenRoute } from "../report/lines";
 import type { PartialScreenResult } from "../screen/types";
-import { BOULDERS_MAP, POWER_MAP } from "../uses/words";
+import { BOULDERS_MAP, POWER_MAP, WATER_MAP } from "../uses/words";
 
 type FC<G extends Polygon | MultiPolygon | LineString | Point, P> = FeatureCollection<G, P>;
 const point = (ll: LatLon): Point => ({ type: "Point", coordinates: [ll[1], ll[0]] });
@@ -211,6 +211,50 @@ export function boulderFeatures(r: PartialScreenResult): FC<Polygon | MultiPolyg
       type: "Feature",
       properties: { kind: "rough", tip: BOULDERS_MAP.tipRough(p.acres) },
       geometry: p.outline.geometry,
+    });
+  return { type: "FeatureCollection", features };
+}
+
+export interface WaterProps {
+  /** The watershed (a faint fill and a dashed edge), a flow line (by the acres it gathers), wet ground, a pond site. */
+  kind: "shed" | "line" | "wet" | "pond";
+  acres: number;
+  tip: string;
+}
+
+/**
+ * Water on the land (docs/plans/water.md §2, Map layers › Water on the land): the watershed's outline, the flow lines,
+ * the likely wet ground and the possible pond sites, each with its tip. Empty for a grade from before the measurement.
+ */
+export function waterFeatures(r: PartialScreenResult): FeatureCollection<Geometry, WaterProps> {
+  const w = r.water;
+  const features: Feature<Geometry, WaterProps>[] = [];
+  if (!w) return { type: "FeatureCollection", features };
+  const shed = w.watershed;
+  if (shed?.outline && shed.acres >= 0.05)
+    features.push({
+      type: "Feature",
+      properties: { kind: "shed", acres: shed.acres, tip: WATER_MAP.tipShed(shed.acres) },
+      geometry: shed.outline,
+    });
+  for (const x of w.flow?.wet ?? [])
+    features.push({
+      type: "Feature",
+      properties: { kind: "wet", acres: x.acres, tip: WATER_MAP.tipWet(x.acres) },
+      geometry: x.outline.geometry,
+    });
+  for (const l of w.flow?.lines ?? [])
+    if (l.coords.length >= 2)
+      features.push({
+        type: "Feature",
+        properties: { kind: "line", acres: l.acres, tip: WATER_MAP.tipLine(l.acres) },
+        geometry: { type: "LineString", coordinates: l.coords },
+      });
+  for (const p of w.flow?.ponds ?? [])
+    features.push({
+      type: "Feature",
+      properties: { kind: "pond", acres: p.acres, tip: WATER_MAP.tipPond(p.acres) },
+      geometry: point(p.ll),
     });
   return { type: "FeatureCollection", features };
 }

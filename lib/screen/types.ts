@@ -893,6 +893,59 @@ export const ScreenResultSchema = z.strictObject({
     })
     .optional(),
   /**
+   * Water on the land (docs/plans/water.md §1): the land draining onto the parcel (10 m), flow lines, likely wet ground
+   * and possible pond sites on it (3 m), and each map unit's soil water. Each part null when its data didn't come. Never
+   * graded. Absent before it.
+   */
+  water: z
+    .strictObject({
+      watershed: z
+        .strictObject({
+          acres: num,
+          outline: z.union([PolygonGeometrySchema, MultiPolygonGeometrySchema]).nullable(),
+          /** The catchment still reached the box's edge at its last size (water.watershedKm). */
+          capped: z.boolean(),
+          reachKm: num,
+          /** NLCD shares, percent of the watershed. */
+          cover: z
+            .strictObject({
+              forest: num,
+              open: num,
+              crops: num,
+              developed: num,
+              water: num,
+              other: num,
+            })
+            .nullable(),
+          roadMi: num.nullable(),
+          inflow: z.strictObject({ ll: LatLonSchema, acres: num }).nullable(),
+        })
+        .nullable(),
+      flow: z
+        .strictObject({
+          lines: z.array(z.strictObject({ coords: z.array(z.tuple([num, num])), acres: num })),
+          wet: z.array(
+            z.strictObject({ ll: LatLonSchema, acres: num, outline: featureOf<Polygon>("Polygon") }),
+          ),
+          ponds: z.array(z.strictObject({ ll: LatLonSchema, acres: num })),
+        })
+        .nullable(),
+      soils: z.array(
+        z.strictObject({
+          mukey: z.string(),
+          name: z.string(),
+          acres: num,
+          awcIn: num.nullable(),
+          drainage: z.string().nullable(),
+          waterTableIn: num.nullable(),
+          hydGroup: z.string().nullable(),
+          omPct: num.nullable(),
+        }),
+      ),
+      garden: z.strictObject({ name: z.string(), awcIn: num.nullable() }).nullable(),
+    })
+    .optional(),
+  /**
    * Step 11 (plan §2.7; §9.66): the parcel's best open-sky spot for a satellite dish, and how clear its view cone is
    * (0–1); null when no spot could be read. Absent before it.
    */

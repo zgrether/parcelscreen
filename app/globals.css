@@ -565,6 +565,22 @@ html:has(.explore) body {
   height: 3px;
   background: repeating-linear-gradient(90deg, #b04a4a 0 3px, transparent 3px 7px);
 }
+/* The overlays that are on (owner, 2026-11-05): a line, a dashed outline or a small fill in the overlay's colour. */
+.mkl-line.dashed {
+  height: 0;
+  border-top: 2px dashed;
+  border-radius: 0;
+}
+.mkl-chip {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.mkl-chip.outline {
+  background: transparent;
+  border: 2px solid;
+}
 @media (max-width: 860px) and (orientation: portrait) {
   .mkl-minor {
     display: none;
@@ -1612,10 +1628,15 @@ html:has(.explore) body {
     flex-direction: row;
     align-items: flex-start;
   }
+  /* Owner, 2026-11-05: above the tab bar, the sheet and the key line (their heights: --tabs-h, --sheet-h, --kl-h; its
+     own, --lg-h), and never higher than just under "Your list". */
   .map-col .surface-legend {
     position: fixed;
-    top: 64px;
     left: 10px;
+    top: max(
+      112px,
+      calc(100dvh - var(--tabs-h, 0px) - var(--sheet-h, 0px) - 82px - var(--kl-h, 0px) - var(--lg-h, 190px))
+    );
   }
 }
 .map-ctl-btn {
@@ -3396,6 +3417,29 @@ html:has(.app-nav) .explore {
   width: 8px;
   height: 8px;
   border-radius: 2px;
+}
+/* Wetness (owner, 2026-11-05): a horizontal strip, wetter on the left, its range and its note under it. */
+.surface-legend.wet {
+  align-self: flex-end;
+  width: 168px;
+  padding: 8px 10px 9px;
+  justify-items: stretch;
+  text-align: left;
+}
+.sl-strip {
+  height: 8px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+.sl-range {
+  font-size: 10.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.sl-note {
+  font-size: 9.5px;
+  line-height: 1.3;
+  color: var(--tb-ink-2);
 }
 .sl-tick {
   position: absolute;
@@ -9189,22 +9233,49 @@ button.use-row[aria-expanded="true"] .use-name::after {
 }
 
 /* ---------- Boulder potential (docs/plans/boulders.md §2): Uses' Boulders block, one line and no chip ---------- */
-.boulders-row {
+.boulders-row,
+.water-row {
   grid-template-columns: 1fr;
 }
-.boulders-line {
+.boulders-line,
+.water-line {
   font-weight: 600;
 }
-.boulders-line::after {
+.boulders-line::after,
+.water-line::after {
   content: " ▸";
   color: var(--color-ink-2);
   font-weight: 400;
 }
-.boulders-row[aria-expanded="true"] .boulders-line::after {
+.boulders-row[aria-expanded="true"] .boulders-line::after,
+.water-row[aria-expanded="true"] .water-line::after {
   content: " ▾";
 }
-.boulders-note {
+.boulders-note,
+.water-note {
   margin: 8px 0 0;
+}
+/* Water on the land (docs/plans/water.md §2): the detail's sections, and each soil unit as a small card. */
+.water-detail section + section {
+  margin-top: 10px;
+}
+.water-soils {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.water-soils li + li {
+  margin-top: 6px;
+}
+.water-soil-name {
+  display: block;
+  font-weight: 600;
+}
+.water-soil-facts {
+  display: block;
+  color: var(--color-ink-2);
 }
 
 /* ---------- Step 15: How it could pay, Uses' second panel (docs/plans/step-15-how-it-could-pay.md §6, §7) ---------- */

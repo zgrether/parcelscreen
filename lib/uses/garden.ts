@@ -6,15 +6,23 @@
  * smallStockAc open. Pure.
  */
 import { SCREEN_CONSTANTS } from "../screen/config";
+import type { LatLon } from "../geo/types";
 import type { Fact, UseAnswer, UsesInput } from "./types";
-import { GARDEN, MISSING, SOURCE } from "./words";
+import { flowNearGarden } from "./water";
+import { GARDEN, GARDEN_WATER, MISSING, SOURCE } from "./words";
 
 const K = SCREEN_CONSTANTS.uses;
 /** Below the thermal belt's lower edge, cold air pools: the frost scale's Pocket band (config bands.frostAboveFloorFt). */
 const POCKET_BELOW_FT = SCREEN_CONSTANTS.bands.frostAboveFloorFt[0]!;
 
-/** Where the water would come from, and the fact that says so. */
-function waterOf({ result: r, marks }: Pick<UsesInput, "result" | "marks">): { says: string; fact: Fact } {
+/**
+ * Where the water would come from, and the fact that says so. With no mark, stream or pond, a flow line at the garden
+ * patch says water gathers there in rain (owner, 2026-11-05), else the well.
+ */
+function waterOf(
+  { result: r, marks }: Pick<UsesInput, "result" | "marks">,
+  patch: { ll: LatLon; acres: number } | null,
+): { says: string; fact: Fact } {
   const kinds = new Set(marks.map((m) => m.kind));
   const mark = kinds.has("spring")
     ? GARDEN.waterSpring
@@ -42,7 +50,8 @@ function waterOf({ result: r, marks }: Pick<UsesInput, "result" | "marks">): { s
         source: SOURCE.nhdPonds,
       },
     };
-  const says = r.streams ? GARDEN.fromWell : GARDEN.fromWellNotLoaded;
+  const flow = r.streams && patch && flowNearGarden(r.water, patch, SCREEN_CONSTANTS.water.gardenFlowFt);
+  const says = !r.streams ? GARDEN.fromWellNotLoaded : flow ? GARDEN.fromFlow : GARDEN.fromWell;
   return {
     says,
     fact: { label: GARDEN.waterLabel, value: says, ...(r.streams ? { source: SOURCE.nhd } : {}) },
@@ -56,7 +65,7 @@ export function garden(input: UsesInput): UseAnswer {
   const best = [...warm].sort((a, b) => b.acres - a.acres)[0] ?? null;
   const largest = [...(gardens ?? [])].sort((a, b) => b.acres - a.acres)[0] ?? null;
   const open = r.cover?.openGentleAc ?? null;
-  const water = waterOf(input);
+  const water = waterOf(input, best ?? largest);
 
   const decides: Fact[] = [
     gardens
@@ -74,6 +83,16 @@ export function garden(input: UsesInput): UseAnswer {
           date: String(r.cover!.year),
         }
       : { label: GARDEN.openLabel, value: MISSING.cover("open ground") },
+    // Water on the land (docs/plans/water.md §2): the best patch's soil water, when the measurement read it. Last.
+    ...(r.water?.garden?.awcIn != null
+      ? [
+          {
+            label: GARDEN_WATER.label,
+            value: GARDEN_WATER.value(r.water.garden.awcIn),
+            source: GARDEN_WATER.source,
+          },
+        ]
+      : []),
   ];
   const say = (answer: UseAnswer["answer"], reason: string): UseAnswer => ({ answer, reason, decides });
 
