@@ -2,7 +2,8 @@
  * The Favorites grid's columns (step 10b plan §1): after the name and the grade, Price, Acres, $/ac and Cost to build,
  * one column per factor in the viewer's rubric order (the Musts first), then Status, State and Updated. Price, $/ac,
  * Cost to build and Status show only when a row has one (polish #12); the person hides any other in Columns ▾ (State
- * and Updated start hidden). Pure: the table draws what this returns.
+ * and Updated start hidden). Boulder ground (docs/plans/boulders.md §2) comes after the factors, off until the person
+ * adds it. Pure: the table draws what this returns.
  */
 import type { FactorCell } from "../report/factorCells";
 import { factorSortKey, type LibraryRow, type SortKey } from "./library";
@@ -66,15 +67,34 @@ export function factorColumns(rows: readonly LibraryRow[]): GridColumn[] {
   }));
 }
 
+/** The columns that start hidden for everyone: shown only once the person adds them (the view's `shown`). */
+export const OPT_IN_COLUMNS: readonly string[] = ["boulders"];
+
+/** Whether a column shows, by the view's lists: an opt-in column when added, any other unless hidden. */
+export const columnShown = (id: string, hidden: readonly string[], shown: readonly string[]): boolean =>
+  OPT_IN_COLUMNS.includes(id) ? shown.includes(id) : !hidden.includes(id);
+
 /** Every column the rows can fill, in order; and those shown, without the ones the person hid. */
 export function gridColumns(
   rows: readonly LibraryRow[],
   hidden: readonly string[],
   hasStatus: (r: LibraryRow) => boolean,
+  shown: readonly string[] = [],
 ): { all: GridColumn[]; shown: GridColumn[] } {
   const all: GridColumn[] = [
     ...MONEY.filter((c) => rows.some(c.has)).map(({ has: _has, ...c }) => c),
     ...factorColumns(rows),
+    ...(rows.some((r) => r.boulderAcres !== null)
+      ? [
+          {
+            id: "boulders",
+            header: "Boulder ground",
+            title: "Boulder ground (acres; an estimate, outside the grade)",
+            sort: "boulders" as SortKey,
+            kind: "more" as const,
+          },
+        ]
+      : []),
     ...(rows.some(hasStatus)
       ? [
           {
@@ -89,7 +109,7 @@ export function gridColumns(
     { id: "state", header: "State", title: "State", sort: "state", kind: "more" },
     { id: "updated", header: "Updated", title: "Updated", sort: "updated", kind: "more" },
   ];
-  return { all, shown: all.filter((c) => !hidden.includes(c.id)) };
+  return { all, shown: all.filter((c) => columnShown(c.id, hidden, shown)) };
 }
 
 /** A row's cell for a factor column, if its screen graded it. */

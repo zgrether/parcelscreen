@@ -40,6 +40,7 @@ import type { HospitalCandidate, HospitalSource } from "./hospitals";
 import { loadClimate, withClimate, type ClimateSource } from "./climate";
 import { loadBuildings, withPrivacy, type BuildingSource } from "./privacy";
 import { LONG_TRAIL_DRIVES, longTrailDrive } from "./longTrail";
+import { measureBoulders } from "./boulders";
 import { CLIMB_DRIVES, climbingNear } from "./climbing";
 import { PADDLE_DRIVES, paddlingNear } from "./paddling";
 import { dishSpot } from "./dish";
@@ -415,6 +416,12 @@ export async function screen(
     // Gardens get their soil adjustment whether or not there's a house site (follow-up 20, A3b): the prototype
     // adjusted them only inside the bench block above.
     if (R.gardens && R.gardens.length) R.gardens = vetGardens(R.gardens, s.units, rows);
+    // Boulder potential (docs/plans/boulders.md): the soils just read, and the fine grid's texture. Never graded.
+    R.boulders = measureBoulders(
+      s.units,
+      rows,
+      s.dFine && s.slope && s.inside ? { d: s.dFine, slope: s.slope, inside: s.inside } : null,
+    );
   });
 
   await step("sun", () => {
@@ -694,6 +701,8 @@ export async function reroute(
     if (before.paddling !== undefined) R.paddling = before.paddling;
     // Step 17: and the climbing drives.
     if (before.climbing !== undefined) R.climbing = before.climbing;
+    // Boulder potential: the parcel's, not a spot's.
+    if (before.boulders !== undefined) R.boulders = before.boulders;
     for (const n of before.noResponse)
       if (
         n === TRAILHEAD_PARKING ||

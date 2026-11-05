@@ -55,6 +55,7 @@ const row = (over: Partial<LibraryRow>): LibraryRow => ({
   costBuild: null,
   perAcre: null,
   factors: [],
+  boulderAcres: null,
   ...over,
 });
 

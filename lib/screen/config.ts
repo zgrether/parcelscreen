@@ -393,6 +393,23 @@ export const SCREEN_CONSTANTS = deepFreeze({
     boulderPoints: 3, // and this many bouldering areas
     countWithinMin: 60, // the second line's count: rope areas within this many minutes (the brief's hour)
   },
+  // Boulder potential (docs/plans/boulders.md §2): the lidar texture's windows, in fine-grid cells (3 m), and what
+  // counts as rough. An estimate, never graded.
+  boulders: {
+    trendCells: 4, // the slope's trend: the mean over 9 × 9 cells (27 m)
+    roughCells: 1, // roughness: the spread above that trend over 3 × 3 cells (9 m)
+    roughM: 0.3, // rough: a spread of at least this many metres
+    cliffDeg: 45, // a cliff: a connected band of cells steeper than this…
+    cliffLenM: 30, // …at least this long end to end (a boulder's steep sides are a short blob); no reading within
+    // trendCells of one, where the cliff itself lifts the texture
+    drainageCells: 10, // a drainage: more than drainageM below the mean over 21 × 21 cells (63 m)
+    drainageM: 1.5,
+    drainageEdgeCells: 3, // and its banks: no reading within this many cells of one
+    denseCells: 2, // dense: at least denseShare of the 5 × 5 cells around are rough
+    denseShare: 0.4,
+    minAcres: 0.25, // the brief's "at least about 0.25 ac"
+    maxPatches: 12, // outlines kept for the map, largest first
+  },
   // Step 14 (plan §3, §9): the land uses' thresholds. None is graded; each decides a Yes / Maybe / No.
   uses: {
     trailSpacingFt: 100, // the trail estimate: one path every 100 ft across the gentle ground

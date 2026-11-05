@@ -46,6 +46,13 @@ describe("Grayson Highlands, from its recording", () => {
     expect(m.airportMin!).toBeGreaterThan(45);
   }, 60_000);
 
+  it("bouldery: SDA answered for its points, so it has a share (docs/plans/boulders.md §2)", async () => {
+    const { file } = await run();
+    // Its recorded points fall in stony, very and extremely stony units, none bouldery: stones, not boulders (owner,
+    // 2026-11-05), so the share is 0, not null.
+    expect(file.boulderShare).toBe(0);
+  }, 60_000);
+
   it("the same file twice", async () => {
     expect((await run()).file).toEqual((await run()).file);
   }, 120_000);

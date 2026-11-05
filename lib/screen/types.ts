@@ -864,6 +864,35 @@ export const ScreenResultSchema = z.strictObject({
     })
     .optional(),
   /**
+   * Boulder potential (docs/plans/boulders.md §1): the acres that may be boulder ground, either in a map unit whose
+   * names say bouldery, rubbly, rubble land or rock outcrop, or in a patch of rough lidar texture, and the likely acres
+   * where both agree; each flagged map unit, the stony units apart, and each patch with its outline. `rough` is null
+   * without the fine elevation. Never graded. Absent before it.
+   */
+  boulders: z
+    .strictObject({
+      acres: num,
+      /** Where a bouldery, rubbly or rock-outcrop soil and rough lidar texture overlap. */
+      likelyAcres: num,
+      soilAcres: num,
+      soils: z.array(
+        z.strictObject({ mukey: z.string(), name: z.string(), acres: num, terms: z.array(z.string()) }),
+      ),
+      /** Stony, very or extremely stony units: rocks, not boulders; listed, never counted. */
+      stony: z.array(
+        z.strictObject({ mukey: z.string(), name: z.string(), acres: num, terms: z.array(z.string()) }),
+      ),
+      rough: z
+        .strictObject({
+          acres: num,
+          patches: z.array(
+            z.strictObject({ ll: LatLonSchema, acres: num, outline: featureOf<Polygon>("Polygon") }),
+          ),
+        })
+        .nullable(),
+    })
+    .optional(),
+  /**
    * Step 11 (plan §2.7; §9.66): the parcel's best open-sky spot for a satellite dish, and how clear its view cone is
    * (0–1); null when no spot could be read. Absent before it.
    */

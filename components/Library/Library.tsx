@@ -153,7 +153,7 @@ export function Library() {
   const tab = view.tab;
   const hidden = hiddenBy(rows, view.filters);
   // Step 10b: the grid's columns, from the favorites, without the ones the person hid (Columns ▾).
-  const columns = gridColumns(rows, view.columns.hidden, hasStatus);
+  const columns = gridColumns(rows, view.columns.hidden, hasStatus, view.columns.shown);
   // The marks' legend (Z-7): under the grid on a desktop; behind "?" on a phone.
   const marked = tab === "favorites" && columns.all.some((c) => c.kind === "factor");
   const [legendOpen, setLegendOpen] = useState(false);
@@ -804,6 +804,10 @@ function TableRow({
         );
       case "updated":
         return <td className="tiny muted">{when(r.updatedAt)}</td>;
+      case "boulders":
+        return (
+          <td className="num lib-c-boulders">{r.boulderAcres !== null ? r.boulderAcres.toFixed(1) : "–"}</td>
+        );
       default:
         return (
           <td className="lib-c-factor">

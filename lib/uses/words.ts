@@ -403,3 +403,52 @@ export const EASEMENT_TYPE_WORD: Record<EasementType, string> = {
 };
 
 export const HOA_WORD: Record<Hoa, string> = { yes: "Yes", no: "No", unknown: "Not known" };
+
+/**
+ * Boulder potential (docs/plans/boulders.md §2): Uses' Boulders block, outside the grade (no chip, no tally), and Map
+ * layers' Boulder ground. All new (CLAUDE.md rule 7).
+ */
+/** Acres as the boulder line shows them: one decimal under 10. */
+const boulderAc = (n: number) => fmt(n, n < 10 ? 1 : 0);
+
+export const BOULDERS = {
+  section: "Boulders",
+  /** The two readings, as the line names them. */
+  soils: "bouldery soils",
+  rough: "rough lidar texture",
+  /**
+   * The line (declared report text, owner 2026-11-05), leading with the likely acres: where a bouldery soil and rough
+   * lidar texture overlap. "Possible" is either reading alone.
+   */
+  line: (likely: number, possible: number, readings: readonly string[]) =>
+    likely > 0
+      ? `Likely boulders (for bouldering): ${boulderAc(likely)} ac` +
+        (possible >= 0.05 ? `; possible boulder ground: ${boulderAc(possible)} ac more` : "") +
+        ` (${readings.join(", ")})`
+      : `Possible boulder ground (for bouldering): ${boulderAc(possible)} ac (${readings.join(", ")})`,
+  none: "No sign of boulder ground",
+  /** The detail's lines: the likely acres, each flagged soil, the rough patches, then the stony units apart. */
+  likely: (acres: number) =>
+    `Likely boulders: ${fmt(acres, 1)} ac, where a bouldery soil and rough lidar texture overlap`,
+  soil: (name: string, acres: number, terms: readonly string[]) =>
+    `${name}: ${fmt(acres, 1)} ac (${terms.join(", ")})`,
+  /** `more`: the result keeps only the largest patches' outlines, so there may be more than `n`. */
+  patches: (n: number, acres: number, more: boolean) =>
+    `Rough lidar texture: ${fmt(acres, 1)} ac in ${n}${more ? " or more" : ""} ${n === 1 && !more ? "patch" : "patches"}`,
+  noRough: "Rough lidar texture: none found",
+  noGrid: "No 3 m lidar here: only the soil maps were read.",
+  /** Stony, very or extremely stony units: stones of 10–24 in, listed apart and never counted. */
+  stony: (units: readonly { name: string; acres: number }[]) =>
+    `Stony ground: rocks, not climbing boulders (${units.map((u) => `${u.name}, ${fmt(u.acres, 1)} ac`).join("; ")})`,
+  honesty:
+    "An estimate from soil maps and 3 m lidar, which smooths small boulders and can't see under trees. Walk it in winter, when the leaves are down.",
+} as const;
+
+/** Map layers' Boulder ground (§2): the toggle, the key's rows, and a tap's tip. */
+export const BOULDERS_MAP = {
+  toggle: "Boulder ground",
+  keySoil: "Bouldery or rocky soil (NRCS), when Boulder ground is on.",
+  keyRough: "Rough lidar texture: possible boulders, when Boulder ground is on.",
+  tipRough: (acres: number) => `Rough lidar texture, ${fmt(acres, 1)} ac: possible boulders`,
+  tipSoil: (name: string) => name,
+} as const;

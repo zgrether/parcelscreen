@@ -103,6 +103,11 @@ export interface LibraryRow {
   perAcre: PerAcre | null;
   /** The viewer's card as factor cells, in their rubric's order (step 10b's grid and strip); empty without a screen. */
   factors: FactorCell[];
+  /**
+   * Boulder potential (docs/plans/boulders.md §2): the acres of possible boulder ground, outside the grade; null without
+   * a screen, or for one from before the measurement.
+   */
+  boulderAcres: number | null;
 }
 
 /** The household's asks and takes, and who's looking (step 6): what the list reads beside the grades. */
@@ -231,6 +236,7 @@ export function libraryRow(
     costBuild,
     perAcre: perAcre(p.askingPrice, p.listingAcres, acres, undefined, p.facts?.survey?.acres ?? null),
     factors,
+    boulderAcres: result?.boulders?.acres ?? null,
   };
 }
 
@@ -322,6 +328,7 @@ export type SortKey =
   | "name"
   | "pricePerAcre"
   | "state"
+  | "boulders"
   | `grade:${string}`
   | `factor:${string}`;
 export const gradeSortKey = (id: string): SortKey => `grade:${id}`;
@@ -337,6 +344,7 @@ const SORT_KEYS = [
   "name",
   "pricePerAcre",
   "state",
+  "boulders",
 ];
 /** A stored sort key this version knows. */
 export const isSortKey = (k: string): k is SortKey =>
@@ -372,6 +380,9 @@ const sortValue = (r: LibraryRow, k: Exclude<SortKey, "order">): number | string
       return r.price;
     case "acres":
       return r.acres === null ? null : -r.acres;
+    case "boulders":
+      // Most first.
+      return r.boulderAcres === null ? null : -r.boulderAcres;
     case "costBuild":
       // Cheapest first, by the range's middle. Without an asking price it leaves out the land, so it sorts last.
       return r.costBuild && !r.costBuild.plusLand
@@ -423,10 +434,14 @@ export interface LibraryView {
   filters: LibraryFilters;
   sort: LibrarySort;
   tab: ListTab;
-  /** Step 10b: the grid's columns the person hid (Columns ▾); State and Updated start hidden. */
-  columns: { hidden: string[] };
+  /**
+   * Step 10b: the grid's columns the person hid (Columns ▾); State and Updated start hidden. Boulder potential: the
+   * columns that start hidden for everyone, even in a view stored before them (OPT_IN_COLUMNS), show only once added
+   * to `shown`.
+   */
+  columns: { hidden: string[]; shown: string[] };
 }
-export const DEFAULT_COLUMNS = { hidden: ["state", "updated"] };
+export const DEFAULT_COLUMNS = { hidden: ["state", "updated"], shown: [] };
 export const DEFAULT_VIEW: LibraryView = {
   filters: DEFAULT_FILTERS,
   sort: DEFAULT_SORT,
@@ -454,7 +469,9 @@ const ViewSchema = z.object({
     reversed: z.boolean(),
   }),
   // Step 10b: a view stored before it has no columns: the default's.
-  columns: z.object({ hidden: z.array(z.string()) }).default(() => ({ hidden: [...DEFAULT_COLUMNS.hidden] })),
+  columns: z
+    .object({ hidden: z.array(z.string()), shown: z.array(z.string()).default(() => []) })
+    .default(() => ({ hidden: [...DEFAULT_COLUMNS.hidden], shown: [] })),
 });
 
 /** A stored view, or the default when it's missing or from another shape. */
