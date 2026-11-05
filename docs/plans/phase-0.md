@@ -1437,7 +1437,9 @@ until step 5 (Q14).
     - **The area catalog** (#402): each area's share of its rural points in such a map unit, `boulderShare` in
       `/areas/v4` (a clean break); the card's "Bouldery soils: 31% of rural land" and Where to look's sort, Best fit or
       Most boulder ground. A first query (a spatial join per point) didn't answer within 30 s; SDA's own indexed point
-      lookup did, 50 points a query, filled by `pnpm areas:boulders` without profiling the areas again. Nelson
-      Highlands reads 63%, Grayson Highlands 31%, Ashe 0%.
+      lookup did, 50 points a query, filled by `pnpm areas:boulders` without profiling the areas again. With stony
+      soils no longer counted (2026-11-05), filled again: Burnsville and Celo reads 29%, Banner Elk, Cosby and North
+      Buncombe 21%, Nelson Highlands 12% (63% before), Grayson Highlands 3% (31%), Ashe, Hillsville and Meadows of
+      Dan 0%.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.
