@@ -3,35 +3,51 @@
  * synthetic 3 m surfaces: a smooth slope reads nothing, a boulder field on the same slope reads a patch, a cliff and a
  * drainage read nothing.
  */
+import type { Feature, Polygon } from "geojson";
 import { describe, expect, it } from "vitest";
-import { boulderSoils, boulderTerms, measureBoulders, roughness, roughPatches } from "./boulders";
-import { llToRC } from "./dem";
+import {
+  boulderSoils,
+  boulderTerms,
+  measureBoulders,
+  roughness,
+  roughPatches,
+  stonySoils,
+  stonyTerms,
+} from "./boulders";
+import { llToRC, rcToLL } from "./dem";
 import { slopeAspect } from "./terrain";
 import type { Dem, SoilRow } from "./types";
 
 describe("boulderTerms", () => {
   it("finds the words for boulders and rock, in a map unit's or a component's name", () => {
-    expect(boulderTerms("Ashe-Chestnut complex, 25 to 45 percent slopes, very stony")).toEqual([
-      "very stony",
-    ]);
-    expect(boulderTerms("Unicoi-Marbleyard complex, 35 to 55 percent slopes, extremely stony")).toEqual([
-      "extremely stony",
-    ]);
     expect(boulderTerms("Porters-Unaka complex, 30 to 50 percent slopes, extremely bouldery")).toEqual([
-      "bouldery",
+      "extremely bouldery",
     ]);
+    expect(boulderTerms("Balsam cobbly loam, 15 to 35 percent slopes, very bouldery")).toEqual([
+      "very bouldery",
+    ]);
+    expect(boulderTerms("Tusquitee loam, bouldery")).toEqual(["bouldery"]);
     expect(boulderTerms("Cleveland-Rock outcrop complex, 30 to 95 percent slopes")).toEqual(["rock outcrop"]);
     expect(boulderTerms("Rubble land")).toEqual(["rubble land"]);
     expect(boulderTerms("Rubbly land-Rock outcrop complex")).toEqual(["rubbly", "rock outcrop"]);
     expect(boulderTerms("ROCK OUTCROP")).toEqual(["rock outcrop"]);
   });
 
-  it("leaves plain stony, gravelly and ordinary soils alone", () => {
+  it("leaves stony soils (stones of 10–24 in, not boulders), gravelly and ordinary soils alone", () => {
+    expect(boulderTerms("Ashe-Chestnut complex, 25 to 45 percent slopes, very stony")).toEqual([]);
+    expect(boulderTerms("Unicoi-Marbleyard complex, 35 to 55 percent slopes, extremely stony")).toEqual([]);
     expect(boulderTerms("Edneyville loam, 25 to 45 percent slopes, stony")).toEqual([]);
     expect(boulderTerms("Pigeonroost gravelly loam, 15 to 35 percent slopes")).toEqual([]);
     expect(boulderTerms("Tate loam, 7 to 15 percent slopes")).toEqual([]);
     expect(boulderTerms("Rockbridge silt loam")).toEqual([]);
     expect(boulderTerms(null)).toEqual([]);
+  });
+
+  it("names the stone words apart", () => {
+    expect(stonyTerms("Ashe-Chestnut complex, very stony")).toEqual(["very stony"]);
+    expect(stonyTerms("Unicoi-Marbleyard complex, extremely stony")).toEqual(["extremely stony"]);
+    expect(stonyTerms("Edneyville loam, stony")).toEqual(["stony"]);
+    expect(stonyTerms("Balsam cobbly loam, very bouldery")).toEqual([]);
   });
 });
 
@@ -41,18 +57,23 @@ describe("boulderSoils", () => {
     { mukey: "1", muname: "Tate loam, 7 to 15 percent slopes", acres: 4 },
     { mukey: "2", muname: "Chandler-Ashe complex, 25 to 45 percent slopes", acres: 2 },
     { mukey: "3", muname: "Ashe-Chestnut complex, 25 to 45 percent slopes, very stony", acres: 6 },
+    { mukey: "4", muname: "Porters loam, very bouldery", acres: 1 },
+  ];
+  const rows = [
+    row("1", "Tate"),
+    row("2", "Chandler"),
+    row("2", "Rock outcrop"),
+    row("3", "Ashe"),
+    row("4", "Porters"),
   ];
   it("flags a unit by its name, or by a major component's (Rock outcrop in a complex), largest first", () => {
-    const got = boulderSoils(units, [
-      row("1", "Tate"),
-      row("2", "Chandler"),
-      row("2", "Rock outcrop"),
-      row("3", "Ashe"),
-    ]);
-    expect(got.map((s) => [s.mukey, s.acres, s.terms])).toEqual([
-      ["3", 6, ["very stony"]],
+    expect(boulderSoils(units, rows).map((s) => [s.mukey, s.acres, s.terms])).toEqual([
       ["2", 2, ["rock outcrop"]],
+      ["4", 1, ["very bouldery"]],
     ]);
+  });
+  it("lists the stony units apart, never among the flagged", () => {
+    expect(stonySoils(units, rows).map((s) => [s.mukey, s.terms])).toEqual([["3", ["very stony"]]]);
   });
   it("is empty without map units", () => {
     expect(boulderSoils(null, [row("3", "Rock outcrop")])).toEqual([]);
@@ -130,14 +151,41 @@ describe("the lidar texture", () => {
 describe("measureBoulders", () => {
   it("counts a cell once whether it's in a flagged soil, a rough patch or both; the soils alone without a grid", () => {
     const soilsOnly = measureBoulders(
-      [{ mukey: "3", muname: "Ashe-Chestnut complex, very stony", acres: 6, geos: [] }],
+      [{ mukey: "3", muname: "Porters loam, very bouldery", acres: 6, geos: [] }],
       [],
       null,
     );
-    expect(soilsOnly).toMatchObject({ acres: 6, soilAcres: 6, rough: null });
+    expect(soilsOnly).toMatchObject({ acres: 6, likelyAcres: 0, soilAcres: 6, rough: null });
     const d = grid((c, r) => slopeZ(c) + (c >= 15 && c < 45 && r >= 15 && r < 45 ? boulder(c, r) : 0));
     const both = measureBoulders(null, [], { d, slope: slopeAspect(d).slope, inside: all(d) });
     expect(both.acres).toBeCloseTo(both.rough!.acres, 6);
+    expect(both.likelyAcres).toBe(0);
     expect(both.soils).toEqual([]);
+  });
+
+  it("is likely where a bouldery soil and rough texture overlap, possible where only one does", () => {
+    const d = grid((c, r) => slopeZ(c) + (c >= 15 && c < 45 && r >= 15 && r < 45 ? boulder(c, r) : 0));
+    // A bouldery unit over the grid's right half: half the boulder field, and smooth ground besides.
+    const ring = [
+      [-0.5, 29.5],
+      [-0.5, d.w - 0.5],
+      [d.h - 0.5, d.w - 0.5],
+      [d.h - 0.5, 29.5],
+      [-0.5, 29.5],
+    ].map(([r, c]) => {
+      const [lat, lon] = rcToLL(d, r!, c!);
+      return [lon, lat];
+    });
+    const geo: Feature<Polygon> = {
+      type: "Feature",
+      properties: {},
+      geometry: { type: "Polygon", coordinates: [ring] },
+    };
+    const unit = { mukey: "4", muname: "Porters loam, very bouldery", acres: 1, geos: [geo] };
+    const b = measureBoulders([unit], [], { d, slope: slopeAspect(d).slope, inside: all(d) });
+    expect(b.likelyAcres).toBeGreaterThan(0);
+    expect(b.likelyAcres).toBeLessThan(b.rough!.acres);
+    expect(b.acres).toBeGreaterThan(b.rough!.acres);
+    expect(b.stony).toEqual([]);
   });
 });

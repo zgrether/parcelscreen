@@ -647,8 +647,27 @@
   ],
   "boulders": {
    "acres": 0,
+   "likelyAcres": 0,
    "soilAcres": 0,
    "soils": [],
+   "stony": [
+    {
+     "mukey": "526480",
+     "name": "Porters gravelly loam, 50 to 80 percent slopes, stony",
+     "acres": 4.089598913853047,
+     "terms": [
+      "stony"
+     ]
+    },
+    {
+     "mukey": "526479",
+     "name": "Porters gravelly loam, 30 to 50 percent slopes, stony",
+     "acres": 3.420567528103802,
+     "terms": [
+      "stony"
+     ]
+    }
+   ],
    "rough": {
     "acres": 0,
     "patches": []
@@ -6798,8 +6817,27 @@
   ],
   "boulders": {
    "acres": 0,
+   "likelyAcres": 0,
    "soilAcres": 0,
    "soils": [],
+   "stony": [
+    {
+     "mukey": "526480",
+     "name": "Porters gravelly loam, 50 to 80 percent slopes, stony",
+     "acres": 4.089598913853047,
+     "terms": [
+      "stony"
+     ]
+    },
+    {
+     "mukey": "526479",
+     "name": "Porters gravelly loam, 30 to 50 percent slopes, stony",
+     "acres": 3.420567528103802,
+     "terms": [
+      "stony"
+     ]
+    }
+   ],
    "rough": {
     "acres": 0,
     "patches": []

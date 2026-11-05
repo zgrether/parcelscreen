@@ -865,15 +865,21 @@ export const ScreenResultSchema = z.strictObject({
     .optional(),
   /**
    * Boulder potential (docs/plans/boulders.md §1): the acres that may be boulder ground, either in a map unit whose
-   * names say bouldery, very or extremely stony, rubbly, rubble land or rock outcrop, or in a patch of rough lidar
-   * texture; each flagged map unit, and each patch with its outline. `rough` is null without the fine elevation.
-   * Never graded. Absent before it.
+   * names say bouldery, rubbly, rubble land or rock outcrop, or in a patch of rough lidar texture, and the likely acres
+   * where both agree; each flagged map unit, the stony units apart, and each patch with its outline. `rough` is null
+   * without the fine elevation. Never graded. Absent before it.
    */
   boulders: z
     .strictObject({
       acres: num,
+      /** Where a bouldery, rubbly or rock-outcrop soil and rough lidar texture overlap. */
+      likelyAcres: num,
       soilAcres: num,
       soils: z.array(
+        z.strictObject({ mukey: z.string(), name: z.string(), acres: num, terms: z.array(z.string()) }),
+      ),
+      /** Stony, very or extremely stony units: rocks, not boulders; listed, never counted. */
+      stony: z.array(
         z.strictObject({ mukey: z.string(), name: z.string(), acres: num, terms: z.array(z.string()) }),
       ),
       rough: z
