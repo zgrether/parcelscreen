@@ -28,9 +28,11 @@ I merge each PR into it when CI is green on its head; the hand-back to main is Z
 
 ## 1. The measurement (`lib/screen/boulders.ts`, the result's `boulders`)
 
-- **Soils:** a map unit is flagged when its name, or one of its major components' names, says *bouldery*,
-  *very stony*, *extremely stony*, *rubbly*, *rubble land* or *rock outcrop*. Plain *stony* doesn't count: it's common,
-  and NRCS uses it for small stones. Each flagged unit is kept with its acres on the parcel and the words found.
+- **Soils:** a map unit is flagged when its name, or one of its major components' names, says *bouldery* (very and
+  extremely bouldery among them), *rubbly*, *rubble land* or *rock outcrop*. *Stony*, *very stony* and *extremely
+  stony* don't count (owner, 2026-11-05: stones of 10–24 in, not boulders); those units are kept apart and shown as
+  "Stony ground: rocks, not climbing boulders". Each flagged unit is kept with its acres on the parcel and the words
+  found.
 - **Lidar texture:** on the 3 m bare-earth grid:
   - **roughness** is the spread (standard deviation over 3 × 3 cells) of the ground's height above its local trend,
     the trend being the mean over 9 × 9 cells (27 m). A plane of any slope passes through its own mean, so a smooth
@@ -41,14 +43,16 @@ I merge each PR into it when CI is green on its head; the hand-back to main is Z
     - **in or beside a drainage:** more than 1.5 m below the mean of the 63 m around it, and the 9 m around that;
   - rough cells are kept where at least 40% of the 5 × 5 cells around are rough (scattered rough cells are noise),
     in **patches of at least 0.25 ac**. Each patch keeps its centre, acres and outline (the hull of its cells).
-- **The acres:** the parcel's cells inside a flagged map unit or a rough patch, each counted once.
+- **The acres:** the parcel's cells inside a flagged map unit or a rough patch, each counted once; **likely** where a
+  cell is in both, **possible** where it's in one (owner, 2026-11-05).
 - **The thresholds** are in `SCREEN_CONSTANTS.boulders` (config.ts).
-- **The result's `boulders`:** `{ acres, soilAcres, soils: [{ mukey, name, acres, terms }], rough: { acres, patches:
-  [{ ll, acres, outline }] } | null }`; `rough` is null when there was no fine grid.
+- **The result's `boulders`:** `{ acres, likelyAcres, soilAcres, soils: [{ mukey, name, acres, terms }], stony: [...],
+  rough: { acres, patches: [{ ll, acres, outline }] } | null }`; `rough` is null when there was no fine grid.
 - **Calibration so far** (the recorded fixtures):
   - Ferney: nothing;
-  - Macks: 237 ac of extremely or very stony soils, and two rough patches of 0.3 ac;
-  - Mud Creek: 16 ac of very stony soil, and no patches (its rough cells are scattered on steep, gullied ground).
+  - Macks: two rough patches, 0.6 ac (its 237 ac of extremely or very stony soils listed apart since 2026-11-05);
+  - Mud Creek: nothing (its 16 ac of very stony soil listed apart; its rough cells are scattered on steep, gullied
+    ground).
 - **The sanity test: Grayson Highlands' boulder field**, north of Massie Gap, read live on CI's runners (they reach
   3DEP and NRCS; this session can't). Its 3DEP and SDA answers are recorded into `test/fixtures/boulders-grayson/`, and
   a unit test reads patches there from the recording. If the field doesn't read, the threshold moves (and the

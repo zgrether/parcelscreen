@@ -1,8 +1,9 @@
 "use client";
 /**
- * Uses' Boulders block (docs/plans/boulders.md §2): one line, "Possible boulder ground: 3.2 ac (bouldery soils, rough
- * lidar texture)", a tap opening the flagged soils and the rough patches, then the estimate's honesty line. Outside the
- * grade: no chip, and the Grade tab's tally doesn't count it. A grade from before the measurement shows nothing.
+ * Uses' Boulders block (docs/plans/boulders.md §2): one line leading with the likely acres ("Likely boulders (for
+ * bouldering): 2.6 ac; possible boulder ground: 233 ac more (…)"), a tap opening the likely acres, the flagged soils,
+ * the rough patches and any stony units apart, then the estimate's honesty line. Outside the grade: no chip, and the
+ * Grade tab's tally doesn't count it. A grade from before the measurement shows nothing.
  */
 import { useId, useState } from "react";
 import { bouldersView } from "@/lib/uses/boulders";

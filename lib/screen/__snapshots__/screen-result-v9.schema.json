@@ -1573,10 +1573,43 @@
         "acres": {
           "type": "number"
         },
+        "likelyAcres": {
+          "type": "number"
+        },
         "soilAcres": {
           "type": "number"
         },
         "soils": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "mukey": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "acres": {
+                "type": "number"
+              },
+              "terms": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "mukey",
+              "name",
+              "acres",
+              "terms"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "stony": {
           "type": "array",
           "items": {
             "type": "object",
@@ -1661,8 +1694,10 @@
       },
       "required": [
         "acres",
+        "likelyAcres",
         "soilAcres",
         "soils",
+        "stony",
         "rough"
       ],
       "additionalProperties": false
