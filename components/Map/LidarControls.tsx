@@ -4,11 +4,12 @@
  * the slope bands when Slope shows, and the line saying what it is and whose. Every target is 44 px on a phone (the
  * toggle rows' style, the Exaggeration control's segments, a native range input).
  */
+import { OVERLAY_WORDS } from "@/lib/render/keyLine";
 import { SLOPE_BANDS } from "@/lib/render/surface";
 import { LIDAR_INFO, LIDAR_OPACITY, LIDAR_STYLES } from "./lidarStyle";
 import { setMapLayerPrefs, useMapLayerPrefs } from "./useMapLayerPrefs";
 
-export const LIDAR_LABEL = "Lidar terrain";
+export const LIDAR_LABEL = OVERLAY_WORDS.lidar;
 
 const rgb = (c: readonly number[]) => `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
 const pct = (g: number) => `${Math.round(g * 100)}%`;
