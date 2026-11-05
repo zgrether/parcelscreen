@@ -197,6 +197,9 @@ export const GARDEN = {
   streamOnParcel: "a stream on the parcel",
   pondOnParcel: "a pond on the parcel",
   fromWell: "from the well; no stream or spring mapped",
+  /** A flow line crosses or passes near the garden patch (declared report text, owner 2026-11-05). */
+  fromFlow:
+    "water gathers here in rain (flow line); a mapped stream or spring: none; otherwise from the well",
   fromWellNotLoaded: "from the well; mapped streams didn't load",
   /** What decides it's Water: the source, and the mapped water's names. */
   waterNamed: (water: string, names: readonly string[]) =>
@@ -502,6 +505,12 @@ export const GARDEN_WATER = {
   label: "Water it holds",
   value: (inches: number) => `${fmt(inches, 1)} in in the top 40 in`,
   source: "NRCS available water storage",
+} as const;
+
+/** Shading › Wetness's legend (owner, 2026-11-05): a range, no word repeated, and what "wet ground" counts. */
+export const WETNESS_WORDS = {
+  range: "wetter ← → drier",
+  note: "Shading shows the whole range; ‘wet ground’ counts only the wettest spots.",
 } as const;
 
 /** Map layers' Water on the land (§2): the toggle, the key's rows and the tips. */

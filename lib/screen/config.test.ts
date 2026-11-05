@@ -1573,6 +1573,7 @@ describe("config", () => {
         },
         "water": {
           "flowLineAc": 0.5,
+          "gardenFlowFt": 100,
           "lineToleranceDeg": 0.00002,
           "maxLines": 30,
           "maxPonds": 3,

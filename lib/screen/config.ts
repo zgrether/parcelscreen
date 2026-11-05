@@ -436,6 +436,9 @@ export const SCREEN_CONSTANTS = deepFreeze({
     pondMaxSlopeDeg: 3, // on ground gentler than this (about 5%)
     pondApartM: 100,
     maxPonds: 3,
+    // Garden's water (owner, 2026-11-05): a flow line this close to the garden patch (its edge, from its acres as a
+    // circle) says water gathers there in rain.
+    gardenFlowFt: 100,
   },
   // Step 14 (plan §3, §9): the land uses' thresholds. None is graded; each decides a Yes / Maybe / No.
   uses: {

@@ -27,6 +27,37 @@ export function septicWetLine(r: ScreenResult | PartialScreenResult, ll: LatLon)
   return null;
 }
 
+/** Metres between [lon, lat] points, equirectangular (good at a parcel's scale). */
+function metres(a: readonly number[], b: readonly number[]): number {
+  const k = Math.cos((((a[1]! + b[1]!) / 2) * Math.PI) / 180);
+  return Math.hypot((b[0]! - a[0]!) * k, b[1]! - a[1]!) * 111_320;
+}
+
+/** Metres from point `p` to the segment a–b, all [lon, lat]. */
+function toSegment(p: readonly number[], a: readonly number[], b: readonly number[]): number {
+  const k = Math.cos((p[1]! * Math.PI) / 180);
+  const [px, py, ax, ay, bx, by] = [p[0]! * k, p[1]!, a[0]! * k, a[1]!, b[0]! * k, b[1]!];
+  const dx = bx - ax,
+    dy = by - ay;
+  const t = dx || dy ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy))) : 0;
+  return metres([p[0]!, p[1]!], [(ax + t * dx) / k, ay + t * dy]);
+}
+
+/**
+ * Garden's water (owner, 2026-11-05): whether a flow line crosses the garden patch or passes within `ft` of it. The
+ * patch is its centre and acres, read as a circle. False for a grade from before the measurement or without lines.
+ */
+export function flowNearGarden(
+  w: ScreenResult["water"],
+  garden: { ll: LatLon; acres: number },
+  ft: number,
+): boolean {
+  const lines = w?.flow?.lines ?? [];
+  const reach = Math.sqrt((garden.acres * 4046.86) / Math.PI) + ft * 0.3048;
+  const p = [garden.ll[1], garden.ll[0]];
+  return lines.some((l) => l.coords.some((c, i) => i > 0 && toSegment(p, l.coords[i - 1]!, c) <= reach));
+}
+
 type W = NonNullable<ScreenResult["water"]>;
 
 export interface WaterView {

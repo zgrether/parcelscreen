@@ -1,6 +1,6 @@
 /** The map's key line (UX part 2 PR 3b2). */
 import { describe, expect, it } from "vitest";
-import { keyEntries } from "./keyLine";
+import { keyEntries, keyOverlays, OVERLAY_WORDS } from "./keyLine";
 
 const none = { bestPin: false, route: false, yourRoute: false, fan: false, allPins: false };
 
@@ -31,5 +31,20 @@ describe("keyEntries", () => {
       keyEntries({ ...none, bestPin: true, standHere: true, route: true, second: true, direct: true }),
     ).toEqual(["best", "standHere", "driveway", "second", "direct"]);
     expect(keyEntries({ ...none, over: true })).toEqual(["over"]);
+  });
+});
+
+describe("the overlays that are on (owner, 2026-11-05)", () => {
+  it("names each one that's on, in Map layers' order, whatever was turned on first", () => {
+    expect(keyOverlays({ water: true, boulders: true, soils: true, mvum: false })).toEqual([
+      "soils",
+      "boulders",
+      "water",
+    ]);
+    expect(keyOverlays({ publicLand: true, power: true }).map((k) => OVERLAY_WORDS[k])).toEqual([
+      "Power lines",
+      "Public land",
+    ]);
+    expect(keyOverlays({})).toEqual([]);
   });
 });
