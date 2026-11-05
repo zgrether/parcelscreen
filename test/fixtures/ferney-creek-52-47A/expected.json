@@ -1323,8 +1323,10 @@
   ],
   "boulders": {
    "acres": 0,
+   "likelyAcres": 0,
    "soilAcres": 0,
    "soils": [],
+   "stony": [],
    "rough": {
     "acres": 0,
     "patches": []
@@ -5086,8 +5088,10 @@
   ],
   "boulders": {
    "acres": 0,
+   "likelyAcres": 0,
    "soilAcres": 0,
    "soils": [],
+   "stony": [],
    "rough": {
     "acres": 0,
     "patches": []
@@ -10396,8 +10400,10 @@
   ],
   "boulders": {
    "acres": 0,
+   "likelyAcres": 0,
    "soilAcres": 0,
    "soils": [],
+   "stony": [],
    "rough": {
     "acres": 0,
     "patches": []

@@ -1205,9 +1205,11 @@
    }
   ],
   "boulders": {
-   "acres": 16.45518641626107,
-   "soilAcres": 16.453456773161694,
-   "soils": [
+   "acres": 0,
+   "likelyAcres": 0,
+   "soilAcres": 0,
+   "soils": [],
+   "stony": [
     {
      "mukey": "1670599",
      "name": "Pigeonroost gravelly loam, 35 to 55 percent slopes, very stony",
@@ -9184,9 +9186,11 @@
    }
   ],
   "boulders": {
-   "acres": 16.45518641626107,
-   "soilAcres": 16.453456773161694,
-   "soils": [
+   "acres": 0,
+   "likelyAcres": 0,
+   "soilAcres": 0,
+   "soils": [],
+   "stony": [
     {
      "mukey": "1670599",
      "name": "Pigeonroost gravelly loam, 35 to 55 percent slopes, very stony",
