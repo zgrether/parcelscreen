@@ -8,6 +8,8 @@
  *
  *   pnpm exec vitest run test/tools/existing-house-probe.test.ts --mode existing-house-probe
  *
+ * Round 1 (#417) found the trailhead lot at Hayters Gap tagged only amenity=parking, and VGIN's "State Forest Points";
+ * its parcel lookup matched nothing. Round 2, kept here, finds the parcel and tries the bake rule the plan proposes.
  * Read-only; nothing is written to the repo. No owner or address field is asked for (CLAUDE.md, owner fields).
  */
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -59,9 +61,10 @@ const clip = (s: unknown, n = 300) =>
 const VA_PARCELS = DEFAULT_ENDPOINTS.parcels[1]!;
 /** Only these fields: no owner, mailing or site address. */
 const PARCEL_FIELDS = "OBJECTID,PARCELID,PTM_ID,FIPS,LOCALITY";
-const LANDMARKS = DEFAULT_ENDPOINTS.stateParks.find((u) => u.includes("vginmaps"))!;
 /** Around Hayters Gap, where VA-80 crosses Clinch Mountain: generous, since the gap's exact point isn't known here. */
 const GAP_BOX = { s: 36.74, w: -82.1, n: 36.9, e: -81.85 };
+/** How near a lot must be to the trail for the proposed rule (round 2). */
+const RULE_M = 60;
 const OVERPASS = [
   "https://overpass-api.de/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
@@ -93,28 +96,68 @@ type OsmEl = {
 };
 
 describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-house probe", () => {
-  it("010-A-10, live; and the trailhead at Hayters Gap", async () => {
-    // ---------- 010-A-10 ----------
-    const where = "PTM_ID LIKE '010%A%10' AND (LOCALITY LIKE 'Washington%' OR FIPS LIKE '%191')";
-    const pq = new URLSearchParams({
-      f: "geojson",
-      where,
-      outFields: PARCEL_FIELDS,
-      returnGeometry: "true",
-      outSR: "4326",
-    });
-    const pr = await get(`${VA_PARCELS}/query?${pq}`);
-    const fc = json(pr.text) as { features?: Feature<Polygon>[] } | null;
-    const feats = fc?.features ?? [];
+  it("round 2: 010-A-10 found and graded live; the trailhead rule tried at Hayters Gap", async () => {
+    // ---------- 010-A-10: round 1's LIKE matched nothing, so the format is read from the parcels near the gap ----------
+    const sample = json(
+      (
+        await get(
+          `${VA_PARCELS}/query?${new URLSearchParams({
+            f: "json",
+            where: "1=1",
+            geometry: "-81.97,36.80,-81.90,36.87",
+            geometryType: "esriGeometryEnvelope",
+            inSR: "4326",
+            spatialRel: "esriSpatialRelIntersects",
+            outFields: "PTM_ID,LOCALITY,FIPS",
+            returnGeometry: "false",
+            resultRecordCount: "60",
+          })}`,
+        )
+      ).text,
+    );
+    const ids = ((sample?.features as { attributes: Record<string, unknown> }[] | undefined) ?? []).map(
+      (f) => f.attributes,
+    );
     say(
       "## Parcel 010-A-10 (VGIN parcels)",
       "",
-      `- HTTP ${pr.status}; ${feats.length} match(es) for \`${where}\``,
-      ...feats.map((f) => `- ${clip(JSON.stringify(f.properties), 200)}; ${f.geometry?.type}`),
+      `- Near Hayters Gap: ${ids.length} records${sample?.error ? `; error ${clip(JSON.stringify(sample.error))}` : ""}`,
+      `- Their ids: ${clip(ids.map((a) => `${String(a.PTM_ID)} (${String(a.LOCALITY)}, ${String(a.FIPS)})`).join("; "), 1500)}`,
       "",
     );
-    const parcel =
-      feats.find((f) => String(f.properties?.PTM_ID).replace(/\s+/g, "") === "010-A-10") ?? feats[0];
+    const want = (id: unknown) =>
+      String(id ?? "")
+        .replace(/[^0-9A-Z]/gi, "")
+        .toUpperCase();
+    const hit = ids.find((a) => want(a.PTM_ID) === "010A10" || want(a.PTM_ID) === "10A10");
+    const locality = String(hit?.LOCALITY ?? ids[0]?.LOCALITY ?? "");
+    const tries = [
+      ...(hit ? [`PTM_ID='${String(hit.PTM_ID)}' AND LOCALITY='${locality}'`] : []),
+      `PTM_ID='010-A-10' AND LOCALITY='${locality}'`,
+      `PTM_ID='010 A 10' AND LOCALITY='${locality}'`,
+      `PTM_ID LIKE '010%A%10%' AND LOCALITY='${locality}'`,
+    ];
+    let feats: Feature<Polygon>[] = [];
+    for (const where of tries) {
+      const pr = await get(
+        `${VA_PARCELS}/query?${new URLSearchParams({
+          f: "geojson",
+          where,
+          outFields: PARCEL_FIELDS,
+          returnGeometry: "true",
+          outSR: "4326",
+        })}`,
+      );
+      const fc = json(pr.text) as { features?: Feature<Polygon>[]; error?: unknown } | null;
+      feats = fc?.features ?? [];
+      say(
+        `- \`${where}\`: HTTP ${pr.status}, ${feats.length} match(es)${fc?.error ? `, error ${clip(JSON.stringify(fc.error))}` : ""}`,
+        ...feats.map((f) => `  - ${clip(JSON.stringify(f.properties), 200)}; ${f.geometry?.type}`),
+      );
+      if (feats.length) break;
+    }
+    say("");
+    const parcel = feats[0];
 
     if (parcel?.geometry) {
       const ring = parcel.geometry.coordinates[0]!;
@@ -162,129 +205,28 @@ describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-ho
     } else say("- No parcel found: the grade is skipped.", "");
     write();
 
-    // ---------- OpenStreetMap around Hayters Gap ----------
+    // ---------- The proposed rule: a parking lot by a hiking route, or by a named path an agency runs ----------
     const bb = `${GAP_BOX.s},${GAP_BOX.w},${GAP_BOX.n},${GAP_BOX.e}`;
-    const osm = await overpass(
-      `[out:json][timeout:60];(` +
-        `nwr["highway"="trailhead"](${bb});nwr["information"="trailhead"](${bb});` +
-        `nwr["amenity"="parking"](${bb});` +
-        `nwr["name"~"Brumley|Hayters|Channels",i](${bb});` +
-        `relation["route"~"hiking|foot"](${bb});` +
-        `nwr["boundary"="protected_area"](${bb});nwr["leisure"="nature_reserve"](${bb});` +
-        `);out center tags;`,
+    const rule = await overpass(
+      `[out:json][timeout:120][bbox:${bb}];` +
+        `(rel["route"~"^(hiking|foot)$"];)->.hr;way(r.hr)->.rw;` +
+        `way["highway"~"^(path|footway)$"]["name"]["operator"~"forest|park|conservation|wildlife",i]->.aw;` +
+        `(.rw;.aw;)->.tw;node(w.tw)->.tn;` +
+        `nwr["amenity"="parking"](around.tn:${RULE_M})->.p;` +
+        `.p foreach{out center tags;(way.tw(around._:${RULE_M});)->.near;rel(bw.near)["route"~"^(hiking|foot)$"]->.nr;.nr out tags;.near out tags 3;}`,
     );
-    const els = ((osm?.elements as OsmEl[] | undefined) ?? []).slice(0, 80);
+    const rel = (rule?.elements as OsmEl[] | undefined) ?? [];
     say(
-      "## OpenStreetMap around Hayters Gap",
+      `## The rule at Hayters Gap: parking within ${RULE_M} m of a hiking route or an agency's named path`,
       "",
-      `Box ${bb}: ${els.length} elements (trailheads, parking, named Brumley/Hayters/Channels, hiking routes, protected areas).`,
+      `Box ${bb}: ${rel.filter((e) => e.tags?.amenity === "parking").length} lots.`,
       "",
-      ...els.map((e) => {
+      ...rel.map((e) => {
         const c = e.center ?? (e.lat != null ? { lat: e.lat, lon: e.lon! } : null);
-        return `- ${e.type}/${e.id} ${c ? `${c.lat.toFixed(4)}, ${c.lon.toFixed(4)}` : ""}: ${clip(JSON.stringify(e.tags), 260)}`;
+        return `${e.tags?.amenity === "parking" ? "- " : "  - "}${e.type}/${e.id} ${c ? `${c.lat.toFixed(4)}, ${c.lon.toFixed(4)}` : ""}: ${clip(JSON.stringify(e.tags), 200)}`;
       }),
       "",
     );
-    // A hiking route's members: its trailhead or parking nodes, if it has any.
-    for (const rel of els
-      .filter((e) => e.type === "relation" && /hiking|foot/.test(e.tags?.route ?? ""))
-      .slice(0, 3)) {
-      const m = await overpass(
-        `[out:json][timeout:60];relation(${rel.id});(node(r);way(r)["highway"];);out tags center 40;`,
-      );
-      const mem = (m?.elements as OsmEl[] | undefined) ?? [];
-      const roles = (rel.members ?? []).reduce<Record<string, number>>(
-        (a, x) => ((a[x.role || "(none)"] = (a[x.role || "(none)"] ?? 0) + 1), a),
-        {},
-      );
-      say(
-        `### relation/${rel.id} ${rel.tags?.name ?? ""}: member roles ${JSON.stringify(roles)}`,
-        "",
-        ...mem
-          .filter((e) => e.type === "node" || /trailhead|parking/.test(JSON.stringify(e.tags ?? {})))
-          .slice(0, 15)
-          .map((e) => `- ${e.type}/${e.id}: ${clip(JSON.stringify(e.tags), 200)}`),
-        "",
-      );
-    }
-    write();
-
-    // ---------- VGIN's landmarks ----------
-    const types = json(
-      (
-        await get(
-          `${LANDMARKS}/query?${new URLSearchParams({
-            f: "json",
-            where: "1=1",
-            outFields: "PlaceType",
-            returnDistinctValues: "true",
-            returnGeometry: "false",
-          })}`,
-        )
-      ).text,
-    );
-    const near = json(
-      (
-        await get(
-          `${LANDMARKS}/query?${new URLSearchParams({
-            f: "json",
-            where: "1=1",
-            geometry: `${GAP_BOX.w},${GAP_BOX.s},${GAP_BOX.e},${GAP_BOX.n}`,
-            geometryType: "esriGeometryEnvelope",
-            inSR: "4326",
-            outSR: "4326",
-            spatialRel: "esriSpatialRelIntersects",
-            outFields: "LandmkName,PlaceType",
-            returnGeometry: "true",
-          })}`,
-        )
-      ).text,
-    );
-    const forests = json(
-      (
-        await get(
-          `${LANDMARKS}/query?${new URLSearchParams({
-            f: "json",
-            where: "UPPER(LandmkName) LIKE '%STATE FOREST%' OR UPPER(LandmkName) LIKE '%TRAILHEAD%'",
-            outFields: "LandmkName,PlaceType",
-            returnGeometry: "false",
-            resultRecordCount: "60",
-          })}`,
-        )
-      ).text,
-    );
-    say(
-      "## VGIN landmarks",
-      "",
-      `- PlaceTypes: ${clip(JSON.stringify((types?.features as { attributes: unknown }[] | undefined)?.map((f) => f.attributes)), 2000)}`,
-      `- Near Hayters Gap: ${clip(JSON.stringify((near?.features as unknown[] | undefined) ?? near), 1500)}`,
-      `- Named "state forest" or "trailhead": ${clip(JSON.stringify((forests?.features as { attributes: unknown }[] | undefined)?.map((f) => f.attributes) ?? forests), 2500)}`,
-      "",
-    );
-    write();
-
-    // ---------- Virginia's state forests, published ----------
-    for (const q of [
-      "Virginia state forest trailhead",
-      "Virginia Department of Forestry state forests",
-      "Channels State Forest",
-    ]) {
-      const s = json(
-        (
-          await get(
-            `https://www.arcgis.com/sharing/rest/search?${new URLSearchParams({ f: "json", q, num: "12" })}`,
-          )
-        ).text,
-      );
-      const items =
-        (s?.results as { title: string; type: string; owner: string; url?: string }[] | undefined) ?? [];
-      say(
-        `## ArcGIS Online: "${q}"`,
-        "",
-        ...items.map((i) => `- ${clip(i.title, 100)} (${i.type}, ${i.owner}) ${i.url ?? ""}`),
-        "",
-      );
-    }
     write();
     expect(out.length).toBeGreaterThan(4);
   }, 1_800_000);
