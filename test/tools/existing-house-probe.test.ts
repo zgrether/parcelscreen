@@ -80,7 +80,11 @@ async function overpass(q: string): Promise<Record<string, unknown> | null> {
     });
     const j = r.status === 200 ? json(r.text) : null;
     if (j) return j;
-    say(`- Overpass ${new URL(url).host}: HTTP ${r.status} ${clip(r.text, 120)}`);
+    // Overpass's error is in the page's <p>s ("Error: line 1: parse error: …").
+    const why = [...r.text.matchAll(/<p>(?:<strong[^>]*>)?([^<]*)(?:<\/strong>)?([^<]*)<\/p>/g)]
+      .map((m) => m[1]! + m[2]!)
+      .join(" ");
+    say(`- Overpass ${new URL(url).host}: HTTP ${r.status} ${clip(why || r.text, 400)}`);
   }
   return null;
 }
@@ -213,7 +217,7 @@ describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-ho
         `way["highway"~"^(path|footway)$"]["name"]["operator"~"forest|park|conservation|wildlife",i]->.aw;` +
         `(.rw;.aw;)->.tw;node(w.tw)->.tn;` +
         `nwr["amenity"="parking"](around.tn:${RULE_M})->.p;` +
-        `.p foreach{out center tags;(way.tw(around._:${RULE_M});)->.near;rel(bw.near)["route"~"^(hiking|foot)$"]->.nr;.nr out tags;.near out tags 3;}`,
+        `.p foreach{out center tags;(way.tw(around:${RULE_M});)->.near;rel(bw.near)["route"~"^(hiking|foot)$"]->.nr;.nr out tags;.near out tags 3;}`,
     );
     const rel = (rule?.elements as OsmEl[] | undefined) ?? [];
     say(
