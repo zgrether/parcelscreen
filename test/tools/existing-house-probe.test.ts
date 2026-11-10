@@ -217,7 +217,7 @@ describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-ho
         `way["highway"~"^(path|footway)$"]["name"]["operator"~"forest|park|conservation|wildlife",i]->.aw;` +
         `(.rw;.aw;)->.tw;node(w.tw)->.tn;` +
         `nwr["amenity"="parking"](around.tn:${RULE_M})->.p;` +
-        `.p foreach{out center tags;(way.tw(around:${RULE_M});)->.near;rel(bw.near)["route"~"^(hiking|foot)$"]->.nr;.nr out tags;.near out tags 3;}`,
+        `foreach.p(out center tags;(way.tw(around:${RULE_M});)->.near;rel(bw.near)["route"~"^(hiking|foot)$"]->.nr;.nr out tags;.near out tags 3;);`,
     );
     const rel = (rule?.elements as OsmEl[] | undefined) ?? [];
     say(
