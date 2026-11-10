@@ -116,18 +116,28 @@ mark is present.
 The Brumley Mountain Trail's trailhead at Hayters Gap, on VA-80, has a small gravel lot. It leads to The Channels, in
 Channels State Forest.
 
-- **Root cause:** this session can't reach Overpass or VGIN, so a probe job on CI's runners (`existing-house.yml`,
-  `test/tools/existing-house-probe.test.ts`) answers it into the job summary:
-  - what OSM has around Hayters Gap: trailhead tags, parking, the trail's route relation and its tags;
-  - VGIN's landmark `PlaceType`s, in case state forests are a type the filter leaves out;
-  - whether Virginia's Department of Forestry publishes state forest access points.
-- **The fix, at the source.** Depending on what the probe finds:
-  - a parking lot named for a trail;
-  - a hiking route relation's trailhead member;
-  - a VGIN place type for state forests;
-  - a DOF access-point layer.
-  
-  The bake gains that source, so other state forests' trailheads are caught too. The places are then baked again.
+- **Root cause (the probe, #417, rounds 1–3):**
+  - OSM has no trailhead tag at Hayters Gap.
+  - The lot there (way/808088841, at the gap's saddle, 36.8646, −81.9469; capacity 10, operator Virginia DCR) is tagged
+    only `amenity=parking`, with no name.
+  - The Brumley Mountain Trail (`highway=path`, operator Virginia Department of Forestry) and its hiking route relation
+    start beside it.
+  - The bake takes only `highway=trailhead` or `information=trailhead`, so a trailhead lot mapped as plain parking is
+    never baked. That's the usual tagging at state forest and natural-area lots.
+  - The other sources don't carry it either:
+    - VGIN's landmarks do have a "State Forest Points" type (Channels State Forest among them) that our filter leaves
+      out. But a forest's point is the forest, not its access lot, so it's no fix.
+    - No Department of Forestry layer of access points was found on ArcGIS Online.
+- **The fix, at the source:**
+  - The OSM bake also takes a parking lot within 60 m of a hiking or foot route, or of a named path that an agency
+    runs (operator matching forest, park, conservation or wildlife). It's named after that trail: "Brumley Mountain
+    Trail (parking)", or the lot's own name when it has one.
+  - It's dropped when a tagged or official trailhead is within 150 m (`near.trailheadDedupeM`'s rule).
+  - Tried live in Hayters Gap's box, the rule found 5 lots:
+    - the gap's lot;
+    - the named "Brumley Mountain Trailhead";
+    - three Department of Forestry lots in Channels State Forest.
+  - The places are then baked again (places.yml).
 - **If the source fix isn't simple:** `lib/screen/data/trailhead-overrides.json`, cited and dated, in
   er-overrides.json's pattern, read by the bake.
 - **Acceptance:** 010-A-10, graded again, lists a trailhead about 2 mi by road at Hayters Gap, and the Trails row
@@ -220,4 +230,5 @@ Channels State Forest.
    second kind. That mark already means the existing house everywhere in the engine and the Full report. Is that
    right, or do you also want to keep a "planned house site" mark?
 2. **010-A-10's house:** where is it, as a lat/lon or "at the end of the drive, near …"? The deployed check places the
-   mark there. If you'd rather not say, I'll place it from the imagery at the end of the existing drive and say so.
+   mark there. (The probe found the parcel: VGIN's PTM_ID is "10-A-10", 92.76 ac. With no house mark, the default
+   rubric reads Maybe · C: Room to build F, Septic "check first", Trails C at 31 min.) If you'd rather not say, I'll place it from the imagery at the end of the existing drive and say so.
