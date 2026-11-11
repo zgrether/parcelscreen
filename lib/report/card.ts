@@ -72,7 +72,15 @@ import { LONG_TRAIL_DRIVES } from "../screen/longTrail";
 import { CLIMB_DRIVES } from "../screen/climbing";
 import { PADDLE_DRIVES } from "../screen/paddling";
 import { climbingNote, NO_ROPE, ropeLine } from "./climbing";
-import { flatLine, NO_FLATWATER, pondLine, RIVERS_NOT_GRADED, riversLine } from "./paddling";
+import {
+  flatLine,
+  NO_FLATWATER,
+  OTHER_LAKES,
+  otherLakesLine,
+  pondLine,
+  RIVERS_NOT_GRADED,
+  riversLine,
+} from "./paddling";
 import { openPct, viewLine, viewShort } from "./view";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
 import { EDITOR_TITLES, FACTOR_LABELS } from "../rubric/words";
@@ -930,6 +938,8 @@ function paddling(r: Result, K: CardConfig): Row {
   const extra = [
     ...(p.rivers.length ? [`${RIVERS_NOT_GRADED} ${riversLine(p.rivers)}`] : []),
     ...(p.pond ? [pondLine(p.pond)] : []),
+    // Existing-house plan §2b (Zach, 11/11): last, so the panel's text before it is as it was.
+    ...(p.others?.length ? [`${OTHER_LAKES} ${otherLakesLine(p.others)}`] : []),
   ];
   const panel = extra.length ? { panelNote: extra.join(". ") } : {};
   if (!p.flat) return { ...g("F", NO_FLATWATER), short: "none near", ...panel };
