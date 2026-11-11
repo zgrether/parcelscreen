@@ -2,6 +2,7 @@
  * Boulder potential in Uses (docs/plans/boulders.md §2): the one line and its detail, from the result's `boulders`.
  * Outside the grade: no chip and no tally. Null for a grade from before the measurement (no `boulders`).
  */
+import { elevationOf, relabel, type Elevation } from "../report/elevation";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import type { ScreenResult } from "../screen/types";
 import { BOULDERS } from "./words";
@@ -16,9 +17,15 @@ export interface BouldersView {
   found: boolean;
   /** The detail's lines: the likely acres, each flagged soil, the rough patches (or why there are none), the stony units. */
   lines: string[];
+  /** The estimate's honesty line. */
+  honesty: string;
 }
 
-export function bouldersView(b: ScreenResult["boulders"]): BouldersView | null {
+/** `e`: the elevation the grade used (existing-house plan §3); its words replace "lidar" when 3DEP fell back. */
+export function bouldersView(
+  b: ScreenResult["boulders"],
+  e: Elevation = elevationOf({}),
+): BouldersView | null {
   if (!b) return null;
   const rough = b.rough && b.rough.patches.length > 0 ? b.rough : null;
   const readings = [...(b.soils.length ? [BOULDERS.soils] : []), ...(rough ? [BOULDERS.rough] : [])];
@@ -39,8 +46,9 @@ export function bouldersView(b: ScreenResult["boulders"]): BouldersView | null {
     ...(b.stony.length ? [BOULDERS.stony(b.stony)] : []),
   ];
   return {
-    line: found ? BOULDERS.line(likely, Math.max(0, b.acres - likely), readings) : BOULDERS.none,
+    line: relabel(found ? BOULDERS.line(likely, Math.max(0, b.acres - likely), readings) : BOULDERS.none, e),
     found,
-    lines,
+    lines: lines.map((l) => relabel(l, e)),
+    honesty: relabel(BOULDERS.honesty, e),
   };
 }

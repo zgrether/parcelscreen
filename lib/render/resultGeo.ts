@@ -3,6 +3,7 @@
  * L1129, drawDriveway L1402–1408), as GeoJSON with the prototype's tooltips. Pure, from a result: a kept
  * result draws all of them, no session needed.
  */
+import { elevationOf, relabel } from "../report/elevation";
 import type { Feature, FeatureCollection, Geometry, LineString, MultiPolygon, Point, Polygon } from "geojson";
 import { lineSliceAlong } from "@turf/turf";
 import { fmt } from "../format";
@@ -209,7 +210,7 @@ export function boulderFeatures(r: PartialScreenResult): FC<Polygon | MultiPolyg
   for (const p of b.rough?.patches ?? [])
     features.push({
       type: "Feature",
-      properties: { kind: "rough", tip: BOULDERS_MAP.tipRough(p.acres) },
+      properties: { kind: "rough", tip: relabel(BOULDERS_MAP.tipRough(p.acres), elevationOf(r)) },
       geometry: p.outline.geometry,
     });
   return { type: "FeatureCollection", features };

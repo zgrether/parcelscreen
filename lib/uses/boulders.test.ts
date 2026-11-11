@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { expectedOf } from "../../test/support/expected";
 import type { ScreenResult } from "../screen/types";
 import { bouldersView } from "./boulders";
+import { BOULDERS } from "./words";
 
 type B = NonNullable<ScreenResult["boulders"]>;
 const patch = { ll: [36.6, -81.5] as [number, number], acres: 0.3, outline: null as never };
@@ -21,6 +22,7 @@ describe("bouldersView", () => {
     expect(bouldersView(both)).toEqual({
       line: "Likely boulders (for bouldering): 0.4 ac; possible boulder ground: 2.8 ac more (bouldery soils, rough lidar texture)",
       found: true,
+      honesty: BOULDERS.honesty,
       lines: [
         "Likely boulders: 0.4 ac, where a bouldery soil and rough lidar texture overlap",
         "Porters loam, very bouldery: 3.0 ac (very bouldery)",
@@ -79,6 +81,7 @@ describe("bouldersView", () => {
     expect(bouldersView(none)).toEqual({
       line: "No sign of boulder ground",
       found: false,
+      honesty: BOULDERS.honesty,
       lines: ["Rough lidar texture: none found"],
     });
     expect(bouldersView({ ...none, rough: null })!.lines).toEqual([
