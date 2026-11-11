@@ -1489,7 +1489,6 @@
       },
       "required": [
         "flat",
-        "others",
         "rivers",
         "pond"
       ],

@@ -939,7 +939,7 @@ function paddling(r: Result, K: CardConfig): Row {
     ...(p.rivers.length ? [`${RIVERS_NOT_GRADED} ${riversLine(p.rivers)}`] : []),
     ...(p.pond ? [pondLine(p.pond)] : []),
     // Existing-house plan §2b (Zach, 11/11): last, so the panel's text before it is as it was.
-    ...(p.others.length ? [`${OTHER_LAKES} ${otherLakesLine(p.others)}`] : []),
+    ...(p.others?.length ? [`${OTHER_LAKES} ${otherLakesLine(p.others)}`] : []),
   ];
   const panel = extra.length ? { panelNote: extra.join(". ") } : {};
   if (!p.flat) return { ...g("F", NO_FLATWATER), short: "none near", ...panel };

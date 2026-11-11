@@ -844,7 +844,10 @@ export const ScreenResultSchema = z.strictObject({
     .strictObject({
       flat: z.strictObject({ name: z.string(), water: z.string().nullable(), min: num, mi: num }).nullable(),
       // v10 (existing-house plan §2b; Zach, 11/11): the other lakes timed, each by its quickest launch, quickest first.
-      others: z.array(z.strictObject({ name: z.string(), water: z.string().nullable(), min: num, mi: num })),
+      // Absent on a result from an earlier engine (the area catalog's samples, engine 37): not timed, not "none".
+      others: z
+        .array(z.strictObject({ name: z.string(), water: z.string().nullable(), min: num, mi: num }))
+        .optional(),
       rivers: z.array(z.strictObject({ name: z.string(), river: z.string().nullable(), km: num })),
       pond: z.strictObject({ acres: num, name: z.string().nullable() }).nullable(),
     })

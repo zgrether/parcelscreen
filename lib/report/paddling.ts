@@ -72,7 +72,7 @@ export function pondLine(p: NonNullable<Paddling["pond"]>): string {
   return `And a pond on the land you could paddle (${fmt(p.acres, 1)} ac)`;
 }
 
-type Lake = Paddling["others"][number];
+type Lake = NonNullable<Paddling["others"]>[number];
 
 /** The other lakes' lead-in, after the river put-ins and the pond (existing-house plan §2b): listed, not graded. */
 export const OTHER_LAKES = "other lakes, not graded:";

@@ -37,7 +37,7 @@ export function Paddling({ result }: BlockProps) {
       </table>
       {p.rivers.length > 0 && <p className="tiny">{riversLine(p.rivers)}</p>}
       {p.pond && <p className="tiny">{pondLine(p.pond)}</p>}
-      {p.others.length > 0 && (
+      {p.others && p.others.length > 0 && (
         <p className="tiny">
           {OTHER_LAKES.charAt(0).toUpperCase() + OTHER_LAKES.slice(1)} {otherLakesLine(p.others)}
         </p>

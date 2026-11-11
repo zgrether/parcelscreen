@@ -1482,5 +1482,8 @@ until step 5 (Q14).
       line don't move (a tie still goes to the nearer launch).
     - **Schema v10, a clean break** (Zach chose it knowing the cost): saved v9 grades are dropped with "Saved with an
       older version; grade it again." `ENGINE_VERSION` 38. The fixtures' expected results gain `others` only.
+    - **`others` is optional:** absent on a result from an earlier engine, read as "not timed". The area catalog's 60
+      sample parcels (engine 37, no live run to redo them in CI) move to v10 as they are, keeping their engine stamp;
+      `SAMPLES_RESCREEN=1 pnpm areas:samples` gives them their other lakes when it next runs.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

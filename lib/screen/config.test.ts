@@ -1213,6 +1213,7 @@ describe("config", () => {
           "flatwaterMinAc": 5,
           "flatwaterWithinM": 60,
           "maxKm": 100,
+          "otherLakes": 3,
           "points": 6,
           "pondMinAc": 1,
           "riverKm": 40,
