@@ -44,7 +44,7 @@ function shares(card: Card, rubric: Rubric): Map<string, number> {
 /** A row as one member's card shows it (adjust.ts shownLetter): their override marked ✎, or set aside. */
 function shown(card: Card, key: string, counted: boolean): string {
   const l = shownLetter(card, key);
-  if (l?.setAside) return `${SET_ASIDE_SHORT} ✎`;
+  if (l?.setAside) return `${SET_ASIDE_SHORT}${l.adjusted ? " ✎" : ""}`;
   return !counted ? "not counted" : letterText(l);
 }
 

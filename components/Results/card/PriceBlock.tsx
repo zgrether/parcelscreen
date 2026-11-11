@@ -5,6 +5,7 @@
  * live, and the walk-away price for the land within the Ready to build budget. The switches change these figures only:
  * Within budget grades the costs as priced (plan §9, Q2), and nothing is saved.
  */
+import { NO_BUILD_COST } from "@/lib/report/existingHouse";
 import { useMemo, useState } from "react";
 import type { CostInput } from "@/lib/report/cost";
 import type { PerAcre } from "@/lib/report/perAcre";
@@ -16,7 +17,12 @@ export interface PriceContext {
   perAcre: PerAcre | null;
 }
 
-export function PriceBlock({ input, perAcre, budgets }: PriceContext & { budgets: Budgets | undefined }) {
+export function PriceBlock({
+  input,
+  perAcre,
+  budgets,
+  existingHouse = false,
+}: PriceContext & { budgets: Budgets | undefined; existingHouse?: boolean }) {
   const [chosen, setChosen] = useState<Partial<Record<PriceToggleKey, boolean>>>({});
   const b = useMemo(() => priceBlock(input, budgets, perAcre, chosen), [input, budgets, perAcre, chosen]);
   if (!b) return null;
@@ -40,11 +46,16 @@ export function PriceBlock({ input, perAcre, budgets }: PriceContext & { budgets
           <span>Ready to camp</span>
           <strong data-price="camp">{b.camp}</strong>
         </div>
-        <div className="price-row">
-          <span>Ready to build</span>
-          <strong data-price="build">{b.build}</strong>
-          <span className="tiny muted price-sub">everything but the house</span>
-        </div>
+        {existingHouse ? (
+          // A house already here (existing-house plan §1c): no build to price.
+          <p className="tiny muted">{NO_BUILD_COST}</p>
+        ) : (
+          <div className="price-row">
+            <span>Ready to build</span>
+            <strong data-price="build">{b.build}</strong>
+            <span className="tiny muted price-sub">everything but the house</span>
+          </div>
+        )}
         {b.toggles.length > 0 && (
           <ul className="price-toggles">
             {b.toggles.map((t) => {

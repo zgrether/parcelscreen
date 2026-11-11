@@ -18,6 +18,7 @@ export function FullReport({
   lineNames,
   drivewayLine,
   paving,
+  existingHouse = false,
   noteFor,
   open,
   setOpen,
@@ -30,6 +31,8 @@ export function FullReport({
   drivewayLine: string | null;
   /** Settings' paving choice and the parcel's lines (step 10), for the Driveway section's Paving row. */
   paving?: PavingContext;
+  /** "House already here" (existing-house plan §1b), from the card. */
+  existingHouse?: boolean;
   /** A note to show above a section (the re-evaluation's), by its slug. */
   noteFor?(slug: string): ReactNode;
   open: boolean;
@@ -59,6 +62,7 @@ export function FullReport({
               lineNames,
               drivewayLine,
               ...(paving ? { paving } : {}),
+              ...(existingHouse ? { existingHouse } : {}),
             });
             if (content === null) return null;
             const h = heading(result, point);

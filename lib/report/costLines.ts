@@ -3,6 +3,7 @@
  * $200–240k ✓ under your $250k"), and the breakdown's rows (each item with its quantity, rate range, source and what
  * would lower it). Pure: the panel, Favorites, Compare and the report export read the same lines.
  */
+import { NO_BUILD_COST } from "./existingHouse";
 import { fmt } from "../format";
 import { shortPrice } from "../client/askingPrice";
 import { rateOf, type Range } from "../config/costs";
@@ -45,7 +46,9 @@ export const estimateRange = (e: CostEstimate): string =>
 export function costSummary(
   cost: CostToEnjoy | null | undefined,
   budgets?: Budgets,
-): { kind: "lines"; lines: CostSummaryLine[] } | { kind: "noWay"; text: string } | null {
+  /** A house already here (existing-house plan §1c): Ready to build is left out, and `note` says why. */
+  existingHouse = false,
+): { kind: "lines"; lines: CostSummaryLine[]; note?: string } | { kind: "noWay"; text: string } | null {
   if (!cost) return null;
   if (cost.kind === "noWay") return { kind: "noWay", text: COST_WORDS.noWay };
   const line = (which: CostWhich): CostSummaryLine => {
@@ -62,6 +65,7 @@ export function costSummary(
           : null,
     };
   };
+  if (existingHouse) return { kind: "lines", lines: [line("camp")], note: NO_BUILD_COST };
   return { kind: "lines", lines: [line("camp"), line("build")] };
 }
 

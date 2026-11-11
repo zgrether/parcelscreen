@@ -11,6 +11,7 @@ import type { Paving, Rates } from "../config/costs";
 import type { LatLon } from "../geo/types";
 import type { Adjustment } from "./adjust";
 import type { CostLine } from "./cost";
+import type { ExistingHouseFact } from "./existingHouse";
 import { lineNamesOf, type LineNames } from "./lines";
 
 /**
@@ -59,6 +60,11 @@ export interface Facts {
    * listing's acres and the county map's, for every member, and name them "surveyed".
    */
   survey?: Survey;
+  /**
+   * "House already here" (docs/plans/existing-house.md §1): the parcel's house point is a house already built (its
+   * `existing` flag), with the parcel's drawn existing drives. Absent: the house point, if any, is a planned site.
+   */
+  existingHouse?: ExistingHouseFact;
 }
 
 /** A survey's figures, either may be blank. */
@@ -132,7 +138,7 @@ export const drawnOf = (
   facts?: Facts,
 ): Drawn => ({
   ...(adjust?.size ? { adjust } : {}),
-  ...(facts && (facts.floodLetter || facts.service || facts.survey) ? { facts } : {}),
+  ...(facts && (facts.floodLetter || facts.service || facts.survey || facts.existingHouse) ? { facts } : {}),
   names: lineNamesOf(markup),
   marks: markup.filter((m): m is typeof m & Mark => m.shape !== "line"),
   driveway,

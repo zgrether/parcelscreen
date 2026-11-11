@@ -15,6 +15,12 @@ interface Stroke {
 
 const GLYPH: Record<MarkChoice, readonly Stroke[]> = {
   house: [{ d: "M4.5 11.5 12 5l7.5 6.5M7 10v9h10v-9" }, { d: "M10.5 19v-4.5h3V19" }],
+  // A house already here (existing-house plan §1a): the house with a chimney.
+  houseHere: [
+    { d: "M4.5 11.5 12 5l7.5 6.5M7 10v9h10v-9" },
+    { d: "M10.5 19v-4.5h3V19" },
+    { d: "M15.5 8V5.5h2v4.2" },
+  ],
   track: [{ d: "M6 20c2-4 3-6 6-8s4-4 6-8", dash: "3 2.6" }],
   drive: [{ d: "M8 20 10.5 4M16 20 13.5 4" }, { d: "M12 18.5v-2M12 13v-2M12 7.5v-2" }],
   easement: [{ d: "M4.5 5v14M19.5 5v14" }, { d: "M8 12h8M13 9l3 3-3 3" }],

@@ -4,20 +4,25 @@
  * to the Driveway section's estimate and "Published ranges, not a quote."
  */
 import { COST_WORDS, type CostToEnjoy } from "@/lib/report/cost";
+import { NO_BUILD_COST } from "@/lib/report/existingHouse";
 import { breakdownRows, estimateRange, estimateTitle, type CostWhich } from "@/lib/report/costLines";
 
 export function CostBreakdown({
   cost,
   print = false,
+  existingHouse = false,
 }: {
   cost: CostToEnjoy | null | undefined;
   print?: boolean;
+  /** A house already here (existing-house plan §1c): Ready to build is left out, with why. */
+  existingHouse?: boolean;
 }) {
   if (!cost) return <p className="tiny muted">Not priced yet: the driveway hasn&apos;t been routed.</p>;
   if (cost.kind === "noWay") return <p>{COST_WORDS.noWay}.</p>;
-  const which: CostWhich[] = ["camp", "build"];
+  const which: CostWhich[] = existingHouse ? ["camp"] : ["camp", "build"];
   return (
     <div className="cost-breakdown">
+      {existingHouse && <p className="cost-no-build">{NO_BUILD_COST}</p>}
       {which.map((w) => (
         <section key={w} className="cost-estimate" aria-label={estimateTitle(w)}>
           <h4>

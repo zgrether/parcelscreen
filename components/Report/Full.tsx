@@ -194,6 +194,7 @@ export function Full({
     lineNames: lineNamesOf(parcel.markup),
     drivewayLine: parcel.drivewayLine,
     ...(card.paving ? { paving: card.paving } : {}),
+    ...(card.existingHouse ? { existingHouse: true } : {}),
   };
   /** A report block with its own heading, or nothing when it has nothing to say. */
   const block = (B: (p: BlockProps) => ReactNode) => {
@@ -303,7 +304,7 @@ export function Full({
       {/* Only when the card was priced (graded with the parcel's price and the rates). */}
       {card.cost !== undefined && (
         <Section title={FULL_WORDS.cost}>
-          <CostBreakdown cost={card.cost} print />
+          <CostBreakdown cost={card.cost} print existingHouse={!!card.existingHouse} />
         </Section>
       )}
       {raise.length > 0 && (

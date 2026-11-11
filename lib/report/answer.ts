@@ -14,6 +14,7 @@ import type { RowKey } from "../rubric/types";
 import { EDITOR_TITLES } from "../rubric/words";
 import { listOf, lowerFirst, VERDICT_WORD, type Card, type Row } from "./card";
 import { letterText, shownLetter } from "./adjust";
+import { houseHereAside } from "./existingHouse";
 
 /** Each row as a strength, after "Strong". */
 export const STRENGTH: Record<RowKey, string> = {
@@ -223,7 +224,15 @@ export function answerReason(card: Card, r: PartialScreenResult): string {
  * Night sky." alone. Null when there are none.
  */
 export function asideMustsLine(card: Card): string | null {
-  const musts = (card.setAside ?? []).filter((x) => x.must).map((x) => EDITOR_TITLES[x.key]);
+  // A house already here (existing-house plan §1b): what the app set aside, counted, before the person's own.
+  const auto = (card.setAside ?? []).filter((x) => x.auto).length;
+  const house = auto ? `${cap(houseHereAside(auto))}.` : null;
+  const own = ownAsideLine(card);
+  return house && own ? `${house} ${own}` : (house ?? own);
+}
+
+function ownAsideLine(card: Card): string | null {
+  const musts = (card.setAside ?? []).filter((x) => x.must && !x.auto).map((x) => EDITOR_TITLES[x.key]);
   // Step 12's parked question 1 (owner, 10/22): the overrides are named too, after the set-aside Musts.
   const overridden = [...card.gates, ...card.rows]
     .filter((x) => !!x.adjusted)

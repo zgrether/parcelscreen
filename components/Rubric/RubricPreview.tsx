@@ -8,6 +8,7 @@
  * loaded only then). Pure arithmetic over stored screens: nothing is fetched and nothing re-screens. On a phone it's
  * the same slim line, under the intro (UX part 2, P-7: as a bar along the bottom it covered the cards).
  */
+import { cardFactsOf } from "@/lib/client/parcelStore";
 import { useEffect, useMemo, useState } from "react";
 import { useCostSettings } from "@/lib/client/costRates";
 import { getPref } from "@/lib/client/prefs";
@@ -74,7 +75,7 @@ export function RubricPreview({
         parcel.drivewayLine,
         { askingPrice: parcel.askingPrice, ...costs },
         adjustFor(parcel.key, household),
-        parcel.facts,
+        cardFactsOf(parcel),
       )
     : undefined;
   const name = options.find((o) => o.key === key)?.name ?? SAMPLE_NAME;
