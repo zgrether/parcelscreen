@@ -346,6 +346,53 @@ describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-ho
     expect(out.length).toBeGreaterThan(2);
   }, 300_000);
 
+  // Round 7: the tiles themselves, as base64 in the log, to look at: VBMP's export at 256 px (the app's request) and
+  // at 512 px for the same box (what a 2x screen draws), and Esri's tile, all at z19 over the house. Public imagery of a
+  // roof from the air; no owner field.
+  it("round 7: VBMP tiles to look at", async () => {
+    const lat = 36.86562,
+      lon = -81.922,
+      z = 19;
+    const n = 2 ** z;
+    const x = Math.floor(((lon + 180) / 360) * n);
+    const y = Math.floor(
+      ((1 - Math.log(Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)) / Math.PI) / 2) *
+        n,
+    );
+    const tlon = (xx: number) => (xx / n) * 360 - 180;
+    const tlat = (yy: number) => (Math.atan(Math.sinh(Math.PI * (1 - (2 * yy) / n))) * 180) / Math.PI;
+    const m = (lo: number, la: number) => [
+      (lo * 20037508.34) / 180,
+      (Math.log(Math.tan(((90 + la) * Math.PI) / 360)) * 20037508.34) / Math.PI,
+    ];
+    const [w, s] = m(tlon(x), tlat(y + 1));
+    const [e, nn] = m(tlon(x + 1), tlat(y));
+    const base =
+      "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VBMP_Imagery/MostRecentImagery_WGS/MapServer";
+    const urls: [string, string][] = [
+      [
+        "vbmp256",
+        `${base}/export?bbox=${w},${s},${e},${nn}&bboxSR=3857&imageSR=3857&size=256,256&format=jpg&f=image`,
+      ],
+      [
+        "vbmp512",
+        `${base}/export?bbox=${w},${s},${e},${nn}&bboxSR=3857&imageSR=3857&size=512,512&format=jpg&f=image`,
+      ],
+      [
+        "esri",
+        `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`,
+      ],
+    ];
+    for (const [name, url] of urls) {
+      const r = await live()(url, { headers: { "User-Agent": UA } });
+      const b = Buffer.from(await r.arrayBuffer());
+      console.log(
+        `TILE ${name} ${r.status} ${r.headers.get("content-type")} ${b.length} ${b.toString("base64")}`,
+      );
+    }
+    expect(true).toBe(true);
+  }, 120_000);
+
   it("round 2: 010-A-10 found and graded live; the trailhead rule tried at Hayters Gap", async () => {
     // ---------- 010-A-10: round 1's LIKE matched nothing, so the format is read from the parcels near the gap ----------
     const sample = json(
