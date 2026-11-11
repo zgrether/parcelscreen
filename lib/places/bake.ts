@@ -205,18 +205,23 @@ export function osmCellQuery(cell: string): string {
 export function trailLotQuery(cell: string): string {
   const [w, s, e, n] = cellBox(cell);
   const M = SCREEN_CONSTANTS.near.trailLotM;
+  // The routes' members are asked for whatever their highway: filtered in Overpass, the Brumley Mountain Trail's
+  // members came back empty (probe round 3, 11/11). trailLots keeps only the lots near a path, footway, track or
+  // bridleway, never a road, measured to each line here.
   return (
     `[out:json][timeout:180][bbox:${s},${w},${n},${e}];` +
     `rel["route"~"^(hiking|foot)$"]->.hr;` +
-    `way(r.hr)["highway"~"^(path|footway|track|bridleway)$"]->.rw;` +
+    `way(r.hr)["highway"]->.rw;` +
     `way["highway"~"^(path|footway)$"]["name"]["operator"~"forest|park|conservation|wildlife",i]->.aw;` +
-    // \`around\` a set of ways measures to their lines: no node set (a whole cell's trail nodes timed Overpass out, 11/11).
     `(.rw;.aw;)->.tw;` +
     `nwr["amenity"="parking"](around.tw:${M})->.p;.p out center tags;` +
     `way.tw(around.p:${M})->.near;.near out tags geom;` +
     `rel(bw.near)["route"~"^(hiking|foot)$"];out body;`
   );
 }
+
+/** The trails a lot is measured to: never a road, even one a hiking route follows. */
+const TRAIL_HIGHWAY = /^(path|footway|track|bridleway)$/;
 
 /** Lots a trailhead can't be: no public access. */
 const PRIVATE_LOT = /^(private|customers|permit|no)$/;
@@ -256,7 +261,10 @@ function toLine(ll: LatLon, line: readonly LatLon[]): number {
  * trail's route ("Brumley Mountain Trail (parking)"), else the trail's own name.
  */
 export function trailLots(elements: readonly OsmElement[]): TrailLot[] {
-  const ways = elements.filter((e) => e.type === "way" && e.geometry && e.tags?.highway);
+  const ways = elements.filter(
+    (e) => e.type === "way" && e.geometry && TRAIL_HIGHWAY.test(e.tags?.highway ?? ""),
+  );
+  const M = SCREEN_CONSTANTS.near.trailLotM;
   const routeOf = new Map<number, string>();
   for (const r of elements)
     if (r.type === "relation" && r.tags?.name)
@@ -277,7 +285,9 @@ export function trailLots(elements: readonly OsmElement[]): TrailLot[] {
         ),
       }))
       .sort((a, b) => a.m - b.m)[0];
-    const trail = near ? (routeOf.get(near.w.id) ?? near.w.tags?.name) : undefined;
+    // Near a road the route follows, not its trail: not a trailhead.
+    if (!near || near.m > M) continue;
+    const trail = routeOf.get(near.w.id) ?? near.w.tags?.name;
     const own = !!t.name?.trim();
     out.push({
       kind: "trailhead",

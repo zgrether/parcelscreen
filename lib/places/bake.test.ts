@@ -530,7 +530,8 @@ const GAP: OsmElement[] = [
 describe("the trail lots (existing-house plan §2)", () => {
   it("asks for lots by a hiking route's trails (never its roads) or an agency's named path", () => {
     const q = trailLotQuery("36_-82");
-    expect(q).toContain('way(r.hr)["highway"~"^(path|footway|track|bridleway)$"]');
+    // Every member with a highway (filtered in Overpass, the gap's trail came back empty: probe round 3).
+    expect(q).toContain('way(r.hr)["highway"]->.rw;');
     expect(q).toContain('["operator"~"forest|park|conservation|wildlife",i]');
     // Measured to the trails' lines, not a node set (a cell's trail nodes timed Overpass out, 11/11).
     expect(q).toContain('nwr["amenity"="parking"](around.tw:60)');
@@ -604,6 +605,40 @@ describe("the trail lots (existing-house plan §2)", () => {
   it("a trail's points outside the cell's box come back null: skipped, not thrown on", () => {
     const cut = GAP.map((e) => (e.id === 1426934898 ? { ...e, geometry: [null, ...e.geometry!, null] } : e));
     expect(trailLots(cut).map((l) => l.name)).toEqual(trailLots(GAP).map((l) => l.name));
+  });
+  it("measures a lot to the route's trails only: one by the road a route follows isn't a trailhead", () => {
+    const road: OsmElement[] = [
+      { type: "node", id: 41, lat: 36.9, lon: -81.9, tags: { amenity: "parking" } },
+      {
+        type: "way",
+        id: 42,
+        tags: { highway: "primary", ref: "VA 80" },
+        geometry: [
+          { lat: 36.9002, lon: -81.901 },
+          { lat: 36.9002, lon: -81.899 },
+        ],
+      },
+      {
+        type: "way",
+        id: 43,
+        tags: { highway: "path" },
+        geometry: [
+          { lat: 36.903, lon: -81.901 },
+          { lat: 36.903, lon: -81.899 },
+        ],
+      },
+      {
+        type: "relation",
+        id: 44,
+        tags: { route: "hiking", name: "X Trail" },
+        members: [
+          { type: "way", ref: 42 },
+          { type: "way", ref: 43 },
+        ],
+      },
+    ];
+    // 22 m from the road, 330 m from the path.
+    expect(trailLots(road)).toEqual([]);
   });
 });
 

@@ -107,22 +107,10 @@ describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-ho
     say("## Round 3: the bake's trail-lot query at Hayters Gap", "");
     const bb = `${GAP_BOX.s},${GAP_BOX.w},${GAP_BOX.n},${GAP_BOX.e}`;
     const cellQ = trailLotQuery("36_-82");
+    // Round 4: the routes' members of any highway, the trail rule applied in trailLots.
     const variants: [string, string][] = [
       ["the bake's, cell 36_-82", cellQ],
       ["the bake's, the gap's box", cellQ.replace(/\[bbox:[^\]]+\]/, `[bbox:${bb}]`)],
-      [
-        "the gap's box, around the trails' nodes",
-        cellQ
-          .replace(/\[bbox:[^\]]+\]/, `[bbox:${bb}]`)
-          .replace("(.rw;.aw;)->.tw;", "(.rw;.aw;)->.tw;node(w.tw)->.tn;")
-          .replace("(around.tw:", "(around.tn:"),
-      ],
-      [
-        "the gap's box, route members of any highway",
-        cellQ
-          .replace(/\[bbox:[^\]]+\]/, `[bbox:${bb}]`)
-          .replace('way(r.hr)["highway"~"^(path|footway|track|bridleway)$"]', "way(r.hr)"),
-      ],
     ];
     for (const [name, q] of variants) {
       const t0 = Date.now();
