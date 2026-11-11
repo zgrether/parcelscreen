@@ -113,4 +113,10 @@ in the hand-back's PR 6; these are what it left, outside the step or for you to 
   ("Existing house") still say existing. "House site" would read right there.
 - **The map key's "Rough lidar texture" row** is a fixed legend: when 3DEP fell back, the tips name the Terrain Tiles
   but the key doesn't.
+- **The router's back-road speeds** (owner, 2026-11-11, plan §2b): the public OSRM server's car profile drives
+  Virginia's back roads at 25 mph (Brumley Gap, Poor Valley), 15 (Tumbling Creek, Hidden Valley) and 9 on unpaved
+  WMA roads, so its times run well past Google's (Laurel Bed Lake 51 min from 010-A-10's house against 20–30). Every
+  back-road drive is slowed alike, so the order of places holds; changing it means another router or our own profile.
+- **The area catalog's sample parcels have no other lakes** (§9.81): they're engine 37, and
+  `SAMPLES_RESCREEN=1 pnpm areas:samples` (a full screen each, by hand) would add them.
 
