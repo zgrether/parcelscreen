@@ -5,6 +5,7 @@
  * limits you; then the one not-advice line. Outside the grade: it reads the card's facts and changes nothing on it.
  * Divide's Try a split starts the split tool; the splits tried, "Keep this, sell that", come after What limits you (§5).
  */
+import { elevationOf } from "@/lib/report/elevation";
 import { useEffect, useRef } from "react";
 import type { ScreenIt } from "@/components/Results/panel/ScreenIt";
 import { Scenarios } from "@/components/Split/Scenarios";
@@ -81,9 +82,9 @@ export function Uses({ s }: { s: ScreenIt }) {
           <h3 className="uses-head">{USE_NAME.limits}</h3>
           <Facts facts={v.limits} />
           {/* Boulder potential (docs/plans/boulders.md §2): one line, outside the grade. */}
-          <Boulders boulders={s.display?.boulders} />
+          <Boulders boulders={s.display?.boulders} elevation={elevationOf(s.display ?? {})} />
           {/* Water on the land (docs/plans/water.md §2): one line, outside the grade. */}
-          <Water water={s.display?.water} />
+          <Water water={s.display?.water} elevation={elevationOf(s.display ?? {})} />
         </>
       )}
       {/* Step 15: How it could pay, Uses' second panel, directly under What limits you (plan §6, §12 Q2). */}

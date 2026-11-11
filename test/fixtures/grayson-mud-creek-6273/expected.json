@@ -8737,6 +8737,14 @@
     "min": 60,
     "mi": 31
    },
+   "others": [
+    {
+     "name": "Hungry Mother Lake access",
+     "water": "Hungry Mother Lake",
+     "min": 70,
+     "mi": 38.5
+    }
+   ],
    "rivers": [
     {
      "name": "South Fork New River access",
@@ -8821,8 +8829,8 @@
     }
    ]
   },
-  "schemaVersion": 9,
-  "engine": 37,
+  "schemaVersion": 10,
+  "engine": 38,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -17565,6 +17573,14 @@
     "min": 60,
     "mi": 31
    },
+   "others": [
+    {
+     "name": "Hungry Mother Lake access",
+     "water": "Hungry Mother Lake",
+     "min": 70,
+     "mi": 38.5
+    }
+   ],
    "rivers": [
     {
      "name": "South Fork New River access",
@@ -17649,8 +17665,8 @@
     }
    ]
   },
-  "schemaVersion": 9,
-  "engine": 37,
+  "schemaVersion": 10,
+  "engine": 38,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

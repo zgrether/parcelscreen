@@ -50,6 +50,23 @@ async function launchesNear(from: LatLon, places: PlacesSource, signal?: AbortSi
   );
 }
 
+/**
+ * Each lake's quickest launch, quickest first (a tie to the nearer, as timed): the first is the row's, the rest are the
+ * other lakes listed (existing-house plan §2b). A launch with no named water is a lake of its own.
+ */
+export function quickestByLake<T extends { name: string; water: string | null; min: number }>(
+  timed: readonly T[],
+): T[] {
+  // Each launch's place in the timed list breaks a tie, as the row's single pick always did (the nearer launch).
+  const best = new Map<string, { t: T; i: number }>();
+  timed.forEach((t, i) => {
+    const key = t.water ?? `launch:${t.name}`;
+    const was = best.get(key);
+    if (!was || t.min < was.t.min) best.set(key, { t, i });
+  });
+  return [...best.values()].sort((a, b) => a.t.min - b.t.min || a.i - b.i).map((x) => x.t);
+}
+
 /** A pond of at least paddling.pondMinAc reaching inside the parcel: its acres in all, and its name if it has one. */
 export function pondToPaddle(ponds: Ponds | undefined): Paddling["pond"] {
   if (!ponds || !ponds.count || ponds.acres < K.pondMinAc) return null;
@@ -73,7 +90,7 @@ export async function paddlingNear(
       .slice(0, K.rivers)
       .map((x) => ({ name: x.l.name, river: x.l.waterName ?? null, km: +x.km.toFixed(1) }));
     const flat = near.filter((x) => x.l.water === "flat").slice(0, K.points);
-    let best: Paddling["flat"] = null;
+    let timed: NonNullable<Paddling["flat"]>[] = [];
     if (flat.length) {
       const table = await driveTable(
         from,
@@ -81,12 +98,13 @@ export async function paddlingNear(
         deps,
       );
       if (!table) return undefined;
-      table.legs.forEach((leg, i) => {
+      timed = table.legs.flatMap((leg, i) => {
         const l = flat[i]!.l;
-        if (leg && (!best || leg.min < best.min)) best = { name: l.name, water: l.waterName ?? null, ...leg };
+        return leg ? [{ name: l.name, water: l.waterName ?? null, ...leg }] : [];
       });
     }
-    return { flat: best, rivers, pond: pondToPaddle(ponds) };
+    const [best = null, ...others] = quickestByLake(timed);
+    return { flat: best, others: others.slice(0, K.otherLakes), rivers, pond: pondToPaddle(ponds) };
   } catch (e) {
     if (e instanceof CancelledError) throw e;
     return undefined;

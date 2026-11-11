@@ -5,15 +5,22 @@
  * the rough patches and any stony units apart, then the estimate's honesty line. Outside the grade: no chip, and the
  * Grade tab's tally doesn't count it. A grade from before the measurement shows nothing.
  */
+import type { Elevation } from "@/lib/report/elevation";
 import { useId, useState } from "react";
 import { bouldersView } from "@/lib/uses/boulders";
 import { BOULDERS } from "@/lib/uses/words";
 import type { ScreenResult } from "@/lib/screen/types";
 
-export function Boulders({ boulders }: { boulders: ScreenResult["boulders"] }) {
+export function Boulders({
+  boulders,
+  elevation,
+}: {
+  boulders: ScreenResult["boulders"];
+  elevation?: Elevation;
+}) {
   const [open, setOpen] = useState(false);
   const id = useId();
-  const v = bouldersView(boulders);
+  const v = bouldersView(boulders, elevation);
   if (!v) return null;
   return (
     <>
@@ -35,7 +42,7 @@ export function Boulders({ boulders }: { boulders: ScreenResult["boulders"] }) {
                 <li key={i}>{l}</li>
               ))}
             </ul>
-            <p className="tiny muted boulders-note">{BOULDERS.honesty}</p>
+            <p className="tiny muted boulders-note">{v.honesty}</p>
           </div>
         )}
       </div>
