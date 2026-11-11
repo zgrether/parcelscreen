@@ -1,0 +1,37 @@
+name: Existing house
+
+# The existing-house mission (docs/plans/existing-house.md), on CI's runners, since the cloud sessions that build the
+# app can't reach the hosts it asks:
+# - probe: parcel 010-A-10 graded live with no house mark, and why the Hayters Gap trailhead isn't among the baked
+#   places (test/tools/existing-house-probe.test.ts), into the job summary.
+# Nothing here gates a merge.
+on:
+  pull_request:
+    paths:
+      - test/tools/existing-house-probe.test.ts
+      - .github/workflows/existing-house.yml
+  workflow_dispatch: {}
+
+concurrency:
+  group: existing-house-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec vitest run test/tools/existing-house-probe.test.ts --mode existing-house-probe
+      - name: The report, into the job summary
+        if: always()
+        run: cat test-results/existing-house-probe.md >> "$GITHUB_STEP_SUMMARY" || true
