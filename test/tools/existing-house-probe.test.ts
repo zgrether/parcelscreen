@@ -20,6 +20,7 @@ import { createHttpClient } from "@/lib/http";
 import { reportCard } from "@/lib/report/card";
 import { defaultNamedRubric } from "@/lib/rubric/default";
 import { screen } from "@/lib/screen";
+import { trailLotQuery, trailLots, type OsmElement } from "@/lib/places/bake";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG } from "@/lib/screen/config";
 import type { ProgressEvent } from "@/lib/screen/types";
 
@@ -100,6 +101,70 @@ type OsmEl = {
 };
 
 describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-house probe", () => {
+  // Round 3 (#420): bake 2 kept 594 lots, but none at Hayters Gap. The bake's own query, for the gap's cell and for a
+  // small box, with Overpass's remark (a runtime error comes back as HTTP 200 with partial elements).
+  it("round 3: the bake's trail-lot query for the gap's cell", async () => {
+    say("## Round 3: the bake's trail-lot query at Hayters Gap", "");
+    const bb = `${GAP_BOX.s},${GAP_BOX.w},${GAP_BOX.n},${GAP_BOX.e}`;
+    const cellQ = trailLotQuery("36_-82");
+    const variants: [string, string][] = [
+      ["the bake's, cell 36_-82", cellQ],
+      ["the bake's, the gap's box", cellQ.replace(/\[bbox:[^\]]+\]/, `[bbox:${bb}]`)],
+      [
+        "the gap's box, around the trails' nodes",
+        cellQ
+          .replace(/\[bbox:[^\]]+\]/, `[bbox:${bb}]`)
+          .replace("(.rw;.aw;)->.tw;", "(.rw;.aw;)->.tw;node(w.tw)->.tn;")
+          .replace("(around.tw:", "(around.tn:"),
+      ],
+      [
+        "the gap's box, route members of any highway",
+        cellQ
+          .replace(/\[bbox:[^\]]+\]/, `[bbox:${bb}]`)
+          .replace('way(r.hr)["highway"~"^(path|footway|track|bridleway)$"]', "way(r.hr)"),
+      ],
+    ];
+    for (const [name, q] of variants) {
+      const t0 = Date.now();
+      const j = await overpass(q);
+      const els = (j?.elements as OsmElement[] | undefined) ?? [];
+      const lots = els.filter((e) => e.tags?.amenity === "parking");
+      const gap = lots.filter((e) => [808088841, 808088844].includes(e.id));
+      const nullGeom = els.filter((e) => e.geometry?.some((g) => g == null)).length;
+      let named: string[] = [];
+      try {
+        named = trailLots(els)
+          .filter((l) => /80808884[14]/.test(l.id))
+          .map((l) => `${l.id} "${l.name}"`);
+      } catch (e) {
+        named = [`trailLots threw: ${String(e)}`];
+      }
+      say(
+        `### ${name}`,
+        "",
+        `- ${((Date.now() - t0) / 1000).toFixed(0)} s; remark: ${clip(j?.remark ?? "none", 300)}`,
+        `- ${els.length} elements: ${lots.length} lots, ${els.filter((e) => e.type === "way" && e.tags?.highway).length} trail ways, ${els.filter((e) => e.type === "relation").length} routes; ${nullGeom} ways with null points`,
+        `- the gap's lots: ${gap.map((e) => `${e.type}/${e.id}`).join(", ") || "none"}; named: ${named.join("; ") || "none"}`,
+        "",
+      );
+      write();
+    }
+    // The gap's trail and its route, as OSM has them.
+    const near = await overpass(
+      `[out:json][timeout:60];way(808088841);out center tags;way(around:300)["highway"]->.w;.w out tags center;rel(bw.w)["route"];out tags;`,
+    );
+    say(
+      "### Within 300 m of the gap's lot",
+      "",
+      ...((near?.elements as OsmEl[] | undefined) ?? []).map(
+        (e) => `- ${e.type}/${e.id}: ${clip(JSON.stringify(e.tags), 220)}`,
+      ),
+      "",
+    );
+    write();
+    expect(out.length).toBeGreaterThan(4);
+  }, 1_800_000);
+
   it("round 2: 010-A-10 found and graded live; the trailhead rule tried at Hayters Gap", async () => {
     // ---------- 010-A-10: round 1's LIKE matched nothing, so the format is read from the parcels near the gap ----------
     const sample = json(

@@ -132,8 +132,8 @@ export interface OsmElement {
   tags?: Record<string, string>;
   /** A relation's members (`out body`). */
   members?: { type: string; ref: number; role?: string }[];
-  /** A way's points (`out geom`). */
-  geometry?: { lat: number; lon: number }[];
+  /** A way's points (`out geom`); a point outside the query's bbox comes back null. */
+  geometry?: ({ lat: number; lon: number } | null)[];
 }
 
 /** One Overpass query, each mirror in turn (POST, as the area profiler sends it). */
@@ -147,7 +147,10 @@ export async function overpass(ql: string, deps: Pick<BakeDeps, "http" | "overpa
         timeoutMs: 200_000,
       });
       if (!r.ok) throw new Error(`${new URL(m).host} ${r.status}`);
-      return ((await r.json()) as { elements?: OsmElement[] }).elements ?? [];
+      const j = (await r.json()) as { elements?: OsmElement[]; remark?: string };
+      // A query past its time or memory comes back 200 with what it found so far and a remark: not an answer.
+      if (j.remark && /runtime error/i.test(j.remark)) throw new Error(`${new URL(m).host}: ${j.remark}`);
+      return j.elements ?? [];
     } catch (e) {
       errs.push(String(e));
     }
@@ -270,7 +273,7 @@ export function trailLots(elements: readonly OsmElement[]): TrailLot[] {
         w,
         m: toLine(
           ll,
-          w.geometry!.map((g): LatLon => [g.lat, g.lon]),
+          w.geometry!.flatMap((g): LatLon[] => (g ? [[g.lat, g.lon]] : [])),
         ),
       }))
       .sort((a, b) => a.m - b.m)[0];

@@ -11,6 +11,7 @@ import {
   osmCellQuery,
   osmLaunches,
   osmPlaces,
+  overpass,
   trailLotQuery,
   trailLots,
   type OsmElement,
@@ -598,5 +599,28 @@ describe("the trail lots (existing-house plan §2)", () => {
     ).toHaveLength(2);
     // The rest of OSM baked as ever.
     expect(cells.some((c) => c.folder === "osm")).toBe(true);
+  });
+
+  it("a trail's points outside the cell's box come back null: skipped, not thrown on", () => {
+    const cut = GAP.map((e) => (e.id === 1426934898 ? { ...e, geometry: [null, ...e.geometry!, null] } : e));
+    expect(trailLots(cut).map((l) => l.name)).toEqual(trailLots(GAP).map((l) => l.name));
+  });
+});
+
+describe("overpass", () => {
+  it("a runtime error's remark is a failure, not an answer (its elements are partial)", async () => {
+    const answer = (body: unknown) => async () =>
+      new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } });
+    const deps = (body: unknown) => ({
+      http: http(answer(body)),
+      overpass: ["https://o.test/api/interpreter"],
+    });
+    await expect(
+      overpass(
+        "q",
+        deps({ elements: [{ type: "node", id: 1 }], remark: 'runtime error: Query timed out in "query"' }),
+      ),
+    ).rejects.toThrow(/Overpass unreachable.*runtime error/);
+    expect(await overpass("q", deps({ elements: [{ type: "node", id: 1 }] }))).toHaveLength(1);
   });
 });
