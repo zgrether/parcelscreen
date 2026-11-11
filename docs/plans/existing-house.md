@@ -42,17 +42,25 @@ hand-back to main is Zach's.
 
 ## 1. "House already here" (the main item)
 
-### 1a. The mark
-- **The existing mark is renamed, not duplicated.** The picker's "House site" becomes **"House already here"** and moves
-  from "Build" to "On the land", beside Building and Campsite.
-  - It's the same point and the same engine assessment, so there's no new kind, no schema change and no migration.
-  - A second mark meaning almost the same thing would split the existing-house logic in two.
-  - Planning a house site stays where it is: tap a site, or move a pin.
+### 1a. The mark (Zach, #416 review: both meanings on the one stored point)
+- **Why not a plain rename:** on raw land the house mark is how a chosen site is kept (`lib/render/pins.ts`
+  evaluatedNote: "Run again or move the house to keep it"). Read as an existing house, it would set aside Room to build,
+  the Septic Must and the Driveway row on land with no house.
+- **An optional `existing` flag on the stored house point** (`WorkingParcel.houseExisting`, alongside `house`):
+  - It's additive. Absent means false, which is today's behaviour exactly.
+  - It's an optional field with a default, so the parcel store's `v` stays 2. A synced parcel carries it in its
+    existing JSON, so there's no migration.
+- **The picker:**
+  - "House site" stays under Build and sets the flag false.
+  - "House already here", a new choice under On the land, sets it true.
+  - There's one house point per parcel; placing either replaces the other.
+- **The engine is unchanged** (`setHouse`, the result's `house`). §1b, §1c and §1d apply only when the flag is true.
 - **Its words:**
-  - The map's tip and the Lines & marks row say "House already here".
-  - The Full report's section stays "The existing house".
+  - With the flag, the map's tip and the Lines & marks row say "House already here"; without it, "House site", as
+    now.
+  - The Full report still titles a planned site "The existing house". It's left as it is and goes to polish.md.
 
-### 1b. The grade, with the mark
+### 1b. The grade, with "House already here"
 - **Site #1 is the house.**
   - The card is graded at the house, with its own Elevation, Best homesite (its December sun, aspect and frost from the
     house's assessment), Night sky, Climate, Privacy, Long view and Satellite internet.
@@ -128,11 +136,19 @@ Channels State Forest.
     - VGIN's landmarks do have a "State Forest Points" type (Channels State Forest among them) that our filter leaves
       out. But a forest's point is the forest, not its access lot, so it's no fix.
     - No Department of Forestry layer of access points was found on ArcGIS Online.
-- **The fix, at the source:**
-  - The OSM bake also takes a parking lot within 60 m of a hiking or foot route, or of a named path that an agency
-    runs (operator matching forest, park, conservation or wildlife). It's named after that trail: "Brumley Mountain
-    Trail (parking)", or the lot's own name when it has one.
-  - It's dropped when a tagged or official trailhead is within 150 m (`near.trailheadDedupeM`'s rule).
+- **The fix, at the source.** The OSM bake also takes a parking lot within 60 m (`near.trailLotM`, new) of a trail:
+  - **which trails:** a hiking or foot route relation's members that are paths, footways, tracks or bridleways (never
+    its road members, so a route that follows a road doesn't make every lot along it a trailhead), or a named
+    path or footway that an agency runs (operator matching forest, park, conservation or wildlife);
+  - **its name:** the lot's own name when it has one, else the trail's: "Brumley Mountain Trail (parking)";
+  - **skipped:** lots tagged `access` private, customers, permit or no;
+  - **merged by distance alone** (`near.trailLotMergeM`, new, 150 m, as `near.trecMergeM`), not by the name rule.
+    "Brumley Mountain Trail (parking)" and "Brumley Mountain Trailhead" don't normalise to the same name, so
+    `near.trailheadDedupeM` (300 m with a name match) wouldn't merge them.
+    - A derived lot within it of a tagged or official trailhead is dropped.
+    - Derived lots within it of each other are one, the first named or the first found kept.
+  - **Why it's careful:** the Trails row grades the single quickest drive (`trailheadMin`), so one false lot can
+    change a letter.
   - Tried live in Hayters Gap's box, the rule found 5 lots:
     - the gap's lot;
     - the named "Brumley Mountain Trailhead";
@@ -157,7 +173,10 @@ Channels State Forest.
 
 ## 4. Numbers and text
 
-- **Grades:** none move on the fixtures. None has a house mark, and all four read 3DEP.
+- **Grades:** none move on the fixtures for §1 and §3. All four read 3DEP.
+  - **Ferney has house-mark scenarios** (`setHouse`, `houseRun`) in its `input.json`, `expected.json` and
+    `grades-v7.json`. Those marks carry no `existing` flag, so they read as "House site" and must not move. A test
+    asserts that Ferney's house scenarios grade exactly as before.
 - **`expected.json`:**
   - Unchanged by §1 and §3: they're report-level.
   - §2's new trailheads can change a fixture's trailhead list and Trails row, if one is near a state forest. Any such
@@ -167,7 +186,7 @@ Channels State Forest.
     sites found: not searched", Cost to enjoy's line, the agent questions and the picker's label.
   - §3's appear only when 3DEP fell back.
   - All of it is new text or a fallback's wording; no fixture's golden changes in place.
-- **No schema or migration change.** The mark is the parcel's existing `house`.
+- **No schema or migration change.** The result's schema is untouched; the parcel gains an optional `houseExisting`.
 
 ## 5. The work, by PR
 
@@ -177,7 +196,7 @@ Channels State Forest.
 | 1 | The probe | `existing-house.yml` with the trailhead probe (OSM, VGIN, DOF) and 010-A-10 graded live with no house mark (the "before"), into the job summary |
 | 2 | House already here | The card (site #1 at the house, set-asides with their verify lines, the drawn drive graded), Cost to enjoy, the agent questions, the picker's label, the map's pins hidden; unit tests on a synthetic parcel |
 | 3 | The elevation labels | The helper and every label it feeds; the fallback note; unit tests with a fallback result |
-| 4 | The trailhead | The source fix (or the overrides file), the places baked again, `expected.json` if any moves; 010-A-10's trailhead checked live |
+| 4 | The trailhead | The source fix, the places baked again, `expected.json` if any moves; 010-A-10's trailhead checked live. Its report: the count of new lots per baked area, the ten new lots nearest a town centre, and the Trails letter before and after for the four fixtures |
 | 5 | Hand-back | 010-A-10 graded live with the house mark (the "after"), checked on the deployed preview with screenshots at 1280 and 375, owner fields masked; polish.md's entry; §9.80; the hand-back |
 
 ## 6. Stop conditions
@@ -189,7 +208,7 @@ Channels State Forest.
 
 ## 7. Tests
 
-- **Unit:** the house mark on a synthetic parcel:
+- **Unit:** "House already here" on a synthetic parcel:
   - Room to build, Septic, the Driveway row (no drive drawn) and Within budget's Ready to build are set aside, with
     "House already here";
   - the marked point is graded: Best homesite reads the house's sun and aspect, Elevation its elevation;
@@ -197,7 +216,8 @@ Channels State Forest.
   - with an existing drive drawn, the Driveway row grades that line;
   - Cost to enjoy hides Ready to build and says why;
   - the agent questions add the existing-house set;
-  - removing the mark gives the card as before.
+  - removing the mark, or the flag absent ("House site"), gives the card as before;
+  - Ferney's house scenarios grade exactly as before.
 - **Unit:** each elevation label with `demSource` "AWS Terrain Tiles (NED/SRTM)" names it, and the 3DEP strings are
   unchanged.
 - **Live, on CI's runners:**
@@ -224,11 +244,14 @@ Channels State Forest.
 - **Phone (375):** the set-aside list uses the existing rows (44 px tap targets); the picker's group is unchanged in
   size.
 
-## 9. Questions for Zach
+## 9. Zach's answers (#416 review)
 
-1. **The mark:** I plan to rename the existing "House site" mark to "House already here" (§1a), rather than add a
-   second kind. That mark already means the existing house everywhere in the engine and the Full report. Is that
-   right, or do you also want to keep a "planned house site" mark?
-2. **010-A-10's house:** where is it, as a lat/lon or "at the end of the drive, near …"? The deployed check places the
-   mark there. (The probe found the parcel: VGIN's PTM_ID is "10-A-10", 92.76 ac. With no house mark, the default
-   rubric reads Maybe · C: Room to build F, Septic "check first", Trails C at 31 min.) If you'd rather not say, I'll place it from the imagery at the end of the existing drive and say so.
+1. **The mark:** keep both meanings on the one stored point, with an optional `existing` flag (§1a). If Zach later
+   wants the plain rename instead, evaluatedNote changes and raw land gets another way to keep a site, in this step.
+2. **010-A-10's house:** just up the slope and to the left of the solar array, whose pin is 36.865411, −81.921775
+   (Zach's map and photo). The deployed check places the mark about 25 m north-west of it, at 36.86562, −81.92200.
+3. **§4:** Ferney's house scenarios must not move (above).
+4. **§2:** the trailhead rule's dedupe, access and route-member rules, and PR 4's report (above).
+
+The probe found the parcel: VGIN's PTM_ID is "10-A-10", 92.76 ac. With no house mark, the default rubric reads
+Maybe · C: Room to build F, Septic "check first", Trails C at 31 min.
