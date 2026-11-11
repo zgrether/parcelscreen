@@ -8,6 +8,7 @@
  * Analysis group after the house. Drawn lines come last (owner, #127): each by its name ("Track 2"), with its
  * condition and length where a part has its acres, and its details below the tree.
  */
+import { HOUSE_HERE_LABEL } from "@/lib/report/existingHouse";
 import { area, difference, featureCollection, length, lineString } from "@turf/turf";
 import type { Feature, MultiPolygon, Polygon } from "geojson";
 import { KIND_NAME, type LineMarkup, type Markup, type WorkingParcel } from "@/lib/client/parcelStore";
@@ -180,7 +181,8 @@ export function layerTree(p: WorkingParcel, derived: DerivedParcel, shapes: Parc
         {
           id: "house",
           kind: "house",
-          name: "Existing house",
+          // With its flag (existing-house plan §1a); without it the name it had (polish.md: a planned site's name).
+          name: p.houseExisting ? HOUSE_HERE_LABEL : "Existing house",
           acres: null,
           icon: "house",
           hideable: true,

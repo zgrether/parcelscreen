@@ -68,6 +68,16 @@ export function adjustedWords(
 /** A set-aside factor's reading at the top of its panel. */
 export const SET_ASIDE_READING = (reason: string): string => `Set aside for this parcel: “${reason}”.`;
 
+/** The app's set-aside (existing-house plan §1b), in a row's few words: "set aside: a house is already here". */
+export const HOUSE_ASIDE_WORDS = "set aside: a house is already here";
+
+/** A set-aside row's panel reading: the person's reason, or the app's with what to check instead. */
+export const asideReading = (x: { reason: string; auto?: { verify: string } }): string =>
+  x.auto ? `Set aside: a house is already here. ${x.auto.verify}` : SET_ASIDE_READING(x.reason);
+
+/** A set-aside row's few words: the person's, or the app's. */
+export const asideWords = (x: { auto?: unknown }): string => (x.auto ? HOUSE_ASIDE_WORDS : SET_ASIDE_WORDS);
+
 /** Full's section (plan §3, §8): every adjustment on the parcel, by whom. */
 export const ADJUSTMENTS_TITLE = "Your adjustments";
 

@@ -126,6 +126,11 @@ export interface ExploreState {
   editing: string | null;
   /** What the Mark tool marks next (WF4); null until a kind is picked. */
   markKind: MarkKind | null;
+  /**
+   * What the House tool places next (existing-house plan §1a): a house already here (true) or a planned site (false),
+   * as picked; null when the tool wasn't picked from the Mark picker, which keeps the mark's own.
+   */
+  houseNext: boolean | null;
   /** Step 14 (plan §5): the scenario whose line the split tool is moving (Adjust the line); null for a new one. */
   scenarioLine: string | null;
   /**
@@ -157,6 +162,7 @@ export const INITIAL: ExploreState = {
   markKind: null,
   scenarioLine: null,
   gradeScenario: null,
+  houseNext: null,
 };
 
 /** The parcel panel's segment (step 14): Grade, Uses or Details. */
@@ -173,7 +179,7 @@ export interface Stamp {
 }
 
 export type ExploreAction =
-  | { type: "mode"; mode: Mode }
+  | { type: "mode"; mode: Mode; houseNext?: boolean }
   /**
    * Open a parcel straight from a tap on its outline. `keepPanel`: the Info panel is docked beside the map
    * (desktop), so switching parcels leaves it open on the new one.
@@ -187,7 +193,8 @@ export type ExploreAction =
   | { type: "imported"; added: WorkingParcel[] }
   /** The parcels as another page wrote them while the map was behind its tab (step 4b). */
   | { type: "adopt"; store: ParcelStore }
-  | { type: "house"; ll: LatLon | null; stamp: Stamp }
+  /** `existing`: as picked ("House already here" or "House site"); absent keeps the mark's own (a move). */
+  | { type: "house"; ll: LatLon | null; stamp: Stamp; existing?: boolean }
   | { type: "startDraw" }
   | { type: "draftAdd"; ll: LatLon }
   | { type: "draftUndo" }
@@ -319,7 +326,7 @@ const switched = (
 /** Tools in progress end when the parcel changes underneath them. */
 const NO_TOOL: Pick<
   ExploreState,
-  "mode" | "draft" | "split" | "combine" | "editing" | "markKind" | "scenarioLine"
+  "mode" | "draft" | "split" | "combine" | "editing" | "markKind" | "scenarioLine" | "houseNext"
 > = {
   mode: null,
   draft: [],
@@ -328,6 +335,7 @@ const NO_TOOL: Pick<
   editing: null,
   markKind: null,
   scenarioLine: null,
+  houseNext: null,
 };
 
 const LINE_KINDS: readonly MarkupKind[] = ["track", "easement", "drive"];
@@ -411,7 +419,7 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
   const open = s.store.open;
   switch (a.type) {
     case "mode":
-      return { ...s, mode: a.mode };
+      return { ...s, mode: a.mode, houseNext: a.mode === "house" ? (a.houseNext ?? null) : null };
     case "select":
       return {
         ...s,
@@ -444,8 +452,9 @@ export function exploreReducer(s: ExploreState, a: ExploreAction): ExploreState 
       if (!open) return s;
       return {
         ...s,
-        store: save({ ...open, house: a.ll ? roundLL(a.ll) : null }, a.stamp),
+        store: save(withHouse(open, a.ll ? roundLL(a.ll) : null, a.existing ?? s.houseNext), a.stamp),
         mode: s.mode === "house" ? null : s.mode,
+        houseNext: null,
         layer: !a.ll && s.layer === "house" ? null : s.layer,
       };
     case "startDraw":
@@ -946,4 +955,14 @@ export function decideTap(s: ExploreState, hit: TapHit, busy = false): TapOutcom
       : null;
   if (!to) return { kind: "none" };
   return busy && open ? { kind: "busy" } : to;
+}
+
+/**
+ * The parcel with its house point placed, moved or removed (existing-house plan §1a): `existing` as picked, or, when
+ * null, the mark's own (a move keeps it). Removed, the flag goes with it; false is stored as absent, today's parcel.
+ */
+export function withHouse(p: WorkingParcel, ll: LatLon | null, existing: boolean | null): WorkingParcel {
+  const { houseExisting: was, ...rest } = p;
+  const flag = ll ? (existing ?? was ?? false) : false;
+  return { ...rest, house: ll, ...(flag ? { houseExisting: true } : {}) };
 }

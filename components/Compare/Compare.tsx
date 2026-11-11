@@ -18,6 +18,7 @@ import { evaluationPoint } from "@/components/Results/blocks/types";
 import { parcelName } from "@/lib/client/historyRows";
 import { openOnMap } from "@/lib/client/openOnMap";
 import type { WorkingParcel } from "@/lib/client/parcelStore";
+import { cardFactsOf } from "@/lib/client/parcelStore";
 import { getPref, setPref } from "@/lib/client/prefs";
 import { favoritesOf } from "@/lib/client/favorites";
 import { useKeptScreens } from "@/lib/client/useKeptScreens";
@@ -86,7 +87,7 @@ export function Compare() {
         b.drivewayLine,
         { askingPrice: b.askingPrice, ...costs },
         adjustFor(b.key, household),
-        b.facts,
+        cardFactsOf(b),
       ),
     };
   });

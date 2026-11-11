@@ -7,14 +7,18 @@
 import type { LineKind } from "./parcelStore";
 import type { AreaKind, PointKind } from "@/lib/report/marks";
 
-/** A picker choice: the house site, a line's kind, a point's kind, or a clearing (septic permits are either). */
-export type MarkChoice = "house" | LineKind | PointKind | Exclude<AreaKind, "septic">;
+/**
+ * A picker choice: the house site, a house already here (the same point, flagged: existing-house plan §1a), a line's
+ * kind, a point's kind, or a clearing (septic permits are either).
+ */
+export type MarkChoice = "house" | "houseHere" | LineKind | PointKind | Exclude<AreaKind, "septic">;
 
 /** How a choice is drawn: the house tool, a line, a point, an area, or a septic permit's point-or-field. */
 export type MarkTool = "house" | "line" | "point" | "area" | "septic";
 
 export const TOOL: Record<MarkChoice, MarkTool> = {
   house: "house",
+  houseHere: "house",
   track: "line",
   drive: "line",
   easement: "line",
@@ -33,6 +37,7 @@ export const TOOL: Record<MarkChoice, MarkTool> = {
 /** Each choice's label in the picker. */
 export const CHOICE_LABEL: Record<MarkChoice, string> = {
   house: "House site",
+  houseHere: "House already here",
   track: "Track",
   drive: "Existing drive",
   easement: "Easement",
@@ -53,7 +58,7 @@ export const CHOICE_GROUPS: readonly { title: string; choices: readonly MarkChoi
   { title: "Build", choices: ["house"] },
   { title: "Ways in", choices: ["track", "drive", "easement"] },
   { title: "Water & utilities", choices: ["spring", "stream", "well", "septic", "power"] },
-  { title: "On the land", choices: ["building", "campsite", "clearing", "gate", "note"] },
+  { title: "On the land", choices: ["houseHere", "building", "campsite", "clearing", "gate", "note"] },
 ];
 
 /** How many recent choices the picker shows above the groups. */

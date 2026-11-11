@@ -5,6 +5,7 @@
  */
 import type { GateKey } from "../rubric/types";
 import type { Card } from "./card";
+import { EXISTING_HOUSE_QUESTIONS } from "./existingHouse";
 
 /** One question per gate (plan §8): what to ask the agent when the screen can't settle it. */
 export const AGENT_QUESTIONS: Record<GateKey, string> = {
@@ -17,7 +18,8 @@ export const AGENT_QUESTIONS: Record<GateKey, string> = {
 };
 
 export interface AgentQuestion {
-  key: GateKey;
+  /** A Must's key, or `house-<n>` for a house already here's questions (existing-house plan §1d). */
+  key: GateKey | `house-${number}`;
   question: string;
   /** The gate's own reason: why we ask. */
   why: string;
@@ -32,8 +34,17 @@ export function agentQuestions(card: Card): AgentQuestion[] {
     g.status === "unknown" || (g.status === "warn" && g.key !== "floodplain");
   return card.gates
     .filter((g) => must(g.key) && !g.missing && open(g))
-    .map((g) => ({ key: g.key, question: AGENT_QUESTIONS[g.key], why: g.reason }));
+    .map((g): AgentQuestion => ({ key: g.key, question: AGENT_QUESTIONS[g.key], why: g.reason }))
+    .concat(card.existingHouse ? existingHouseQuestions() : []);
 }
+
+/** A house already here (existing-house plan §1d): what to ask about the house, after the Musts' questions. */
+const existingHouseQuestions = (): AgentQuestion[] =>
+  EXISTING_HOUSE_QUESTIONS.map((question, i) => ({
+    key: `house-${i}`,
+    question,
+    why: "a house is already here",
+  }));
 
 /** Copy all: the questions as a numbered list under the parcel's name. */
 export function copyAllText(name: string, qs: readonly AgentQuestion[]): string {
