@@ -930,6 +930,10 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     log(`parking: ${String(e)}; keeping the previous bake's`);
     parking = deps.previous.places.filter((p): p is BakedParking => p.kind === "parking");
   }
+  // A lot that is a trailhead itself (a trail lot, or a lot tagged as one) is asked for again here, around itself, with
+  // the same id: kept as the trailhead, never as its own parking (the cells keep one place per id, the last).
+  const trailheadIds = new Set(trailheads.map((t) => t.id));
+  parking = parking.filter((p) => !trailheadIds.has(p.id));
 
   // Each launch on its water (NHD), a batch at a time; a batch NHD won't answer keeps the previous bake's.
   const classified = await classifyAll(raw, deps);

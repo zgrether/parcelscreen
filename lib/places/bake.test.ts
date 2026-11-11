@@ -115,6 +115,8 @@ function fakeFetch(
               tags: { amenity: "parking", name: "Elk Garden" },
             },
             { type: "node", id: 91, lat: 36.651, lon: -81.501, tags: { amenity: "parking", hiking: "yes" } },
+            // A trail lot is parking too, and is asked for again around itself (bake 3, 11/11).
+            ...(opts.lots ? GAP.filter((e) => e.tags?.amenity === "parking") : []),
           ],
         });
       if (ql.includes("[bbox:36,-82,37,-81]"))
@@ -578,6 +580,10 @@ describe("the trail lots (existing-house plan §2)", () => {
       src: "osm",
     });
     expect(kept.map((l) => l.id)).toEqual(["osm:way/808088844", "osm:way/808088841"]);
+    // Asked for again as parking around the trailheads, with the same ids: still the trailheads, not parking.
+    const all = cells.flatMap((c) => c.places);
+    for (const id of ["osm:way/808088841", "osm:way/808088844"])
+      expect(all.filter((p) => p.id === id).map((p) => p.kind)).toEqual(["trailhead"]);
   });
 
   it("a cell whose lots Overpass won't give loses only its lots, asked again first, and the summary says so", async () => {
