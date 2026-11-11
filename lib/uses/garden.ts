@@ -5,6 +5,7 @@
  * pocket, or uses.smallStockAc to pastureAc of open ground ("room for small stock"). No: no garden ground and under
  * smallStockAc open. Pure.
  */
+import { elevationOf, relabel } from "../report/elevation";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import type { LatLon } from "../geo/types";
 import type { Fact, UseAnswer, UsesInput } from "./types";
@@ -72,7 +73,13 @@ export function garden(input: UsesInput): UseAnswer {
       ? { label: GARDEN.gardenLabel, value: largest ? GARDEN.garden(largest.acres) : GARDEN.noGarden }
       : { label: GARDEN.gardenLabel, value: MISSING.terrain },
     ...(largest
-      ? [{ label: GARDEN.frostLabel, value: best ? GARDEN.outOfPocket : GARDEN.pocket, source: SOURCE.dem }]
+      ? [
+          {
+            label: GARDEN.frostLabel,
+            value: best ? GARDEN.outOfPocket : GARDEN.pocket,
+            source: relabel(SOURCE.dem, elevationOf(r)),
+          },
+        ]
       : []),
     water.fact,
     open !== null

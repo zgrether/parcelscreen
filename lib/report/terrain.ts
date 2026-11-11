@@ -1,4 +1,5 @@
 /** The Terrain section (proto L1461–1472). */
+import { fallbackNote } from "./elevation";
 import { compass, fmt } from "../format";
 import type { PartialScreenResult } from "../screen/types";
 import type { FactRow } from "./facts";
@@ -31,9 +32,7 @@ export function terrainView(r: PartialScreenResult): TerrainView | null {
     {
       label: "Elevation",
       value: `${fmt(t.elevMinFt)}–${fmt(t.elevMaxFt)} ft (mean ${fmt(t.elevMeanFt)})`,
-      ...(r.demSource && r.demSource !== "USGS 3DEP"
-        ? { note: `from ${r.demSource} — USGS 3DEP was unavailable` }
-        : {}),
+      ...(r.demSource && r.demSource !== "USGS 3DEP" ? { note: fallbackNote(r.demSource) } : {}),
     },
     { label: "Relief across the parcel", value: `${fmt(t.reliefFt)} ft` },
     {

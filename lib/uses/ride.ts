@@ -4,6 +4,7 @@
  * trail estimate from uses.trailYesMi). No: neither. Every reason ends saying neighbours' corridors are private unless
  * they agree; snow cover isn't measured, and a fact says so. Pure.
  */
+import { elevationOf, relabel } from "../report/elevation";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { LONG_TRAIL_DRIVES } from "../screen/longTrail";
 import { adjoiningPublic } from "./common";
@@ -35,7 +36,7 @@ export function ride({ result: r }: UsesInput): UseAnswer {
     {
       label: RIDE.loopLabel,
       value: loop ? RIDE.loopValue(loop.miles) : MISSING.trails,
-      source: SOURCE.lidar,
+      source: relabel(SOURCE.lidar, elevationOf(r)),
     },
     { label: RIDE.snowLabel, value: RIDE.snow },
   ];
