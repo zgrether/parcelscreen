@@ -137,9 +137,13 @@ Channels State Forest.
       out. But a forest's point is the forest, not its access lot, so it's no fix.
     - No Department of Forestry layer of access points was found on ArcGIS Online.
 - **The fix, at the source.** The OSM bake also takes a parking lot within 60 m (`near.trailLotM`, new) of a trail:
-  - **which trails:** a hiking or foot route relation's members that are paths, footways, tracks or bridleways (never
-    its road members, so a route that follows a road doesn't make every lot along it a trailhead), or a named
-    path or footway that an agency runs (operator matching forest, park, conservation or wildlife);
+  - **which trails:** a hiking or foot route relation's members that are paths, footways, tracks, bridleways or
+    service roads (never its public road members, residential up to trunk, so a route that follows a road doesn't make
+    every lot along it a trailhead), or a named path or footway that an agency runs (operator matching forest, park,
+    conservation or wildlife). Service roads were added after the bake (Zach, 11/11): the Hayters Gap lot is 20 m from
+    Raven Ridge, the gated service road the Brumley Mountain Trail follows up to its footpath, 300 m on. The members
+    are asked of Overpass whatever their highway and the rule is applied in `trailLots` (filtered in Overpass, the
+    gap's route members came back empty: probe round 3);
   - **its name:** the lot's own name when it has one, else the trail's: "Brumley Mountain Trail (parking)";
   - **skipped:** lots tagged `access` private, customers, permit or no;
   - **merged by distance alone** (`near.trailLotMergeM`, new, 150 m, as `near.trecMergeM`), not by the name rule.

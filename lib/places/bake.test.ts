@@ -640,6 +640,28 @@ describe("the trail lots (existing-house plan §2)", () => {
     // 22 m from the road, 330 m from the path.
     expect(trailLots(road)).toEqual([]);
   });
+
+  it("a service road the route follows counts (the gap's gated road up to the footpath); its route names the lot", () => {
+    const gap: OsmElement[] = [
+      { type: "way", id: 808088841, center: { lat: 36.8646, lon: -81.9469 }, tags: { amenity: "parking" } },
+      {
+        type: "way",
+        id: 1426934900,
+        tags: { highway: "service", name: "Raven Ridge", access: "destination" },
+        geometry: [
+          { lat: 36.8647, lon: -81.9471 },
+          { lat: 36.866, lon: -81.95 },
+        ],
+      },
+      {
+        type: "relation",
+        id: 19562221,
+        tags: { route: "hiking", name: "Brumley Mountain Trail" },
+        members: [{ type: "way", ref: 1426934900 }],
+      },
+    ];
+    expect(trailLots(gap).map((l) => l.name)).toEqual(["Brumley Mountain Trail (parking)"]);
+  });
 });
 
 describe("overpass", () => {

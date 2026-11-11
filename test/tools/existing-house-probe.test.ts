@@ -21,6 +21,10 @@ import { reportCard } from "@/lib/report/card";
 import { defaultNamedRubric } from "@/lib/rubric/default";
 import { screen } from "@/lib/screen";
 import { trailLotQuery, trailLots, type OsmElement } from "@/lib/places/bake";
+import { BAKE_DIR, placesFromDir } from "@/lib/places/disk";
+import { driveTable } from "@/lib/screen/drive";
+import { paddlingNear } from "@/lib/screen/paddling";
+import { cellsWithin, type BakedLaunch } from "@/lib/screen/placeData";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG } from "@/lib/screen/config";
 import type { ProgressEvent } from "@/lib/screen/types";
 
@@ -152,6 +156,56 @@ describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-ho
     write();
     expect(out.length).toBeGreaterThan(4);
   }, 1_800_000);
+
+  // Round 4 (Zach, 11/11): grading 010-A-10, Paddling found South Holston Lake (42 min) and missed Hidden Valley Lake
+  // and Laurel Bed Lake, both baked as flatwater launches. The six nearest flatwater launches from the house, each one's
+  // OSRM table leg and where OSRM snaps it, and paddlingNear's own answer, from the repo's bake.
+  it("round 4: the paddling launches from 010-A-10", async () => {
+    const from: [number, number] = [36.86562, -81.922];
+    const http = createHttpClient({
+      env: "node",
+      fetchImpl: live(),
+      userAgent: "ParcelScreen/1.0 (existing-house probe)",
+    });
+    const deps = { http, endpoints: DEFAULT_ENDPOINTS };
+    const places = placesFromDir(BAKE_DIR);
+    const cells = cellsWithin(from, 100);
+    const all = [...(await places("osm", cells)), ...(await places("official", cells))].filter(
+      (p): p is BakedLaunch => p.kind === "launch" && p.water === "flat",
+    );
+    const km = (ll: [number, number]) =>
+      Math.hypot((ll[0] - from[0]) * 111.2, (ll[1] - from[1]) * 111.2 * Math.cos((from[0] * Math.PI) / 180));
+    const near = all
+      .map((l) => ({ l, km: km(l.ll) }))
+      .sort((a, b) => a.km - b.km)
+      .slice(0, 10);
+    const table = await driveTable(
+      from,
+      near.map((x) => x.l.ll),
+      deps,
+    );
+    say(
+      "## Round 4: paddling from 010-A-10 (the house point)",
+      "",
+      `- table snap at the start: ${table?.snapM ?? "?"} m`,
+      "",
+    );
+    for (const [i, x] of near.entries()) {
+      const nr = await get(
+        `https://router.project-osrm.org/nearest/v1/driving/${x.l.ll[1]},${x.l.ll[0]}?number=1`,
+      );
+      const w = (json(nr.text)?.waypoints as { name?: string; distance?: number }[] | undefined)?.[0];
+      const leg = table?.legs[i];
+      say(
+        `- ${x.l.id} "${x.l.name}" on ${x.l.waterName ?? "?"} (${x.l.waterAc ?? "?"} ac), ${x.km.toFixed(1)} km: ` +
+          `${leg ? `${leg.min} min, ${leg.mi} mi` : "no leg"}; snaps to "${w?.name ?? "?"}" ${w?.distance?.toFixed(0) ?? "?"} m off`,
+      );
+    }
+    const pd = await paddlingNear(from, undefined, places, deps);
+    say("", `- paddlingNear: ${clip(JSON.stringify(pd?.flat ?? pd), 300)}`, "");
+    write();
+    expect(out.length).toBeGreaterThan(4);
+  }, 600_000);
 
   it("round 2: 010-A-10 found and graded live; the trailhead rule tried at Hayters Gap", async () => {
     // ---------- 010-A-10: round 1's LIKE matched nothing, so the format is read from the parcels near the gap ----------

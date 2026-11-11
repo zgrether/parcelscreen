@@ -199,15 +199,16 @@ export function osmCellQuery(cell: string): string {
 
 /**
  * The parking lots by a trail in a cell (existing-house plan §2): lots within near.trailLotM of a hiking or foot route's
- * paths, footways, tracks or bridleways (never its roads), or of a named path or footway an agency runs; then the
+ * paths, footways, tracks, bridleways or service roads (never its public roads), or of a named path or footway an
+ * agency runs; then the
  * trails near those lots with their points, and the routes they're on (`out body`: their members), to name each lot.
  */
 export function trailLotQuery(cell: string): string {
   const [w, s, e, n] = cellBox(cell);
   const M = SCREEN_CONSTANTS.near.trailLotM;
   // The routes' members are asked for whatever their highway: filtered in Overpass, the Brumley Mountain Trail's
-  // members came back empty (probe round 3, 11/11). trailLots keeps only the lots near a path, footway, track or
-  // bridleway, never a road, measured to each line here.
+  // members came back empty (probe round 3, 11/11). trailLots keeps only the lots near a path, footway, track,
+  // bridleway or service road (never a public road), measured to each line here.
   return (
     `[out:json][timeout:180][bbox:${s},${w},${n},${e}];` +
     `rel["route"~"^(hiking|foot)$"]->.hr;` +
@@ -220,8 +221,12 @@ export function trailLotQuery(cell: string): string {
   );
 }
 
-/** The trails a lot is measured to: never a road, even one a hiking route follows. */
-const TRAIL_HIGHWAY = /^(path|footway|track|bridleway)$/;
+/**
+ * The ways a lot is measured to: a route's paths, footways, tracks and bridleways, and the service roads it follows
+ * (a gated forest road up to the footpath, as the Brumley Mountain Trail's at Hayters Gap; Zach, 11/11). Never a public
+ * through road (residential up to trunk), even one a hiking route follows.
+ */
+const TRAIL_HIGHWAY = /^(path|footway|track|bridleway|service)$/;
 
 /** Lots a trailhead can't be: no public access. */
 const PRIVATE_LOT = /^(private|customers|permit|no)$/;
