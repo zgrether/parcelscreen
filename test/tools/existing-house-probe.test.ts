@@ -312,7 +312,13 @@ describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-ho
       const url = `${base}/export?bbox=${w},${s},${e},${nn}&bboxSR=3857&imageSR=3857&size=256,256&format=png32&transparent=true&f=image`;
       const t0 = Date.now();
       try {
-        const r = await live()(url, { headers: { "User-Agent": UA } });
+        // As a browser asks from the deployed app: CORS needs Access-Control-Allow-Origin back.
+        const r = await live()(url, {
+          headers: { "User-Agent": UA, Origin: "https://parcelscreen.vercel.app" },
+        });
+        say(
+          `- z${z} headers: access-control-allow-origin=${r.headers.get("access-control-allow-origin") ?? "(none)"}, cache-control=${r.headers.get("cache-control") ?? "(none)"}`,
+        );
         const buf = new Uint8Array(await r.arrayBuffer());
         const type = r.headers.get("content-type") ?? "?";
         let blank = "?";
