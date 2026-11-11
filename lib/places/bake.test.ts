@@ -69,6 +69,8 @@ function fakeFetch(
     towns?: boolean;
     /** The trail-lot query's answer (existing-house plan §2). */
     lots?: unknown[];
+    /** The trail-lot query never answers in the gap's cell. */
+    lotsFail?: boolean;
   } = {},
 ): typeof fetch {
   return async (input, init) => {
@@ -79,6 +81,12 @@ function fakeFetch(
     if (url.includes("interpreter")) {
       const ql = new URLSearchParams(String(init?.body)).get("data")!;
       // The trail lots' query (existing-house plan §2) asks parking too: answered on its own.
+      if (
+        ql.includes('rel["route"~"^(hiking|foot)$"]') &&
+        opts.lotsFail &&
+        ql.includes("[bbox:36,-82,37,-81]")
+      )
+        return json({}, 504);
       if (ql.includes('rel["route"~"^(hiking|foot)$"]'))
         return json({ elements: ql.includes("[bbox:36,-82,37,-81]") ? (opts.lots ?? []) : [] });
       if (ql.includes("place~"))
@@ -523,7 +531,9 @@ describe("the trail lots (existing-house plan §2)", () => {
     const q = trailLotQuery("36_-82");
     expect(q).toContain('way(r.hr)["highway"~"^(path|footway|track|bridleway)$"]');
     expect(q).toContain('["operator"~"forest|park|conservation|wildlife",i]');
-    expect(q).toContain('nwr["amenity"="parking"](around.tn:60)');
+    // Measured to the trails' lines, not a node set (a cell's trail nodes timed Overpass out, 11/11).
+    expect(q).toContain('nwr["amenity"="parking"](around.tw:60)');
+    expect(q).not.toContain("node(w.tw)");
   });
 
   it("names each public lot for itself, else for its trail's route; skips private ones", () => {
@@ -566,5 +576,27 @@ describe("the trail lots (existing-house plan §2)", () => {
       src: "osm",
     });
     expect(kept.map((l) => l.id)).toEqual(["osm:way/808088844", "osm:way/808088841"]);
+  });
+
+  it("a cell whose lots Overpass won't give loses only its lots, asked again first, and the summary says so", async () => {
+    const lines: string[] = [];
+    const {
+      cells,
+      kept,
+      trailLots: got,
+    } = await bakePlaces({
+      http: http(fakeFetch({ lots: GAP, lotsFail: true })),
+      overpass: ["https://o.test/api/interpreter"],
+      today: "2026-11-11",
+      sleep: async () => {},
+      log: (l) => lines.push(l),
+    });
+    expect(got).toEqual([]);
+    expect(kept).toEqual(["trail lots in 1 cell (36_-82)"]);
+    expect(
+      lines.filter((l) => l.startsWith("trail lots: cell 36_-82") && l.includes("again in")),
+    ).toHaveLength(2);
+    // The rest of OSM baked as ever.
+    expect(cells.some((c) => c.folder === "osm")).toBe(true);
   });
 });

@@ -155,6 +155,27 @@ export async function overpass(ql: string, deps: Pick<BakeDeps, "http" | "overpa
   throw new Error(`Overpass unreachable (${errs.join("; ")})`);
 }
 
+/** The waits before each retry of a cell's Overpass query when no mirror answered (both 502/504 at once, 11/11). */
+const OVERPASS_RETRY_MS = [30_000, 90_000];
+
+/** `overpass`, every mirror again after each of OVERPASS_RETRY_MS. */
+async function overpassRetried(
+  ql: string,
+  deps: Pick<BakeDeps, "http" | "overpass" | "sleep" | "log">,
+  what: string,
+): Promise<OsmElement[]> {
+  const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await overpass(ql, deps);
+    } catch (e) {
+      if (attempt >= OVERPASS_RETRY_MS.length) throw e;
+      deps.log?.(`${what}: ${String(e)}; again in ${OVERPASS_RETRY_MS[attempt]! / 1000} s`);
+      await sleep(OVERPASS_RETRY_MS[attempt]!);
+    }
+  }
+}
+
 export const at = (e: OsmElement): LatLon | null =>
   e.center ? [e.center.lat, e.center.lon] : e.lat != null && e.lon != null ? [e.lat, e.lon] : null;
 
@@ -186,8 +207,9 @@ export function trailLotQuery(cell: string): string {
     `rel["route"~"^(hiking|foot)$"]->.hr;` +
     `way(r.hr)["highway"~"^(path|footway|track|bridleway)$"]->.rw;` +
     `way["highway"~"^(path|footway)$"]["name"]["operator"~"forest|park|conservation|wildlife",i]->.aw;` +
-    `(.rw;.aw;)->.tw;node(w.tw)->.tn;` +
-    `nwr["amenity"="parking"](around.tn:${M})->.p;.p out center tags;` +
+    // \`around\` a set of ways measures to their lines: no node set (a whole cell's trail nodes timed Overpass out, 11/11).
+    `(.rw;.aw;)->.tw;` +
+    `nwr["amenity"="parking"](around.tw:${M})->.p;.p out center tags;` +
     `way.tw(around.p:${M})->.near;.near out tags geom;` +
     `rel(bw.near)["route"~"^(hiking|foot)$"];out body;`
   );
@@ -792,25 +814,42 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
   }
 
   // OSM, a cell at a time; one cell failing fails the source (a partial OSM would read as places closing).
-  const lots: TrailLot[] = [];
+  let osmOk = false;
   try {
     const osm: Place[] = [];
     const launches: RawLaunch[] = [];
     for (const [i, cell] of cells.entries()) {
-      const elements = await overpass(osmCellQuery(cell), deps);
+      const elements = await overpassRetried(osmCellQuery(cell), deps, `osm: cell ${cell}`);
       osm.push(...osmPlaces(elements));
       launches.push(...osmLaunches(elements));
-      // Existing-house plan §2: the lots by a trail, merged once every source has answered.
-      lots.push(...trailLots(await overpass(trailLotQuery(cell), deps)));
       log(
         `osm: cell ${cell} (${i + 1} of ${cells.length}), ${osm.length} places and ${launches.length} launches so far`,
       );
     }
     got.set("osm", osm);
     raw.push(...launches);
+    osmOk = true;
   } catch (e) {
-    lots.length = 0;
     keep("osm", e);
+  }
+
+  // Existing-house plan §2: the lots by a trail, merged once every source has answered. Their own pass, after OSM's,
+  // so a cell Overpass won't answer loses only its lots (said in the summary), never the rest of OSM.
+  const lots: TrailLot[] = [];
+  if (osmOk) {
+    const missed: string[] = [];
+    for (const cell of cells) {
+      try {
+        lots.push(...trailLots(await overpassRetried(trailLotQuery(cell), deps, `trail lots: cell ${cell}`)));
+      } catch (e) {
+        missed.push(cell);
+        log(`trail lots: cell ${cell}: ${String(e)}`);
+      }
+    }
+    if (missed.length)
+      failed.push(
+        `trail lots in ${missed.length} cell${missed.length === 1 ? "" : "s"} (${missed.join(", ")})`,
+      );
   }
 
   // USFS: its trailheads, and its boating sites as launches (the subtype's value as the layer has it: BOATING SITE).
