@@ -1467,5 +1467,22 @@ until step 5 (Q14).
       the soils hold) with "Walk it after a heavy rain."; Map layers › Water on the land (off by default); Shading ›
       Wetness; Garden's "Water it holds"; and Septic's line when the build site is on likely wet ground or a water table
       within 2 ft (declared report text; no fixture's build site shows it).
+80. **Listings that already have a house** (owner, 2026-11-11, from grading 010-A-10; the plan
+    `docs/plans/existing-house.md`, #416; built in #417 onwards).
+    - **"House already here"** (#418): an optional `existing` flag on the parcel's one house point
+      (`WorkingParcel.houseExisting`; absent is a planned "House site", as before; the store stays v2, no migration).
+      With it:
+      - the card is graded at the house: Best homesite reads its own sun, aspect and slope;
+      - the search's house sites aren't ranked, listed or pinned;
+      - Room to build, the Septic Must, the Driveway row (unless an existing drive is drawn, which it grades) and
+        Within budget's Ready to build are set aside by the app, with the reason "House already here" and a line to
+        check instead, never stored and with no ✎; the verdict is recomputed without them;
+      - Cost to enjoy hides Ready to build; the agent gets five questions about the house.
+      The engine is unchanged.
+    - **The elevation's labels** (#419): every label downstream of the elevation names the DEM actually used; with
+      3DEP each string is as it was.
+    - **Trailheads by a trail** (#420): the OSM bake also takes a public parking lot within 60 m of a hiking route's
+      trails or an agency's named path, named for itself or its trail, merged by distance alone (150 m). The Hayters
+      Gap lot (the Brumley Mountain Trail, to The Channels) was tagged only as parking.
 
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

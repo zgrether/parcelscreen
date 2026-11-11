@@ -103,3 +103,14 @@ in the hand-back's PR 6; these are what it left, outside the step or for you to 
 - **The header** ("held by", "Maybe" and "B" splitting on a phone, the tax map shown twice), "Terrain tiles didn't
   load", the map labels under the phone's buttons, the legend's "Second choice", the toolbar's bare trash icon, "Ask
   someone", and the Maybe chip's contrast: all outside the step.
+
+## The existing-house step (hand-back)
+
+- **A listing fact, "Forest carbon: enrolled"** (owner, 2026-11-10): it would turn the forest carbon row into
+  "Enrolled — the contract runs with the land; get the contract".
+- **The Full report titles a planned house site "The existing house"** (owner, #416 review): with the `existing` flag
+  off, the house point is a planned site, but the section ("The existing house") and the Lines & marks layer
+  ("Existing house") still say existing. "House site" would read right there.
+- **The map key's "Rough lidar texture" row** is a fixed legend: when 3DEP fell back, the tips name the Terrain Tiles
+  but the key doesn't.
+

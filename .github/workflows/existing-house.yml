@@ -3,17 +3,21 @@ name: Existing house
 # The existing-house mission (docs/plans/existing-house.md), on CI's runners, since the cloud sessions that build the
 # app can't reach the hosts it asks:
 # - probe: parcel 010-A-10 graded live with no house mark, and why the Hayters Gap trailhead isn't among the baked
-#   places (test/tools/existing-house-probe.test.ts), into the job summary.
+#   places (test/tools/existing-house-probe.test.ts), into the job summary;
+# - deployed: the deployed check (§7), when Vercel has deployed the step branch: 10-A-10 graded on the preview, then
+#   "House already here" placed (screenshots/existing-house.spec.ts, playwright.deployed.config.ts), at 1280 and 375,
+#   owner fields masked by the screenshot guard, pushed to the pr-assets branch (pr-assets/existing-house/).
 # Nothing here gates a merge.
 on:
   pull_request:
     paths:
       - test/tools/existing-house-probe.test.ts
       - .github/workflows/existing-house.yml
+  deployment_status: {}
   workflow_dispatch: {}
 
 concurrency:
-  group: existing-house-${{ github.head_ref || github.ref }}
+  group: existing-house-${{ github.event_name }}-${{ github.head_ref || github.event.deployment.ref || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -21,6 +25,7 @@ permissions:
 
 jobs:
   probe:
+    if: github.event_name != 'deployment_status'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -35,3 +40,52 @@ jobs:
       - name: The report, into the job summary
         if: always()
         run: cat test-results/existing-house-probe.md >> "$GITHUB_STEP_SUMMARY" || true
+
+  deployed:
+    # Only the step branch's preview, once it's up.
+    if: >-
+      github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' &&
+      github.event.deployment.ref == 'step/existing-house'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.deployment.sha }}
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      # The URL reaches Playwright through the environment only, never interpolated into a command.
+      - run: pnpm exec playwright test -c playwright.deployed.config.ts screenshots/existing-house.spec.ts
+        env:
+          DEPLOYED_URL: ${{ github.event.deployment_status.environment_url }}
+      - name: To pr-assets/existing-house
+        if: always()
+        run: |
+          ls test-results/screenshots/existing-house || exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin pr-assets
+          git worktree add ../assets origin/pr-assets
+          mkdir -p ../assets/existing-house
+          cp test-results/screenshots/existing-house/*.png ../assets/existing-house/
+          cd ../assets
+          git add -A existing-house
+          git commit -m "Existing house screenshots (${GITHUB_SHA::7})" || exit 0
+          # Other workflows push here too: take theirs and try again.
+          for i in 1 2 3; do
+            git push origin HEAD:pr-assets && exit 0
+            git pull --rebase origin pr-assets
+          done
+          exit 1
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: existing-house-deployed-test-results
+          path: test-results/
