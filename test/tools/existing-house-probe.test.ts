@@ -207,6 +207,64 @@ describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-ho
     expect(out.length).toBeGreaterThan(4);
   }, 600_000);
 
+  // Round 5 (Zach, 11/11): Google Maps has both WMA lakes at 20 to 30 minutes; OSRM, 51 and 52. Each route's steps:
+  // the roads it takes, their miles and minutes, so the slow part shows.
+  it("round 5: the routes to the WMA lakes", async () => {
+    const from: [number, number] = [36.86562, -81.922];
+    const to: [string, [number, number]][] = [
+      ["Laurel Bed Lake access", [36.957494, -81.813332]],
+      ["Hidden Valley Lake access", [36.846513, -82.079744]],
+      ["South Holston Lake access", [36.6, -81.97]],
+    ];
+    say("## Round 5: the routes OSRM takes", "");
+    for (const [name, ll] of to) {
+      const r = await get(
+        `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${ll[1]},${ll[0]}?steps=true&overview=false&alternatives=true`,
+      );
+      const j = json(r.text) as {
+        routes?: {
+          duration: number;
+          distance: number;
+          legs: {
+            steps: { name: string; ref?: string; distance: number; duration: number; mode: string }[];
+          }[];
+        }[];
+        waypoints?: { name: string; distance: number }[];
+      } | null;
+      if (!j?.routes?.length) {
+        say(`- ${name}: HTTP ${r.status} ${clip(r.text, 200)}`);
+        continue;
+      }
+      say(
+        `### ${name}: ends on "${j.waypoints?.[1]?.name ?? "?"}" ${j.waypoints?.[1]?.distance?.toFixed(0) ?? "?"} m off`,
+        "",
+      );
+      for (const [ri, rt] of j.routes.entries()) {
+        say(
+          `- route ${ri + 1}: ${(rt.duration / 60).toFixed(0)} min, ${(rt.distance / 1609.34).toFixed(1)} mi`,
+        );
+        // The steps merged by road, in order.
+        const roads: { name: string; mi: number; min: number }[] = [];
+        for (const st of rt.legs[0]!.steps) {
+          const n = st.name || st.ref || "(unnamed)";
+          const last = roads[roads.length - 1];
+          if (last && last.name === n) {
+            last.mi += st.distance / 1609.34;
+            last.min += st.duration / 60;
+          } else roads.push({ name: n, mi: st.distance / 1609.34, min: st.duration / 60 });
+        }
+        for (const x of roads)
+          if (x.mi >= 0.1)
+            say(
+              `  - ${x.name}: ${x.mi.toFixed(1)} mi, ${x.min.toFixed(1)} min (${(x.mi / (x.min / 60)).toFixed(0)} mph)`,
+            );
+      }
+      say("");
+    }
+    write();
+    expect(out.length).toBeGreaterThan(2);
+  }, 300_000);
+
   it("round 2: 010-A-10 found and graded live; the trailhead rule tried at Hayters Gap", async () => {
     // ---------- 010-A-10: round 1's LIKE matched nothing, so the format is read from the parcels near the gap ----------
     const sample = json(
