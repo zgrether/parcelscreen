@@ -1192,6 +1192,8 @@ describe("config", () => {
           "photonLimit": 40,
           "photonTimeoutMs": 15000,
           "stateOutlineMarginKm": 1,
+          "trailLotM": 60,
+          "trailLotMergeM": 150,
           "trailheadDedupeM": 300,
           "trailheadKm": 36,
           "trecMaxPages": 3,

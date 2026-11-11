@@ -7,9 +7,13 @@ import {
   bakePlaces,
   classifyLaunches,
   inArea,
+  mergeTrailLots,
   osmCellQuery,
   osmLaunches,
   osmPlaces,
+  trailLotQuery,
+  trailLots,
+  type OsmElement,
   type RawLaunch,
 } from "./bake";
 import { RIDB_LAUNCHES } from "./ridb";
@@ -58,7 +62,14 @@ describe("OSM's places", () => {
 
 /** A fake of every source the bake asks: Overpass answers per query, ArcGIS layers by host. */
 function fakeFetch(
-  opts: { usfsFails?: boolean; launch?: boolean; nhd?: () => "ok" | "down"; towns?: boolean } = {},
+  opts: {
+    usfsFails?: boolean;
+    launch?: boolean;
+    nhd?: () => "ok" | "down";
+    towns?: boolean;
+    /** The trail-lot query's answer (existing-house plan §2). */
+    lots?: unknown[];
+  } = {},
 ): typeof fetch {
   return async (input, init) => {
     const url = String(input);
@@ -67,6 +78,9 @@ function fakeFetch(
       new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
     if (url.includes("interpreter")) {
       const ql = new URLSearchParams(String(init?.body)).get("data")!;
+      // The trail lots' query (existing-house plan §2) asks parking too: answered on its own.
+      if (ql.includes('rel["route"~"^(hiking|foot)$"]'))
+        return json({ elements: ql.includes("[bbox:36,-82,37,-81]") ? (opts.lots ?? []) : [] });
       if (ql.includes("place~"))
         return json({
           elements: opts.towns
@@ -454,5 +468,103 @@ describe("paddle launches (step 14d plan §2.4)", () => {
     const [l] = classifyLaunches([launch()], [lake(0, 640, { FTYPE: 390, AREASQKM: 0.162 })], []);
     expect(l).toMatchObject({ water: "flat", name: "Boat launch" });
     expect(l!.waterName).toBeUndefined();
+  });
+});
+
+/**
+ * Hayters Gap (the existing-house probe, #417): the gap's unnamed DCR lot beside the Brumley Mountain Trail, the trail's
+ * named lot at its west end, a private lot by the trail, and a hiking route that follows a road.
+ */
+const GAP: OsmElement[] = [
+  {
+    type: "way",
+    id: 808088841,
+    center: { lat: 36.8646, lon: -81.9469 },
+    tags: { amenity: "parking", operator: "Virginia Department of Conservation and Recreation" },
+  },
+  {
+    type: "way",
+    id: 808088844,
+    center: { lat: 36.837, lon: -82.0865 },
+    tags: { amenity: "parking", name: "Brumley Mountain Trailhead", access: "yes" },
+  },
+  { type: "node", id: 5, lat: 36.8655, lon: -81.9475, tags: { amenity: "parking", access: "private" } },
+  {
+    type: "way",
+    id: 1426934898,
+    tags: { highway: "path", name: "Brumley Mountain Trail", operator: "Virginia Department of Forestry" },
+    geometry: [
+      { lat: 36.8648, lon: -81.9472 },
+      { lat: 36.8666, lon: -81.967 },
+    ],
+  },
+  {
+    type: "way",
+    id: 15491676,
+    tags: { highway: "path" },
+    geometry: [
+      { lat: 36.8372, lon: -82.0862 },
+      { lat: 36.8557, lon: -82.0406 },
+    ],
+  },
+  {
+    type: "relation",
+    id: 19562221,
+    tags: { route: "hiking", name: "Brumley Mountain Trail" },
+    members: [
+      { type: "way", ref: 1426934898, role: "" },
+      { type: "way", ref: 15491676, role: "" },
+    ],
+  },
+];
+
+describe("the trail lots (existing-house plan §2)", () => {
+  it("asks for lots by a hiking route's trails (never its roads) or an agency's named path", () => {
+    const q = trailLotQuery("36_-82");
+    expect(q).toContain('way(r.hr)["highway"~"^(path|footway|track|bridleway)$"]');
+    expect(q).toContain('["operator"~"forest|park|conservation|wildlife",i]');
+    expect(q).toContain('nwr["amenity"="parking"](around.tn:60)');
+  });
+
+  it("names each public lot for itself, else for its trail's route; skips private ones", () => {
+    expect(trailLots(GAP).map((l) => [l.id, l.name, l.ownName])).toEqual([
+      ["osm:way/808088841", "Brumley Mountain Trail (parking)", false],
+      ["osm:way/808088844", "Brumley Mountain Trailhead", true],
+    ]);
+  });
+
+  it("merges by distance alone: a lot by another trailhead is that one, and lots near each other are one", () => {
+    const lots = trailLots(GAP);
+    // A tagged trailhead 100 m from the gap's lot: that lot is it.
+    expect(mergeTrailLots(lots, [{ ll: [36.8655, -81.9469] }]).map((l) => l.id)).toEqual([
+      "osm:way/808088844",
+    ]);
+    // Two lots 90 m apart: one, the one with its own name kept.
+    const twin = {
+      ...lots[1]!,
+      id: "osm:node/9",
+      name: "x (parking)",
+      ownName: false,
+      ll: [36.8378, -82.0865] as [number, number],
+    };
+    expect(mergeTrailLots([twin, ...lots], []).map((l) => l.name)).toEqual([
+      "Brumley Mountain Trailhead",
+      "Brumley Mountain Trail (parking)",
+    ]);
+  });
+
+  it("bakes the gap's lot as an OSM trailhead, and reports the lots kept", async () => {
+    const { cells, trailLots: kept } = await bakePlaces({
+      http: http(fakeFetch({ lots: GAP })),
+      overpass: ["https://o.test/api/interpreter"],
+      today: "2026-11-11",
+    });
+    const osm = cells.find((c) => c.folder === "osm" && c.cell === "36_-82")!;
+    expect(osm.places.find((p) => p.id === "osm:way/808088841")).toMatchObject({
+      kind: "trailhead",
+      name: "Brumley Mountain Trail (parking)",
+      src: "osm",
+    });
+    expect(kept.map((l) => l.id)).toEqual(["osm:way/808088844", "osm:way/808088841"]);
   });
 });

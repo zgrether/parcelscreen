@@ -75,6 +75,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm data:places
+      - name: The trail lots, into the job summary
+        if: always()
+        run: cat test-results/places-trail-lots.md >> "$GITHUB_STEP_SUMMARY" || true
       - name: Push the bake to the PR's branch
         env:
           GH_TOKEN: ${{ github.token }}

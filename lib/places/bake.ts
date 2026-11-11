@@ -63,6 +63,8 @@ export interface Bake {
   cells: PlaceCell[];
   /** What kept the previous bake's places this time, as the refresh summary says it: "usfs", "osm towns", … */
   kept: string[];
+  /** The trail lots baked as trailheads (existing-house plan §2), for the bake's report; empty when OSM kept last bake's. */
+  trailLots: BakedTrailhead[];
 }
 
 const round6 = ([lat, lon]: LatLon): LatLon => [+lat.toFixed(6), +lon.toFixed(6)];
@@ -130,6 +132,8 @@ export interface OsmElement {
   tags?: Record<string, string>;
   /** A relation's members (`out body`). */
   members?: { type: string; ref: number; role?: string }[];
+  /** A way's points (`out geom`). */
+  geometry?: { lat: number; lon: number }[];
 }
 
 /** One Overpass query, each mirror in turn (POST, as the area profiler sends it). */
@@ -167,6 +171,118 @@ export function osmCellQuery(cell: string): string {
     `nwr["whitewater"~"^(put_in|egress|put_in;egress)$"];nwr["waterway"="access_point"];)->.l;` +
     `(.p;.l;);out center tags;rel(bn.l)["route"="canoe"];out body;`
   );
+}
+
+/**
+ * The parking lots by a trail in a cell (existing-house plan §2): lots within near.trailLotM of a hiking or foot route's
+ * paths, footways, tracks or bridleways (never its roads), or of a named path or footway an agency runs; then the
+ * trails near those lots with their points, and the routes they're on (`out body`: their members), to name each lot.
+ */
+export function trailLotQuery(cell: string): string {
+  const [w, s, e, n] = cellBox(cell);
+  const M = SCREEN_CONSTANTS.near.trailLotM;
+  return (
+    `[out:json][timeout:180][bbox:${s},${w},${n},${e}];` +
+    `rel["route"~"^(hiking|foot)$"]->.hr;` +
+    `way(r.hr)["highway"~"^(path|footway|track|bridleway)$"]->.rw;` +
+    `way["highway"~"^(path|footway)$"]["name"]["operator"~"forest|park|conservation|wildlife",i]->.aw;` +
+    `(.rw;.aw;)->.tw;node(w.tw)->.tn;` +
+    `nwr["amenity"="parking"](around.tn:${M})->.p;.p out center tags;` +
+    `way.tw(around.p:${M})->.near;.near out tags geom;` +
+    `rel(bw.near)["route"~"^(hiking|foot)$"];out body;`
+  );
+}
+
+/** Lots a trailhead can't be: no public access. */
+const PRIVATE_LOT = /^(private|customers|permit|no)$/;
+
+/** A trail lot, before merging: its own name when it had one (kept first when two are one). */
+export interface TrailLot extends BakedTrailhead {
+  ownName: boolean;
+}
+
+const metres = (a: LatLon, b: LatLon): number => {
+  const R = 6_371_000,
+    rad = Math.PI / 180;
+  const dLat = (b[0] - a[0]) * rad,
+    dLon = (b[1] - a[1]) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * rad) * Math.cos(b[0] * rad) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+};
+
+/** The nearest point of a polyline to a place, metres (each segment, in a local flat frame). */
+function toLine(ll: LatLon, line: readonly LatLon[]): number {
+  const k = Math.cos((ll[0] * Math.PI) / 180);
+  const xy = ([la, lo]: LatLon): [number, number] => [(lo - ll[1]) * k * 111_320, (la - ll[0]) * 111_320];
+  let best = Infinity;
+  for (let i = 0; i + 1 < line.length; i++) {
+    const [ax, ay] = xy(line[i]!),
+      [bx, by] = xy(line[i + 1]!);
+    const dx = bx - ax,
+      dy = by - ay;
+    const t = dx || dy ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / (dx * dx + dy * dy))) : 0;
+    best = Math.min(best, Math.hypot(ax + t * dx, ay + t * dy));
+  }
+  return line.length === 1 ? metres(ll, line[0]!) : best;
+}
+
+/**
+ * trailLotQuery's answer as trailheads (existing-house plan §2): each public lot named for itself, else for the nearest
+ * trail's route ("Brumley Mountain Trail (parking)"), else the trail's own name.
+ */
+export function trailLots(elements: readonly OsmElement[]): TrailLot[] {
+  const ways = elements.filter((e) => e.type === "way" && e.geometry && e.tags?.highway);
+  const routeOf = new Map<number, string>();
+  for (const r of elements)
+    if (r.type === "relation" && r.tags?.name)
+      for (const m of r.members ?? [])
+        if (m.type === "way" && !routeOf.has(m.ref)) routeOf.set(m.ref, r.tags.name);
+  const out: TrailLot[] = [];
+  for (const e of elements) {
+    const t = e.tags ?? {};
+    if (t.amenity !== "parking" || PRIVATE_LOT.test(t.access ?? "")) continue;
+    const ll = at(e);
+    if (!ll || !inArea(ll)) continue;
+    const near = ways
+      .map((w) => ({
+        w,
+        m: toLine(
+          ll,
+          w.geometry!.map((g): LatLon => [g.lat, g.lon]),
+        ),
+      }))
+      .sort((a, b) => a.m - b.m)[0];
+    const trail = near ? (routeOf.get(near.w.id) ?? near.w.tags?.name) : undefined;
+    const own = !!t.name?.trim();
+    out.push({
+      kind: "trailhead",
+      id: `osm:${e.type}/${e.id}`,
+      name: own ? t.name!.trim() : trail ? `${trail} (parking)` : "Trailhead (parking)",
+      ll: round6(ll),
+      src: "osm",
+      ownName: own,
+    });
+  }
+  return out;
+}
+
+/**
+ * The trail lots kept (existing-house plan §2): one within near.trailLotMergeM of any other trailhead is that trailhead;
+ * lots within it of each other are one, a lot with its own name kept first, else the first found. By distance alone:
+ * "Brumley Mountain Trail (parking)" and "Brumley Mountain Trailhead" don't share a name.
+ */
+export function mergeTrailLots(
+  lots: readonly TrailLot[],
+  others: readonly { ll: LatLon }[],
+): BakedTrailhead[] {
+  const M = SCREEN_CONSTANTS.near.trailLotMergeM;
+  const kept: BakedTrailhead[] = [];
+  for (const l of [...lots].sort((a, b) => Number(b.ownName) - Number(a.ownName))) {
+    if (others.some((o) => metres(o.ll, l.ll) <= M) || kept.some((k) => metres(k.ll, l.ll) <= M)) continue;
+    const { ownName: _o, ...place } = l;
+    kept.push(place);
+  }
+  return kept;
 }
 
 /** Overpass's answer for a cell as places: supermarkets as grocers (named "Supermarket" when unnamed), trailheads. */
@@ -676,6 +792,7 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
   }
 
   // OSM, a cell at a time; one cell failing fails the source (a partial OSM would read as places closing).
+  const lots: TrailLot[] = [];
   try {
     const osm: Place[] = [];
     const launches: RawLaunch[] = [];
@@ -683,6 +800,8 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
       const elements = await overpass(osmCellQuery(cell), deps);
       osm.push(...osmPlaces(elements));
       launches.push(...osmLaunches(elements));
+      // Existing-house plan §2: the lots by a trail, merged once every source has answered.
+      lots.push(...trailLots(await overpass(trailLotQuery(cell), deps)));
       log(
         `osm: cell ${cell} (${i + 1} of ${cells.length}), ${osm.length} places and ${launches.length} launches so far`,
       );
@@ -690,6 +809,7 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     got.set("osm", osm);
     raw.push(...launches);
   } catch (e) {
+    lots.length = 0;
     keep("osm", e);
   }
 
@@ -735,6 +855,12 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     }
     log(`${src}: ${got.get(src)?.length ?? 0}`);
   }
+
+  // The trail lots (existing-house plan §2), against every other trailhead and each other; kept with OSM's.
+  const tagged = [...got.values()].flat().filter((p): p is BakedTrailhead => p.kind === "trailhead");
+  const keptLots = mergeTrailLots(lots, tagged);
+  if (keptLots.length) got.set("osm", [...(got.get("osm") ?? []), ...keptLots]);
+  log(`trail lots: ${lots.length} found, ${keptLots.length} kept`);
 
   // Parking around every trailhead, whichever source: kept with OSM (it is OSM's).
   const trailheads = [...got.values()].flat().filter((p): p is BakedTrailhead => p.kind === "trailhead");
@@ -802,7 +928,7 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     ) as PlacesIndex["cells"],
   };
   if (failed.length) log(`kept the previous bake's: ${failed.join(", ")}`);
-  return { index, cells: cellFiles, kept: failed };
+  return { index, cells: cellFiles, kept: failed, trailLots: keptLots };
 }
 
 /** OSM's named towns and cities over the baked box. */
@@ -826,4 +952,42 @@ function boundsOf(cells: readonly string[]): [number, number, number, number] {
     Math.max(...boxes.map((b) => b[2])),
     Math.max(...boxes.map((b) => b[3])),
   ];
+}
+
+/**
+ * The bake's report on the trail lots (existing-house plan §5, PR 4): how many per state (inside it, else "nearby"), and
+ * the ten nearest a town's centre, where a town park's lot would be the likeliest false trailhead.
+ */
+export function trailLotReport(
+  lots: readonly BakedTrailhead[],
+  towns: readonly { name: string; ll: LatLon }[],
+): string {
+  const per = new Map<string, number>();
+  for (const l of lots) {
+    const st = STATES.find((s) => kmToState(s, l.ll) === 0) ?? "nearby";
+    per.set(st, (per.get(st) ?? 0) + 1);
+  }
+  const nearest = lots
+    .map((l) => {
+      const t = towns.map((x) => ({ x, m: metres(l.ll, x.ll) })).sort((a, b) => a.m - b.m)[0];
+      return { l, t };
+    })
+    .filter((x) => x.t)
+    .sort((a, b) => a.t!.m - b.t!.m)
+    .slice(0, 10);
+  return [
+    "# The trail lots baked as trailheads",
+    "",
+    `${lots.length} lots, by state: ${[...per].map(([k, n]) => `${k} ${n}`).join(", ") || "none"}.`,
+    "",
+    "## The ten nearest a town's centre",
+    "",
+    "| Lot | Where | Town | Distance |",
+    "|---|---|---|---|",
+    ...nearest.map(
+      ({ l, t }) =>
+        `| ${l.name} | ${l.ll[0].toFixed(4)}, ${l.ll[1].toFixed(4)} | ${t!.x.name} | ${Math.round(t!.m)} m |`,
+    ),
+    "",
+  ].join("\n");
 }

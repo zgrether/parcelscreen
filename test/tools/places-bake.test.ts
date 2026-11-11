@@ -12,7 +12,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { createHttpClient } from "@/lib/http";
-import { bakePlaces } from "@/lib/places/bake";
+import { bakePlaces, trailLotReport } from "@/lib/places/bake";
 import {
   PLACE_FOLDERS,
   PLACES_PATH,
@@ -51,7 +51,7 @@ describe.runIf(import.meta.env.MODE === "places-bake")("bake the places, live", 
         userAgent: "parcelscreen-data/1 (places bake; https://github.com/zgrether/parcelscreen)",
       });
       const prev = previous();
-      const { index, cells, kept } = await bakePlaces({
+      const { index, cells, kept, trailLots } = await bakePlaces({
         http,
         today: today(),
         ...(prev ? { previous: prev } : {}),
@@ -68,6 +68,12 @@ describe.runIf(import.meta.env.MODE === "places-bake")("bake the places, live", 
       // What kept last month's places, for the refresh's summary (scripts/places-summary.mts).
       mkdirSync(join(process.cwd(), "tmp"), { recursive: true });
       writeFileSync(join(process.cwd(), "tmp", "places-kept.json"), JSON.stringify(kept) + "\n");
+      // Existing-house plan §5 (PR 4): the trail lots baked, for the job summary.
+      mkdirSync(join(process.cwd(), "test-results"), { recursive: true });
+      writeFileSync(
+        join(process.cwd(), "test-results", "places-trail-lots.md"),
+        trailLotReport(trailLots, index.towns ?? []),
+      );
       const bytes = cells.reduce((t, c) => t + JSON.stringify(c).length, 0);
       console.log(
         [
