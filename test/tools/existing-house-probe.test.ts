@@ -265,6 +265,81 @@ describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-ho
     expect(out.length).toBeGreaterThan(2);
   }, 300_000);
 
+  // Round 6 (Zach, 11/11): Virginia's high-resolution aerial doesn't show at 010-A-10. VBMP's service metadata, and
+  // the app's own export request (components/Map/style.ts VA_ORTHO) over the parcel at zooms 14 to 19: the HTTP status,
+  // the type and size, and whether the PNG is blank (every pixel transparent).
+  it("round 6: Virginia's aerial at 010-A-10", async () => {
+    const base =
+      "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VBMP_Imagery/MostRecentImagery_WGS/MapServer";
+    say("## Round 6: VBMP imagery at 010-A-10", "");
+    const meta = await get(`${base}?f=json`);
+    const mj = json(meta.text) as Record<string, unknown> | null;
+    say(
+      `- metadata: HTTP ${meta.status}; ${clip(
+        mj
+          ? JSON.stringify({
+              minScale: mj.minScale,
+              maxScale: mj.maxScale,
+              layers: (
+                mj.layers as { id: number; name: string; minScale?: number; maxScale?: number }[] | undefined
+              )?.map((l) => `${l.id} ${l.name} (${l.minScale ?? "?"}–${l.maxScale ?? "?"})`),
+              singleFusedMapCache: mj.singleFusedMapCache,
+              capabilities: mj.capabilities,
+              maxImageWidth: mj.maxImageWidth,
+            })
+          : meta.text,
+        1200,
+      )}`,
+    );
+    const lat = 36.86562,
+      lon = -81.922;
+    const merc = (lo: number, la: number): [number, number] => [
+      (lo * 20037508.34) / 180,
+      (Math.log(Math.tan(((90 + la) * Math.PI) / 360)) * 20037508.34) / Math.PI,
+    ];
+    for (const z of [14, 15, 16, 17, 18, 19]) {
+      const n = 2 ** z;
+      const x = Math.floor(((lon + 180) / 360) * n);
+      const y = Math.floor(
+        ((1 - Math.log(Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)) / Math.PI) /
+          2) *
+          n,
+      );
+      const tlon = (xx: number) => (xx / n) * 360 - 180;
+      const tlat = (yy: number) => (Math.atan(Math.sinh(Math.PI * (1 - (2 * yy) / n))) * 180) / Math.PI;
+      const [w, s] = merc(tlon(x), tlat(y + 1));
+      const [e, nn] = merc(tlon(x + 1), tlat(y));
+      const url = `${base}/export?bbox=${w},${s},${e},${nn}&bboxSR=3857&imageSR=3857&size=256,256&format=png32&transparent=true&f=image`;
+      const t0 = Date.now();
+      try {
+        const r = await live()(url, { headers: { "User-Agent": UA } });
+        const buf = new Uint8Array(await r.arrayBuffer());
+        const type = r.headers.get("content-type") ?? "?";
+        let blank = "?";
+        if (type.includes("png")) {
+          const { decode } = await import("fast-png");
+          const img = decode(buf);
+          const ch = img.channels;
+          let opaque = 0;
+          for (let i = ch - 1; i < img.data.length; i += ch) if ((img.data[i] as number) > 0) opaque++;
+          blank =
+            ch === 4 ? `${((opaque / (img.width * img.height)) * 100).toFixed(0)}% opaque` : `${ch} channels`;
+        }
+        say(`- z${z}: HTTP ${r.status}, ${type}, ${buf.length} bytes, ${blank}, ${Date.now() - t0} ms`);
+        if (!type.includes("image")) say(`  - ${clip(new TextDecoder().decode(buf), 300)}`);
+      } catch (e) {
+        say(`- z${z}: ${String(e)} after ${Date.now() - t0} ms`);
+      }
+    }
+    // What imagery covers the point, if the service says (an identify on its layers).
+    const id = await get(
+      `${base}/identify?geometry=${lon},${lat}&geometryType=esriGeometryPoint&sr=4326&layers=all&tolerance=1&mapExtent=${lon - 0.01},${lat - 0.01},${lon + 0.01},${lat + 0.01}&imageDisplay=400,400,96&returnGeometry=false&f=json`,
+    );
+    say(`- identify: HTTP ${id.status} ${clip(id.text, 800)}`, "");
+    write();
+    expect(out.length).toBeGreaterThan(2);
+  }, 300_000);
+
   it("round 2: 010-A-10 found and graded live; the trailhead rule tried at Hayters Gap", async () => {
     // ---------- 010-A-10: round 1's LIKE matched nothing, so the format is read from the parcels near the gap ----------
     const sample = json(
