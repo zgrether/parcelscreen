@@ -14,7 +14,7 @@ import { answerReason } from "../report/answer";
 import { reportCard, type Card, type NamedRubric } from "../report/card";
 import { GATE_MARK, mustLines, mustText, shownRankedRows } from "../report/cardLines";
 import type { Drawn } from "../report/marks";
-import { adjustChange, SET_ASIDE_READING, SET_ASIDE_WORDS } from "../report/adjustWords";
+import { adjustChange, asideReading, asideWords } from "../report/adjustWords";
 import { raiseSuggestions } from "../report/raise";
 import { EDITOR_TITLES, tierOf } from "../rubric/words";
 import type { ScreenResult } from "../screen/types";
@@ -190,11 +190,11 @@ export function cardTiers(card: Card): PrintTier[] {
       .map((x) => ({
         key: `aside-${x.key}`,
         label: x.label,
-        mark: "– ✎",
+        mark: x.auto ? "–" : "– ✎",
         kind: x.must ? "must" : "grade",
         tone: "g-none",
-        text: SET_ASIDE_READING(x.reason),
-        short: SET_ASIDE_WORDS,
+        text: asideReading(x),
+        short: asideWords(x),
       }));
   return [
     { name: TIERS.must, rows: [...musts, ...aside("must")] },
@@ -272,9 +272,9 @@ export function reportContent(i: ReportInput): ReportContent {
 
 /** The viewer's two cost lines for One page (step 10 plan §4). */
 function costPrintLines(card: Card): string[] {
-  const s = costSummary(card.cost, card.rubric.rubric.budgets);
+  const s = costSummary(card.cost, card.rubric.rubric.budgets, !!card.existingHouse);
   if (!s) return [];
-  return s.kind === "noWay" ? [s.text] : s.lines.map(summaryText);
+  return s.kind === "noWay" ? [s.text] : [...s.lines.map(summaryText), ...(s.note ? [s.note] : [])];
 }
 
 /** "$6,310/ac", or both readings when the two acreages differ (step 10b). */

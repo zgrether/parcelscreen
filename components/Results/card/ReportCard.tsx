@@ -21,7 +21,7 @@ import {
 } from "@/lib/report/cardLines";
 import type { NamedRubric } from "@/lib/rubric/types";
 import { TIER_NAMES, tierOf } from "@/lib/rubric/words";
-import { ADJUSTED_TITLE, APP_NOW_SAYS, SET_ASIDE_WORDS } from "@/lib/report/adjustWords";
+import { ADJUSTED_TITLE, APP_NOW_SAYS, SET_ASIDE_WORDS, HOUSE_ASIDE_WORDS } from "@/lib/report/adjustWords";
 import type { Adjusted, SetAside } from "@/lib/report/adjust";
 import type { PartialScreenResult } from "@/lib/screen/types";
 import { RubricSwitch } from "./RubricSwitch";
@@ -42,7 +42,7 @@ function CostSection({
   onOpen(key: PanelKey): void;
   price: PriceContext | null;
 }) {
-  const s = costSummary(card.cost, card.rubric.rubric.budgets);
+  const s = costSummary(card.cost, card.rubric.rubric.budgets, !!card.existingHouse);
   if (!s) return null;
   return (
     <div className="card-group card-cost" role="group" aria-label={COST_WORDS.section}>
@@ -84,7 +84,10 @@ function CostSection({
         )}
       </ul>
       {/* UX part 2 PR 8b (Z-4): after the two lines, so the card's own text is unchanged (rule 7). */}
-      {price && <PriceBlock {...price} budgets={card.rubric.rubric.budgets} />}
+      {s.kind === "lines" && s.note && <p className="tiny muted cost-note">{s.note}</p>}
+      {price && (
+        <PriceBlock {...price} budgets={card.rubric.rubric.budgets} existingHouse={!!card.existingHouse} />
+      )}
     </div>
   );
 }
@@ -124,15 +127,23 @@ function SetAsideRow({ x, onOpen }: { x: SetAside; onOpen(key: PanelKey): void }
         <span className="card-grade small g-none" aria-hidden="true">
           –
         </span>
-        <span className="row-detail">
-          {SET_ASIDE_WORDS}
-          <span className="row-why adjusted-why">
-            <span className="adjusted-mark" title={ADJUSTED_TITLE}>
-              ✎
-            </span>{" "}
-            “{x.reason}”
+        {x.auto ? (
+          // The app's, with a house already here (existing-house plan §1b): no ✎, and what to check instead.
+          <span className="row-detail">
+            {HOUSE_ASIDE_WORDS}
+            <span className="row-why">{x.auto.verify}</span>
           </span>
-        </span>
+        ) : (
+          <span className="row-detail">
+            {SET_ASIDE_WORDS}
+            <span className="row-why adjusted-why">
+              <span className="adjusted-mark" title={ADJUSTED_TITLE}>
+                ✎
+              </span>{" "}
+              “{x.reason}”
+            </span>
+          </span>
+        )}
       </button>
     </li>
   );

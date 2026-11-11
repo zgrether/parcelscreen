@@ -7,7 +7,7 @@ describe("the Mark picker's choices (owner, after #136)", () => {
       ["Build", ["House site"]],
       ["Ways in", ["Track", "Existing drive", "Easement"]],
       ["Water & utilities", ["Spring", "Stream", "Well", "Septic permit", "Power"]],
-      ["On the land", ["Building", "Campsite", "Clearing", "Gate", "Note"]],
+      ["On the land", ["House already here", "Building", "Campsite", "Clearing", "Gate", "Note"]],
     ]);
     const all = CHOICE_GROUPS.flatMap((g) => g.choices);
     expect(new Set(all).size).toBe(all.length);
@@ -31,7 +31,8 @@ describe("the Mark picker's choices (owner, after #136)", () => {
       "stream",
       "well",
     ]);
-    expect(by("house")).toEqual(["house"]);
+    // "House already here" is the same point, flagged (existing-house plan §1a).
+    expect(by("house")).toEqual(["house", "houseHere"]);
     expect(by("line")).toEqual(["drive", "easement", "track"]);
     expect(by("area")).toEqual(["clearing"]);
     expect(by("septic")).toEqual(["septic"]);
