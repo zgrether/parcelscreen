@@ -159,6 +159,22 @@ Channels State Forest.
 - **Acceptance:** 010-A-10, graded again, lists a trailhead about 2 mi by road at Hayters Gap, and the Trails row
   reflects it.
 
+## 2b. The missed paddling lakes (Zach, 11/11, after grading 010-A-10)
+
+- **What he saw:** Paddling found South Holston Lake (42 min) and missed Hidden Valley Lake (Hidden Valley WMA, 61 ac)
+  and Laurel Bed Lake (Clinch Mountain WMA, 330 ac), both 20–30 min by Google Maps.
+- **The root cause** (probe rounds 4 and 5): not the ramp source, the lake size or the matching. Both ramps are baked
+  flatwater launches (on main since step 14d) and both are among the six timed. OSRM's public router puts them at 51 and
+  52 min from the house, South Holston's best ramp at 47: it drives Brumley Gap and Poor Valley roads at 25 mph,
+  Tumbling Creek and Hidden Valley roads at 15, and the last unpaved stretch into each WMA at 9. The row names only the
+  quickest, so the WMA lakes never showed.
+- **The fix** (Zach chose it, with the cost): `paddling.others` lists the other lakes timed, each by its quickest launch,
+  at most `paddling.otherLakes` (3), after the rest of the Paddling panel and section; the grade doesn't move. A field
+  added to the stored result is schema v10 and a clean break: saved grades are dropped (phase-0.md §9.81).
+- **Parked:** the router's back-road speeds (polish.md). They slow every back-road drive alike, so the order of places
+  holds; changing them means another router.
+- **Acceptance:** 010-A-10, graded again, lists both lakes with their drive times in Paddling.
+
 ## 3. The elevation source's labels
 
 - **One helper names the DEM the result used,** from `demSource` and `demResM`: "USGS 3DEP lidar (3 m)" or "AWS Terrain

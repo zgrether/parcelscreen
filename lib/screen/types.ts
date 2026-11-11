@@ -21,7 +21,7 @@ import type { STEPS } from "./config";
  * (phase-0.md §9.26, §9.30, §9.31). v9 (step 2, owner 2026-10-17; §9.49) is a clean break too: a trailhead lists the
  * Tennessee TREC trails it serves.
  */
-export const SCREEN_SCHEMA_VERSION = 9 as const;
+export const SCREEN_SCHEMA_VERSION = 10 as const;
 
 // ---------- shared ----------
 
@@ -843,6 +843,8 @@ export const ScreenResultSchema = z.strictObject({
   paddling: z
     .strictObject({
       flat: z.strictObject({ name: z.string(), water: z.string().nullable(), min: num, mi: num }).nullable(),
+      // v10 (existing-house plan §2b; Zach, 11/11): the other lakes timed, each by its quickest launch, quickest first.
+      others: z.array(z.strictObject({ name: z.string(), water: z.string().nullable(), min: num, mi: num })),
       rivers: z.array(z.strictObject({ name: z.string(), river: z.string().nullable(), km: num })),
       pond: z.strictObject({ acres: num, name: z.string().nullable() }).nullable(),
     })

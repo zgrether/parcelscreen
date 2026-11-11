@@ -72,5 +72,15 @@ export function pondLine(p: NonNullable<Paddling["pond"]>): string {
   return `And a pond on the land you could paddle (${fmt(p.acres, 1)} ac)`;
 }
 
+type Lake = Paddling["others"][number];
+
+/** The other lakes' lead-in, after the river put-ins and the pond (existing-house plan §2b): listed, not graded. */
+export const OTHER_LAKES = "other lakes, not graded:";
+
+/** "Laurel Bed Lake 51 min; Hidden Valley Lake 52 min": each lake by its quickest launch, quickest first. */
+export function otherLakesLine(lakes: readonly Lake[]): string {
+  return lakes.map((l) => `${l.water ?? l.name} ${fmt(l.min)} min`).join("; ");
+}
+
 /** What the section says about its reach. */
 export const PADDLE_REACH = `The ${SCREEN_CONSTANTS.paddling.points} nearest lake and reservoir launches within ${fmt(SCREEN_CONSTANTS.paddling.maxKm / KM_PER_MI)} mi in a straight line are timed by road; river put-ins within ${fmt(SCREEN_CONSTANTS.paddling.riverKm / KM_PER_MI)} mi are listed, not timed or graded.`;
