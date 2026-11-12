@@ -249,7 +249,8 @@ export async function editParcel(page: Page): Promise<void> {
   const edit = page.getByRole("button", { name: "Edit the parcel" });
   // Once a parcel's bar is up: folded (Edit) or already open (its Done).
   const done = page.locator(".toolbar").getByRole("button", { name: "Done", exact: true });
-  await expect(edit.or(done).first()).toBeVisible({ timeout: 15_000 });
+  // As long as the flows gave the acres before Edit (a live parcel service can be slow).
+  await expect(edit.or(done).first()).toBeVisible({ timeout: 30_000 });
   if (await edit.isVisible()) await edit.click();
 }
 
