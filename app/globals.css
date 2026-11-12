@@ -916,6 +916,10 @@ html:has(.explore) body {
     padding: 0;
     font-size: 18px;
   }
+  /* The folded Key chip takes the same row, at the left, while the bar is folded (it sits above the open bar). */
+  .explore:has(.toolbar.folded) .map-key-line.folded {
+    bottom: calc(var(--sheet-h) + 10px);
+  }
   .toolbar.folded .tb-edit-word {
     position: absolute;
     width: 1px;
