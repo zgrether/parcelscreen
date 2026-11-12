@@ -165,6 +165,55 @@ describe.runIf(import.meta.env.MODE === "hamilton-probe")("Hamilton County's par
     );
     say("");
 
+    // 4. Round 2: the county's ArcGIS Enterprise at gis.hamiltontn.gov/server (a web search found a Soddy-Daisy parcels
+    //    layer there): every service whose name has "arcel" in it, its layers, and the app's query at the point.
+    say("## 4. gis.hamiltontn.gov/server", "");
+    const ENT = "https://gis.hamiltontn.gov/server/rest/services";
+    const top = await get(`${ENT}?f=json`);
+    say(line("directory", { ...top, text: top.text.slice(0, 120) }));
+    const topJ = json(top.text);
+    const services: { name: string; type: string }[] = [
+      ...((topJ?.services as { name: string; type: string }[] | undefined) ?? []),
+    ];
+    for (const folder of (topJ?.folders as string[] | undefined) ?? []) {
+      const fj = json((await get(`${ENT}/${folder}?f=json`)).text);
+      services.push(...((fj?.services as { name: string; type: string }[] | undefined) ?? []));
+    }
+    say(
+      `- ${services.length} services; parcel ones: ${
+        services
+          .filter((x) => /arcel|ax/i.test(x.name))
+          .map((x) => `${x.name} (${x.type})`)
+          .join(", ") || "none"
+      }`,
+    );
+    for (const x of services.filter((v) => /arcel/i.test(v.name)).slice(0, 8)) {
+      const base = `${ENT}/${x.name}/${x.type}`;
+      const sj = json((await get(`${base}?f=json`)).text);
+      const layers = ((sj?.layers as { id: number; name: string }[] | undefined) ?? []).slice(0, 6);
+      say(`- **${x.name}** (${x.type}): layers ${layers.map((l) => `${l.id} ${l.name}`).join("; ")}`);
+      for (const l of layers) {
+        const lj = json((await get(`${base}/${l.id}?f=json`)).text);
+        const fields = ((lj?.fields as { name: string }[] | undefined) ?? []).map((f) => f.name);
+        const q = await get(
+          `${base}/${l.id}/query?${new URLSearchParams({ geometry: `${PT.lon},${PT.lat}`, geometryType: "esriGeometryPoint", inSR: "4326", spatialRel: "esriSpatialRelIntersects", outFields: fields.filter((f) => /^(OBJECTID|GISLINK|MAP|GROUP_|PARCEL|PARCEL_TYP|TAX_MAP_NO|CALCACRES)$/i.test(f)).join(",") || "OBJECTID", returnGeometry: "false", f: "json" })}`,
+        );
+        const qj = json(q.text);
+        const count = json(
+          (
+            await get(
+              `${base}/${l.id}/query?${new URLSearchParams({ where: "1=1", returnCountOnly: "true", f: "json" })}`,
+            )
+          ).text,
+        );
+        say(
+          `  - layer ${l.id} ${l.name}: geometry ${String(lj?.geometryType)}; count ${String(count?.count)}; fields ${clip(fields.join(","), 500)}`,
+          `    - at Three Gorges: HTTP ${q.status}, acao ${q.headers["access-control-allow-origin"] ?? "none"}, ${clip(JSON.stringify(qj?.features ?? qj?.error), 400)}`,
+        );
+      }
+    }
+    say("");
+
     mkdirSync(join(process.cwd(), "test-results"), { recursive: true });
     writeFileSync(join(process.cwd(), "test-results", "hamilton-probe.md"), out.join("\n") + "\n");
     expect(out.length).toBeGreaterThan(2);
