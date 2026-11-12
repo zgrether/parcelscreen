@@ -1,0 +1,16 @@
+{
+ "about": "Trailheads the sources miss, checked by hand (existing-house plan §2; Zach, 2026-11-12), each with its sources and the date checked. The places bake adds each as an OpenStreetMap trailhead under its own id, whatever Overpass answers that run; a trail lot or a tagged trailhead within near.trailLotMergeM of one is that one.",
+ "trailheads": [
+  {
+   "id": "osm:way/808088841",
+   "name": "Brumley Mountain Trail (parking)",
+   "ll": [36.8646, -81.9469],
+   "sources": [
+    "https://www.openstreetmap.org/way/808088841",
+    "https://dof.virginia.gov/state-forests/channels-state-forest/"
+   ],
+   "note": "The lot at Hayters Gap on VA 80, capacity 10 (OSM; operator Virginia Department of Conservation and Recreation), 20 m from Raven Ridge, the gated road the Brumley Mountain Trail follows up to its footpath. VDOF's Channels State Forest page (read 2026-11-12): \"The Brumley Mountain Trail to the Channels is now open.\" \"The parking area at Channels Natural Area Preserve is limited to 10 vehicles.\" \"Parking along Highway 80 is not permitted and violators will be ticketed.\"",
+   "checked": "2026-11-12"
+  }
+ ]
+}

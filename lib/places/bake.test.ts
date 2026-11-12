@@ -13,11 +13,13 @@ import {
   osmPlaces,
   overpass,
   trailLotQuery,
+  trailLotReport,
   trailLots,
   type OsmElement,
   type RawLaunch,
 } from "./bake";
 import { RIDB_LAUNCHES } from "./ridb";
+import { trailheadOverrides } from "./trailheadOverrides";
 
 const MUD_CREEK: [number, number] = [36.598, -81.303];
 
@@ -82,14 +84,14 @@ function fakeFetch(
     if (url.includes("interpreter")) {
       const ql = new URLSearchParams(String(init?.body)).get("data")!;
       // The trail lots' query (existing-house plan §2) asks parking too: answered on its own.
+      // Asked a quarter cell at a time (Zach, 11/12); the bake keeps the lots inside each quarter.
       if (
         ql.includes('rel["route"~"^(hiking|foot)$"]') &&
         opts.lotsFail &&
-        ql.includes("[bbox:36,-82,37,-81]")
+        ql.includes("[bbox:36.5,-82,37,-81.5]")
       )
         return json({}, 504);
-      if (ql.includes('rel["route"~"^(hiking|foot)$"]'))
-        return json({ elements: ql.includes("[bbox:36,-82,37,-81]") ? (opts.lots ?? []) : [] });
+      if (ql.includes('rel["route"~"^(hiking|foot)$"]')) return json({ elements: opts.lots ?? [] });
       if (ql.includes("place~"))
         return json({
           elements: opts.towns
@@ -179,6 +181,7 @@ const http = (f: typeof fetch) =>
 describe("bakePlaces", () => {
   it("writes each source to its licence's folder, by cell, with the index's counts", async () => {
     const { index, cells } = await bakePlaces({
+      sleep: async () => {},
       http: http(fakeFetch()),
       overpass: ["https://o.test/api/interpreter"],
       today: "2026-10-25",
@@ -186,7 +189,13 @@ describe("bakePlaces", () => {
     for (const c of cells) PlaceCellSchema.parse(c);
     PlacesIndexSchema.parse(index);
     const osm = cells.find((c) => c.folder === "osm" && c.cell === "36_-82")!;
-    expect(osm.places.map((p) => p.id)).toEqual(["osm:node/1", "osm:node/91", "osm:way/90"]);
+    // With the cited override at Hayters Gap (lib/screen/data/trailhead-overrides.json).
+    expect(osm.places.map((p) => p.id)).toEqual([
+      "osm:node/1",
+      "osm:node/91",
+      "osm:way/808088841",
+      "osm:way/90",
+    ]);
     expect(osm.places.find((p) => p.id === "osm:node/91")).toEqual({
       kind: "parking",
       id: "osm:node/91",
@@ -209,13 +218,14 @@ describe("bakePlaces", () => {
         trec: true,
       },
     ]);
-    expect(index.cells.osm["36_-82"]).toBe(3);
+    expect(index.cells.osm["36_-82"]).toBe(4);
     expect(index.sources.find((s) => s.id === "usfs")).toMatchObject({
       count: 1,
       fetched: "2026-10-25",
       folder: "official",
     });
-    expect(index.sources.find((s) => s.id === "osm")).toMatchObject({ count: 1, licence: "ODbL 1.0" });
+    // The supermarket and the cited override.
+    expect(index.sources.find((s) => s.id === "osm")).toMatchObject({ count: 2, licence: "ODbL 1.0" });
     // Recreation.gov's fixed list (#350): every bake carries it as is, dated when it was read.
     expect(cells.flatMap((c) => c.places).filter((p) => p.src === "ridb")).toHaveLength(RIDB_LAUNCHES.length);
     expect(index.sources.find((s) => s.id === "ridb")).toMatchObject({
@@ -227,12 +237,14 @@ describe("bakePlaces", () => {
 
   it("keeps the previous bake's places for a source that doesn't answer, dated then", async () => {
     const first = await bakePlaces({
+      sleep: async () => {},
       http: http(fakeFetch()),
       overpass: ["https://o.test/api/interpreter"],
       today: "2026-09-25",
     });
     const places: Place[] = first.cells.flatMap((c) => c.places);
     const again = await bakePlaces({
+      sleep: async () => {},
       http: http(fakeFetch({ usfsFails: true })),
       overpass: ["https://o.test/api/interpreter"],
       today: "2026-10-25",
@@ -245,6 +257,7 @@ describe("bakePlaces", () => {
 
   it("the towns over the area, for the refresh summary; outside it, none", async () => {
     const { index } = await bakePlaces({
+      sleep: async () => {},
       http: http(fakeFetch({ towns: true })),
       overpass: ["https://o.test/api/interpreter"],
       today: "2026-10-25",
@@ -255,6 +268,7 @@ describe("bakePlaces", () => {
   it("fails when a source doesn't answer and there's no previous bake", async () => {
     await expect(
       bakePlaces({
+        sleep: async () => {},
         http: http(fakeFetch({ usfsFails: true })),
         overpass: ["https://o.test/api/interpreter"],
         today: "2026-10-25",
@@ -569,6 +583,7 @@ describe("the trail lots (existing-house plan §2)", () => {
 
   it("bakes the gap's lot as an OSM trailhead, and reports the lots kept", async () => {
     const { cells, trailLots: kept } = await bakePlaces({
+      sleep: async () => {},
       http: http(fakeFetch({ lots: GAP })),
       overpass: ["https://o.test/api/interpreter"],
       today: "2026-11-11",
@@ -579,33 +594,65 @@ describe("the trail lots (existing-house plan §2)", () => {
       name: "Brumley Mountain Trail (parking)",
       src: "osm",
     });
-    expect(kept.map((l) => l.id)).toEqual(["osm:way/808088844", "osm:way/808088841"]);
+    // The gap's own lot is the cited override's (the same id, within near.trailLotMergeM): kept once, as the override.
+    expect(kept.map((l) => l.id)).toEqual(["osm:way/808088844"]);
     // Asked for again as parking around the trailheads, with the same ids: still the trailheads, not parking.
     const all = cells.flatMap((c) => c.places);
     for (const id of ["osm:way/808088841", "osm:way/808088844"])
       expect(all.filter((p) => p.id === id).map((p) => p.kind)).toEqual(["trailhead"]);
   });
 
-  it("a cell whose lots Overpass won't give loses only its lots, asked again first, and the summary says so", async () => {
+  it("a quarter Overpass won't answer is asked again, keeps its shipped lots, and the summary says so", async () => {
     const lines: string[] = [];
-    const {
-      cells,
-      kept,
-      trailLots: got,
-    } = await bakePlaces({
+    // The shipped bake had a lot in the failing quarter (36_-82/nw) and one in the next (36_-82/ne).
+    const shipped = (id: string, ll: [number, number]): Place => ({
+      kind: "trailhead",
+      id,
+      name: "Somewhere Trail (parking)",
+      ll,
+      src: "osm",
+    });
+    const previous = {
+      index: PlacesIndexSchema.parse({
+        version: 1,
+        baked: "2026-11-11",
+        bounds: [-90, 33, -75, 40],
+        marginKm: 60,
+        sources: [],
+        cells: { osm: {}, official: {}, curated: {} },
+      }),
+      places: [shipped("osm:way/7", [36.7, -81.7]), shipped("osm:way/8", [36.7, -81.2])],
+    };
+    const { cells, kept, trailLotCells } = await bakePlaces({
       http: http(fakeFetch({ lots: GAP, lotsFail: true })),
       overpass: ["https://o.test/api/interpreter"],
-      today: "2026-11-11",
+      today: "2026-11-12",
+      previous,
       sleep: async () => {},
       log: (l) => lines.push(l),
     });
-    expect(got).toEqual([]);
-    expect(kept).toEqual(["trail lots in 1 cell (36_-82)"]);
-    expect(
-      lines.filter((l) => l.startsWith("trail lots: cell 36_-82") && l.includes("again in")),
-    ).toHaveLength(2);
-    // The rest of OSM baked as ever.
-    expect(cells.some((c) => c.folder === "osm")).toBe(true);
+    expect(kept).toContain("trail lots in 1 quarter cell (36_-82/nw)");
+    expect(lines.filter((l) => l.startsWith("trail lots: 36_-82/nw") && l.includes("again in"))).toHaveLength(
+      2,
+    );
+    // Both shipped lots stay: the failing quarter's, and the one this bake's answer didn't have.
+    const all = cells.flatMap((c) => c.places).map((p) => p.id);
+    expect(all).toContain("osm:way/7");
+    expect(all).toContain("osm:way/8");
+    expect(trailLotCells.find((c) => c.cell === "36_-82/nw")).toEqual({
+      cell: "36_-82/nw",
+      found: null,
+      baseline: 1,
+      merged: 1,
+      retried: true,
+    });
+    expect(trailLotCells.find((c) => c.cell === "36_-82/ne")).toMatchObject({
+      found: 0,
+      baseline: 1,
+      merged: 1,
+    });
+    // The override stands whatever Overpass answered.
+    expect(all).toContain("osm:way/808088841");
   });
 
   it("a trail's points outside the cell's box come back null: skipped, not thrown on", () => {
@@ -685,5 +732,51 @@ describe("overpass", () => {
       ),
     ).rejects.toThrow(/Overpass unreachable.*runtime error/);
     expect(await overpass("q", deps({ elements: [{ type: "node", id: 1 }] }))).toHaveLength(1);
+  });
+});
+
+describe("the trail-lot report (Zach, 11/12)", () => {
+  it("lists every quarter, and first the ones retried, failed or below the shipped", () => {
+    const md = trailLotReport(
+      [],
+      [],
+      [
+        { cell: "36_-82/sw", found: 3, baseline: 3, merged: 3, retried: false },
+        { cell: "36_-82/nw", found: null, baseline: 2, merged: 2, retried: true },
+        { cell: "36_-82/ne", found: 1, baseline: 2, merged: 3, retried: false },
+      ],
+    );
+    expect(md).toContain("### Retried, failed or below the shipped (2)");
+    expect(md).toContain("| 36_-82/nw | failed | 2 | 2 | yes |");
+    expect(md).toContain("| 36_-82/ne | 1 | 2 | 3 |  |");
+    expect(md).toContain("found 4, shipped 7, kept 8");
+  });
+});
+
+describe("the trailhead overrides", () => {
+  it("each cited by OpenStreetMap and its agency, and baked as an OSM trailhead under its own id", () => {
+    const [gap] = trailheadOverrides();
+    expect(gap).toEqual({
+      kind: "trailhead",
+      id: "osm:way/808088841",
+      name: "Brumley Mountain Trail (parking)",
+      ll: [36.8646, -81.9469],
+      src: "osm",
+    });
+    expect(() =>
+      trailheadOverrides({
+        about: "",
+        trailheads: [
+          {
+            id: "osm:way/1",
+            name: "x",
+            ll: [36, -81],
+            sources: ["https://a.test/"],
+            note: "",
+            checked: "2026-11-12",
+          },
+        ],
+      }),
+    ).toThrow();
   });
 });
