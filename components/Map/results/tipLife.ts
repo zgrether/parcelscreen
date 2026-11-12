@@ -14,11 +14,17 @@ export interface TipLife {
   readonly open: boolean;
 }
 
-export function tipLife(
-  hide: () => void,
-  ms = TIP_MS,
-  timers: { set: typeof setTimeout; clear: typeof clearTimeout } = { set: setTimeout, clear: clearTimeout },
-): TipLife {
+/** The clock, passed in for tests. Called as plain functions: a browser's setTimeout throws when called as a method. */
+interface Timers {
+  set(fn: () => void, ms: number): ReturnType<typeof setTimeout>;
+  clear(t: ReturnType<typeof setTimeout>): void;
+}
+const realTimers: Timers = {
+  set: (fn, ms) => setTimeout(fn, ms),
+  clear: (t) => clearTimeout(t),
+};
+
+export function tipLife(hide: () => void, ms = TIP_MS, timers: Timers = realTimers): TipLife {
   let t: ReturnType<typeof setTimeout> | null = null;
   let open = false;
   const stop = () => {
