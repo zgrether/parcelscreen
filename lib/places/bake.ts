@@ -1109,7 +1109,7 @@ export function trailLotReport(
 ): string {
   const per = new Map<string, number>();
   for (const l of lots) {
-    const st = STATES.find((s) => kmToState(s, l.ll) === 0) ?? "nearby";
+    const st = STATES.find((s) => kmToState(s, l.ll) <= 0) ?? "nearby";
     per.set(st, (per.get(st) ?? 0) + 1);
   }
   const nearest = lots

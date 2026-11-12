@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createHttpClient } from "../http";
-import { PlaceCellSchema, PlacesIndexSchema, type Place, type PlacesIndex } from "../screen/placeData";
+import {
+  PlaceCellSchema,
+  PlacesIndexSchema,
+  type BakedTrailhead,
+  type Place,
+  type PlacesIndex,
+} from "../screen/placeData";
 import type { Polygon } from "geojson";
 import {
   areaCells,
@@ -736,6 +742,19 @@ describe("overpass", () => {
 });
 
 describe("the trail-lot report (Zach, 11/12)", () => {
+  it("counts the lots by state (inside a state's outline, the distance to it is negative)", () => {
+    const lot = (ll: [number, number]): BakedTrailhead => ({
+      kind: "trailhead",
+      id: "osm:way/1",
+      name: "x",
+      ll,
+      src: "osm",
+    });
+    expect(trailLotReport([lot([36.8646, -81.9469]), lot([35.6, -82.5])], [])).toContain(
+      "by state: VA 1, NC 1.",
+    );
+  });
+
   it("lists every quarter, and first the ones retried, failed or below the shipped", () => {
     const md = trailLotReport(
       [],

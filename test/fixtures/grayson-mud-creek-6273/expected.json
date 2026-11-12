@@ -2863,6 +2863,38 @@
    ],
    "trailheads": [
     {
+     "name": "Appalachian Trail (parking)",
+     "ll": [
+      36.631949,
+      -81.601326
+     ],
+     "km": 6.192437838771204,
+     "source": "osm",
+     "drive": {
+      "min": 21,
+      "mi": 6.2,
+      "km": 6.1561627753659485,
+      "to": "point",
+      "parkingLl": null
+     }
+    },
+    {
+     "name": "Appalachian Trail (parking)",
+     "ll": [
+      36.646183,
+      -81.583235
+     ],
+     "km": 6.987497524544719,
+     "source": "osm",
+     "drive": {
+      "min": 17,
+      "mi": 5.6,
+      "km": 6.973054045875352,
+      "to": "point",
+      "parkingLl": null
+     }
+    },
+    {
      "name": "Grayson Highlands State Park",
      "ll": [
       36.612985,
@@ -2918,13 +2950,7 @@
      ],
      "km": 11.615204239482567,
      "source": "usfs",
-     "drive": {
-      "min": 118,
-      "mi": 27.3,
-      "km": 11.66075273251893,
-      "to": "point",
-      "parkingLl": null
-     }
+     "drive": null
     },
     {
      "name": "Creek Junction Trailhead",
@@ -2934,13 +2960,7 @@
      ],
      "km": 12.217134966032917,
      "source": "usfs",
-     "drive": {
-      "min": 27,
-      "mi": 12.8,
-      "km": 12.159654371812163,
-      "to": "point",
-      "parkingLl": null
-     }
+     "drive": null
     },
     {
      "name": "Fox Creek A.T.",
@@ -3002,6 +3022,16 @@
      "drive": null
     },
     {
+     "name": "Three Top Gameland Trailhead",
+     "ll": [
+      36.42185,
+      -81.597731
+     ],
+     "km": 18.45145332446405,
+     "source": "osm",
+     "drive": null
+    },
+    {
      "name": "Beech Mountain AT",
      "ll": [
       36.657229,
@@ -3012,6 +3042,16 @@
      "drive": null
     },
     {
+     "name": "Appalachian Trail (parking)",
+     "ll": [
+      36.634048,
+      -81.786436
+     ],
+     "km": 20.649068703231304,
+     "source": "osm",
+     "drive": null
+    },
+    {
      "name": "South Holsten/Teas Rd A.T. Trailhead",
      "ll": [
       36.763107,
@@ -3019,6 +3059,46 @@
      ],
      "km": 20.71963929718238,
      "source": "usfs",
+     "drive": null
+    },
+    {
+     "name": "Virginia Creeper Trail: Damascus Trail Head",
+     "ll": [
+      36.634532,
+      -81.791921
+     ],
+     "km": 21.13574387263293,
+     "source": "osm",
+     "drive": null
+    },
+    {
+     "name": "Jefferson Overlook",
+     "ll": [
+      36.406213,
+      -81.466978
+     ],
+     "km": 21.705036754717085,
+     "source": "osm",
+     "drive": null
+    },
+    {
+     "name": "Mountain Ridge Trail (parking)",
+     "ll": [
+      36.40411,
+      -81.465572
+     ],
+     "km": 21.96959493574014,
+     "source": "osm",
+     "drive": null
+    },
+    {
+     "name": "Sunset Overlook Spur Trail (parking)",
+     "ll": [
+      36.401644,
+      -81.469756
+     ],
+     "km": 22.077432486461337,
+     "source": "osm",
      "drive": null
     },
     {
@@ -3033,6 +3113,16 @@
       "Backbone Falls Trail",
       "Backbone Rock"
      ],
+     "drive": null
+    },
+    {
+     "name": "Mountain Ridge Trail (parking)",
+     "ll": [
+      36.398242,
+      -81.466897
+     ],
+     "km": 22.524543548817213,
+     "source": "osm",
      "drive": null
     },
     {
@@ -3056,60 +3146,17 @@
      "drive": null
     },
     {
-     "name": "Mountain City Park Trail",
+     "name": "Fern Nature Trail (parking)",
      "ll": [
-      36.4793,
-      -81.80837
+      36.416164,
+      -81.386909
      ],
-     "km": 24.88588373576684,
-     "source": "state",
-     "serves": [
-      "Mountain City Park Trail"
-     ],
-     "drive": null
-    },
-    {
-     "name": "Elk Knob State Park",
-     "ll": [
-      36.332464,
-      -81.694172
-     ],
-     "km": 30.472738453124563,
-     "source": "state",
-     "drive": null
-    },
-    {
-     "name": "Hungry Mother State Park",
-     "ll": [
-      36.883025,
-      -81.52608
-     ],
-     "km": 33.254091686876635,
-     "source": "state",
-     "drive": null
-    },
-    {
-     "name": "Hale Lake Trailhead",
-     "ll": [
-      36.760947,
-      -81.249683
-     ],
-     "km": 34.094603515986634,
-     "source": "usfs",
-     "drive": null
-    },
-    {
-     "name": "Virginia Creeper Trail: Watauga Trail Head",
-     "ll": [
-      36.677979,
-      -81.934998
-     ],
-     "km": 34.73893504218304,
+     "km": 24.54579507922097,
      "source": "osm",
      "drive": null
     }
    ],
-   "trailheadCount": 20
+   "trailheadCount": 42
   },
   "road": {
    "name": "unnamed road",
@@ -11699,6 +11746,38 @@
    ],
    "trailheads": [
     {
+     "name": "Appalachian Trail (parking)",
+     "ll": [
+      36.631949,
+      -81.601326
+     ],
+     "km": 6.192437838771204,
+     "source": "osm",
+     "drive": {
+      "min": 21,
+      "mi": 6.2,
+      "km": 6.1561627753659485,
+      "to": "point",
+      "parkingLl": null
+     }
+    },
+    {
+     "name": "Appalachian Trail (parking)",
+     "ll": [
+      36.646183,
+      -81.583235
+     ],
+     "km": 6.987497524544719,
+     "source": "osm",
+     "drive": {
+      "min": 17,
+      "mi": 5.6,
+      "km": 6.973054045875352,
+      "to": "point",
+      "parkingLl": null
+     }
+    },
+    {
      "name": "Grayson Highlands State Park",
      "ll": [
       36.612985,
@@ -11754,13 +11833,7 @@
      ],
      "km": 11.615204239482567,
      "source": "usfs",
-     "drive": {
-      "min": 118,
-      "mi": 27.3,
-      "km": 11.66075273251893,
-      "to": "point",
-      "parkingLl": null
-     }
+     "drive": null
     },
     {
      "name": "Creek Junction Trailhead",
@@ -11770,13 +11843,7 @@
      ],
      "km": 12.217134966032917,
      "source": "usfs",
-     "drive": {
-      "min": 27,
-      "mi": 12.8,
-      "km": 12.159654371812163,
-      "to": "point",
-      "parkingLl": null
-     }
+     "drive": null
     },
     {
      "name": "Fox Creek A.T.",
@@ -11838,6 +11905,16 @@
      "drive": null
     },
     {
+     "name": "Three Top Gameland Trailhead",
+     "ll": [
+      36.42185,
+      -81.597731
+     ],
+     "km": 18.45145332446405,
+     "source": "osm",
+     "drive": null
+    },
+    {
      "name": "Beech Mountain AT",
      "ll": [
       36.657229,
@@ -11848,6 +11925,16 @@
      "drive": null
     },
     {
+     "name": "Appalachian Trail (parking)",
+     "ll": [
+      36.634048,
+      -81.786436
+     ],
+     "km": 20.649068703231304,
+     "source": "osm",
+     "drive": null
+    },
+    {
      "name": "South Holsten/Teas Rd A.T. Trailhead",
      "ll": [
       36.763107,
@@ -11855,6 +11942,46 @@
      ],
      "km": 20.71963929718238,
      "source": "usfs",
+     "drive": null
+    },
+    {
+     "name": "Virginia Creeper Trail: Damascus Trail Head",
+     "ll": [
+      36.634532,
+      -81.791921
+     ],
+     "km": 21.13574387263293,
+     "source": "osm",
+     "drive": null
+    },
+    {
+     "name": "Jefferson Overlook",
+     "ll": [
+      36.406213,
+      -81.466978
+     ],
+     "km": 21.705036754717085,
+     "source": "osm",
+     "drive": null
+    },
+    {
+     "name": "Mountain Ridge Trail (parking)",
+     "ll": [
+      36.40411,
+      -81.465572
+     ],
+     "km": 21.96959493574014,
+     "source": "osm",
+     "drive": null
+    },
+    {
+     "name": "Sunset Overlook Spur Trail (parking)",
+     "ll": [
+      36.401644,
+      -81.469756
+     ],
+     "km": 22.077432486461337,
+     "source": "osm",
      "drive": null
     },
     {
@@ -11869,6 +11996,16 @@
       "Backbone Falls Trail",
       "Backbone Rock"
      ],
+     "drive": null
+    },
+    {
+     "name": "Mountain Ridge Trail (parking)",
+     "ll": [
+      36.398242,
+      -81.466897
+     ],
+     "km": 22.524543548817213,
+     "source": "osm",
      "drive": null
     },
     {
@@ -11892,60 +12029,17 @@
      "drive": null
     },
     {
-     "name": "Mountain City Park Trail",
+     "name": "Fern Nature Trail (parking)",
      "ll": [
-      36.4793,
-      -81.80837
+      36.416164,
+      -81.386909
      ],
-     "km": 24.88588373576684,
-     "source": "state",
-     "serves": [
-      "Mountain City Park Trail"
-     ],
-     "drive": null
-    },
-    {
-     "name": "Elk Knob State Park",
-     "ll": [
-      36.332464,
-      -81.694172
-     ],
-     "km": 30.472738453124563,
-     "source": "state",
-     "drive": null
-    },
-    {
-     "name": "Hungry Mother State Park",
-     "ll": [
-      36.883025,
-      -81.52608
-     ],
-     "km": 33.254091686876635,
-     "source": "state",
-     "drive": null
-    },
-    {
-     "name": "Hale Lake Trailhead",
-     "ll": [
-      36.760947,
-      -81.249683
-     ],
-     "km": 34.094603515986634,
-     "source": "usfs",
-     "drive": null
-    },
-    {
-     "name": "Virginia Creeper Trail: Watauga Trail Head",
-     "ll": [
-      36.677979,
-      -81.934998
-     ],
-     "km": 34.73893504218304,
+     "km": 24.54579507922097,
      "source": "osm",
      "drive": null
     }
    ],
-   "trailheadCount": 20
+   "trailheadCount": 42
   },
   "road": {
    "name": "unnamed road",
