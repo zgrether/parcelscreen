@@ -1,0 +1,172 @@
+/**
+ * Issue #432: a tap on Hamilton County's live parcel service opens no parcel (since about 2026-10-30). What the service
+ * answers now, on CI's runners (hamilton.yml; this repo's cloud sessions can't reach the county host):
+ *   1. the layer's metadata, the hcwa03 directory and its Live_Parcels service, and nearby hosts;
+ *   2. the app's own query at Three Gorges Farms (lib/geo/parcels.ts pickParcelAt), sent with the production origin:
+ *      status, CORS header, any token or rate-limit answer, error, feature count;
+ *   3. the fallback: whether the Comptroller's statewide layer has Hamilton's parcels now.
+ *
+ *   pnpm exec vitest run test/tools/hamilton-probe.test.ts --mode hamilton-probe
+ *
+ * Read-only; nothing is written to the repo. No owner or address fields are printed.
+ */
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+import { DEFAULT_ENDPOINTS } from "../../lib/screen/config";
+
+const live = () =>
+  (globalThis as unknown as Record<symbol, typeof fetch>)[Symbol.for("parcelscreen.liveFetch")]!;
+
+const UA = "parcelscreen-data/1 (Hamilton County parcels probe; https://github.com/zgrether/parcelscreen)";
+const ORIGIN = "https://parcelscreen.vercel.app";
+
+const out: string[] = ["# Hamilton County parcel service (probe, #432)", ""];
+const say = (...l: string[]) => {
+  out.push(...l);
+  console.log(l.join("\n"));
+};
+
+interface Got {
+  status: number;
+  headers: Record<string, string>;
+  text: string;
+  ms: number;
+}
+async function get(url: string): Promise<Got> {
+  const t = Date.now();
+  try {
+    const r = await live()(url, {
+      headers: { "User-Agent": UA, Origin: ORIGIN },
+      signal: AbortSignal.timeout(30_000),
+    });
+    const headers: Record<string, string> = {};
+    for (const k of [
+      "access-control-allow-origin",
+      "content-type",
+      "retry-after",
+      "www-authenticate",
+      "server",
+      "location",
+    ]) {
+      const v = r.headers.get(k);
+      if (v) headers[k] = v;
+    }
+    return { status: r.status, headers, text: await r.text(), ms: Date.now() - t };
+  } catch (e) {
+    return { status: 0, headers: {}, text: String((e as Error).cause ?? e), ms: Date.now() - t };
+  }
+}
+const json = (t: string): Record<string, unknown> | null => {
+  try {
+    return JSON.parse(t) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+};
+const clip = (s: unknown, n = 300) =>
+  String(s ?? "")
+    .replace(/\s+/g, " ")
+    .slice(0, n);
+const line = (label: string, g: Got) =>
+  `- **${label}**: HTTP ${g.status} in ${g.ms} ms; ${JSON.stringify(g.headers)}; ${clip(g.text, 240)}`;
+
+/** The app's Hamilton service, from its config. */
+const HAMILTON_LAYER = DEFAULT_ENDPOINTS.parcels.find((u) => u.includes("hamiltontn.gov"))!;
+const STATE_LAYER = DEFAULT_ENDPOINTS.parcels.find((u) => u.includes("Tennessee_Property_Boundaries"))!;
+/** Inside Three Gorges Farms tract 1 (screenshots/tn-counties.spec.ts). */
+const PT = { lat: 35.29479, lon: -85.20988 };
+/** The app's query (lib/geo/parcels.ts pickParcelAt, lib/geo/parcelFields.ts) without the owner and address fields. */
+const appQuery = (layer: string, where: string, f = "geojson") =>
+  `${layer}/query?${new URLSearchParams({
+    geometry: `${PT.lon},${PT.lat}`,
+    geometryType: "esriGeometryPoint",
+    inSR: "4326",
+    spatialRel: "esriSpatialRelIntersects",
+    where,
+    outFields: "OBJECTID,GISLINK,MAP,GROUP_,PARCEL,PARCEL_TYP",
+    returnGeometry: "true",
+    outSR: "4326",
+    f,
+  })}`;
+
+describe.runIf(import.meta.env.MODE === "hamilton-probe")("Hamilton County's parcel service (#432)", () => {
+  it("says what it answers now", async () => {
+    say(`The app's layer: ${HAMILTON_LAYER}`, "");
+
+    // 1. Metadata and directories.
+    say("## 1. The service", "");
+    const meta = await get(`${HAMILTON_LAYER}?f=json`);
+    say(line("layer ?f=json", meta));
+    const m = json(meta.text);
+    if (m)
+      say(
+        `- name ${String(m.name)}; maxRecordCount ${String(m.maxRecordCount)}; currentVersion ${String(m.currentVersion)}; error ${clip(JSON.stringify(m.error))}`,
+        `- fields: ${clip(((m.fields as { name: string }[] | undefined) ?? []).map((f) => f.name).join(", "), 1200)}`,
+      );
+    const service = HAMILTON_LAYER.replace(/\/\d+$/, "");
+    const svc = await get(`${service}?f=json`);
+    say(line("MapServer ?f=json", svc));
+    const svcJ = json(svc.text);
+    if (svcJ) say(`- layers: ${clip(JSON.stringify(svcJ.layers), 600)}`);
+    const root = HAMILTON_LAYER.replace(/\/rest\/services\/.*$/, "/rest/services");
+    const dir = await get(`${root}?f=json`);
+    say(line("services directory", dir));
+    const dirJ = json(dir.text);
+    if (dirJ)
+      say(`- folders ${JSON.stringify(dirJ.folders)}; services ${clip(JSON.stringify(dirJ.services), 1500)}`);
+    // The county's other hosts: is Live_Parcels served from a production host now?
+    for (const host of [
+      "https://maps.hamiltontn.gov",
+      "https://mapsprod.hamiltontn.gov",
+      "https://gis.hamiltontn.gov",
+      "https://mapsdev.hamiltontn.gov",
+    ])
+      for (const path of ["/hcwa03/rest/services?f=json", "/arcgis/rest/services?f=json"]) {
+        const g = await get(`${host}${path}`);
+        say(line(`${host}${path}`, { ...g, text: g.text.slice(0, 160) }));
+      }
+    say("");
+
+    // 2. The app's query, as the browser sends it.
+    say("## 2. The app's query at Three Gorges Farms", "");
+    for (const [label, url] of [
+      ["geojson, PARCEL_TYP=1 (the app's)", appQuery(HAMILTON_LAYER, "PARCEL_TYP=1")],
+      ["geojson, 1=1", appQuery(HAMILTON_LAYER, "1=1")],
+      ["json, PARCEL_TYP=1", appQuery(HAMILTON_LAYER, "PARCEL_TYP=1", "json")],
+    ] as const) {
+      const g = await get(url);
+      const j = json(g.text);
+      const n = (j?.features as unknown[] | undefined)?.length;
+      say(
+        line(label, { ...g, text: g.text.slice(0, 200) }),
+        `  - features: ${n ?? "none"}; error ${clip(JSON.stringify(j?.error))}`,
+      );
+    }
+    say("");
+
+    // 3. The fallback.
+    say("## 3. The Comptroller's statewide layer", "");
+    const count = await get(
+      `${STATE_LAYER}/query?${new URLSearchParams({ where: "COUNTY_NAME='Hamilton'", returnCountOnly: "true", f: "json" })}`,
+    );
+    say(line("COUNTY_NAME='Hamilton' count", count));
+    const counties = await get(
+      `${STATE_LAYER}/query?${new URLSearchParams({ where: "COUNTY_NAME LIKE 'Ham%'", outFields: "COUNTY_NAME", returnDistinctValues: "true", returnGeometry: "false", f: "json" })}`,
+    );
+    say(line("COUNTY_NAME LIKE 'Ham%'", counties));
+    const atPt = await get(
+      appQuery(STATE_LAYER, "1=1").replace("MAP,GROUP_,PARCEL,PARCEL_TYP", "COUNTY_NAME"),
+    );
+    const atJ = json(atPt.text);
+    say(
+      line("at the Three Gorges point", { ...atPt, text: atPt.text.slice(0, 200) }),
+      `  - features: ${(atJ?.features as unknown[] | undefined)?.length ?? "none"}`,
+    );
+    say("");
+
+    mkdirSync(join(process.cwd(), "test-results"), { recursive: true });
+    writeFileSync(join(process.cwd(), "test-results", "hamilton-probe.md"), out.join("\n") + "\n");
+    expect(out.length).toBeGreaterThan(2);
+  }, 600_000);
+});
