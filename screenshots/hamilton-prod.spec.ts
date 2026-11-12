@@ -10,22 +10,31 @@ import { expect, test } from "./fixtures";
 /** Inside Three Gorges Farms tract 1 (screenshots/tn-counties.spec.ts). */
 const THREE_GORGES = { lat: 35.29479, lon: -85.20988 };
 
+/** A request to the county's hosts (the host parsed, not a substring of the whole URL). */
+const county = (url: string): boolean => {
+  try {
+    const h = new URL(url).hostname;
+    return h === "hamiltontn.gov" || h.endsWith(".hamiltontn.gov");
+  } catch {
+    return false;
+  }
+};
+
 test("a tap at Three Gorges Farms, on the deployment", async ({ page }) => {
   test.setTimeout(180_000);
   const log: string[] = [];
   page.on("request", (r) => {
-    if (r.url().includes("hamiltontn.gov")) log.push(`→ ${r.method()} ${r.url().split("?")[0]}`);
+    if (county(r.url())) log.push(`→ ${r.method()} ${r.url().split("?")[0]}`);
   });
   page.on("response", (r) => {
     const u = r.url();
-    if (u.includes("hamiltontn.gov"))
+    if (county(u))
       log.push(
         `← ${r.status()} ${u.split("?")[0]} acao=${r.headers()["access-control-allow-origin"] ?? "none"} type=${r.headers()["content-type"] ?? "?"}`,
       );
   });
   page.on("requestfailed", (r) => {
-    if (r.url().includes("hamiltontn.gov"))
-      log.push(`✗ ${r.url().split("?")[0]}: ${r.failure()?.errorText ?? "failed"}`);
+    if (county(r.url())) log.push(`✗ ${r.url().split("?")[0]}: ${r.failure()?.errorText ?? "failed"}`);
   });
   const consoleErrors: string[] = [];
   page.on("console", (m) => {

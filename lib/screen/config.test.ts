@@ -1666,7 +1666,9 @@ describe("migrateEndpoints (the prototype's _v rule)", () => {
     const savedAtV17 = {
       ...DEFAULT_ENDPOINTS,
       _v: 17,
-      parcels: DEFAULT_ENDPOINTS.parcels.map((u) => (u.includes("hamiltontn.gov") ? OLD : u)),
+      parcels: DEFAULT_ENDPOINTS.parcels.map((u) =>
+        new URL(u).hostname.endsWith(".hamiltontn.gov") ? OLD : u,
+      ),
     };
     const parcels = migrateEndpoints(savedAtV17).parcels;
     expect(parcels).not.toContain(OLD);

@@ -51,7 +51,8 @@ jobs:
     steps:
       - id: tip
         run: |
-          tip=$(gh api "repos/$GITHUB_REPOSITORY/branches/step/existing-house" --jq .commit.sha)
+          # The step branch is deleted once it merges: no branch, no step preview (ported from #427).
+          tip=$(gh api "repos/$GITHUB_REPOSITORY/branches/step/existing-house" --jq .commit.sha 2>/dev/null || true)
           echo "step/existing-house is at $tip; this deployment is $SHA"
           if [ "$tip" = "$SHA" ]; then echo "step=true" >> "$GITHUB_OUTPUT"; else echo "step=false" >> "$GITHUB_OUTPUT"; fi
         env:

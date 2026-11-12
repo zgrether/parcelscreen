@@ -72,7 +72,9 @@ const line = (label: string, g: Got) =>
   `- **${label}**: HTTP ${g.status} in ${g.ms} ms; ${JSON.stringify(g.headers)}; ${clip(g.text, 240)}`;
 
 /** The app's Hamilton service, from its config (gis.hamiltontn.gov's Parcels since #432; mapsdev's Live_Parcels before). */
-const HAMILTON_LAYER = DEFAULT_ENDPOINTS.parcels.find((u) => u.includes("hamiltontn.gov"))!;
+const HAMILTON_LAYER = DEFAULT_ENDPOINTS.parcels.find((u) =>
+  new URL(u).hostname.endsWith(".hamiltontn.gov"),
+)!;
 const STATE_LAYER = DEFAULT_ENDPOINTS.parcels.find((u) => u.includes("Tennessee_Property_Boundaries"))!;
 /** Inside Three Gorges Farms tract 1 (screenshots/tn-counties.spec.ts). */
 const PT = { lat: 35.29479, lon: -85.20988 };
