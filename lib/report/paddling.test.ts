@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { expectedOf } from "@/test/support/expected";
 import { SCREEN_CONSTANTS } from "../screen/config";
-import { PADDLE_DRIVES, pondToPaddle } from "../screen/paddling";
+import { PADDLE_DRIVES, pondToPaddle, quickestByLake } from "../screen/paddling";
 import { flatLine, riversLine } from "./paddling";
 import type { ScreenResult } from "../screen/types";
 import { defaultRubric } from "../rubric/default";
@@ -37,13 +37,13 @@ describe("the Paddling row", () => {
   it("grades the drive to the nearest lake launch on paddleMin: A ≤ 15, B ≤ 30, C ≤ 45, D ≤ 60, F past", () => {
     expect(SCREEN_CONSTANTS.card.rows.paddleMin).toEqual([15, 30, 45, 60]);
     const letters = [15, 16, 30, 31, 45, 60, 61].map(
-      (min) => rowOf(withPaddling({ flat: flat(min), rivers: [], pond: null })).grade,
+      (min) => rowOf(withPaddling({ flat: flat(min), others: [], rivers: [], pond: null })).grade,
     );
     expect(letters).toEqual(["A", "B", "B", "C", "C", "D", "F"]);
   });
 
   it("its line names the water and the launch; its short form, the water and minutes", () => {
-    const row = rowOf(withPaddling({ flat: flat(18), rivers: [], pond: null }));
+    const row = rowOf(withPaddling({ flat: flat(18), others: [], rivers: [], pond: null }));
     expect(row.detail).toBe("18 min to Watauga Lake, Rat Branch");
     // An unnamed launch is "<water> access": the water once.
     expect(
@@ -56,8 +56,8 @@ describe("the Paddling row", () => {
   it("river put-ins and a pond go in the panel and never move the grade", () => {
     const rivers = [{ name: "Guy Ford access", river: "Watauga River", km: 9.7 }];
     const pond = { acres: 1.2, name: "Mill Pond" };
-    const bare = rowOf(withPaddling({ flat: flat(40), rivers: [], pond: null }));
-    const more = rowOf(withPaddling({ flat: flat(40), rivers, pond }));
+    const bare = rowOf(withPaddling({ flat: flat(40), others: [], rivers: [], pond: null }));
+    const more = rowOf(withPaddling({ flat: flat(40), others: [], rivers, pond }));
     expect(more.grade).toBe(bare.grade);
     expect(more.panelNote).toBe(
       "river put-ins, not graded: Watauga River: Guy Ford access, 6.0 mi straight — check the river's class (how hard its rapids are) before paddling. And a pond on the land you could paddle (1.2 ac)",
@@ -78,10 +78,40 @@ describe("the Paddling row", () => {
   });
 
   it("no lake launch within reach is an F that says so; not measured and not loaded are ungraded", () => {
-    const none = rowOf(withPaddling({ flat: null, rivers: [], pond: null }));
+    const none = rowOf(withPaddling({ flat: null, others: [], rivers: [], pond: null }));
     expect([none.grade, none.detail]).toEqual(["F", "No lake or reservoir launch within 100 km"]);
     expect(rowOf(withPaddling(undefined)).grade).toBeNull();
     expect(rowOf(withPaddling(undefined, [PADDLE_DRIVES])).grade).toBeNull();
+  });
+});
+
+describe("the other lakes (existing-house plan §2b)", () => {
+  it("are listed after the rest of the panel, each lake once by its quickest launch, never moving the grade", () => {
+    const others = [
+      { name: "Laurel Bed Lake access", water: "Laurel Bed Lake", min: 51, mi: 13 },
+      { name: "Hidden Valley Lake access", water: "Hidden Valley Lake", min: 52, mi: 19.1 },
+    ];
+    const pond = { acres: 1.2, name: "Mill Pond" };
+    const bare = rowOf(withPaddling({ flat: flat(47), others: [], rivers: [], pond }));
+    const more = rowOf(withPaddling({ flat: flat(47), others, rivers: [], pond }));
+    expect(more.grade).toBe(bare.grade);
+    expect(more.detail).toBe(bare.detail);
+    expect(more.panelNote).toBe(
+      `${bare.panelNote}. other lakes, not graded: Laurel Bed Lake 51 min; Hidden Valley Lake 52 min`,
+    );
+  });
+
+  it("each lake's quickest launch, quickest first; the first is the row's; a tie goes to the nearer launch", () => {
+    const t = (name: string, water: string | null, min: number) => ({ name, water, min, mi: 1 });
+    expect(
+      quickestByLake([
+        t("SH 1", "South Holston Lake", 50),
+        t("HV", "Hidden Valley Lake", 52),
+        t("LB", "Laurel Bed Lake", 51),
+        t("SH 2", "South Holston Lake", 47),
+        t("Ramp", null, 52),
+      ]).map((x) => x.name),
+    ).toEqual(["SH 2", "LB", "HV", "Ramp"]);
   });
 });
 

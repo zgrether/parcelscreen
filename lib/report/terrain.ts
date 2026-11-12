@@ -1,4 +1,6 @@
 /** The Terrain section (proto L1461–1472). */
+import { fallbackNote } from "./elevation";
+import { SITES_NOT_SEARCHED } from "./existingHouse";
 import { compass, fmt } from "../format";
 import type { PartialScreenResult } from "../screen/types";
 import type { FactRow } from "./facts";
@@ -21,7 +23,7 @@ export interface TerrainView {
 }
 
 /** Null until the terrain step has run. */
-export function terrainView(r: PartialScreenResult): TerrainView | null {
+export function terrainView(r: PartialScreenResult, existingHouse = false): TerrainView | null {
   const t = r.terrain;
   if (!t) return null;
   const { houseMin, shelfMin, gardenMin } = r.params;
@@ -31,9 +33,7 @@ export function terrainView(r: PartialScreenResult): TerrainView | null {
     {
       label: "Elevation",
       value: `${fmt(t.elevMinFt)}–${fmt(t.elevMaxFt)} ft (mean ${fmt(t.elevMeanFt)})`,
-      ...(r.demSource && r.demSource !== "USGS 3DEP"
-        ? { note: `from ${r.demSource} — USGS 3DEP was unavailable` }
-        : {}),
+      ...(r.demSource && r.demSource !== "USGS 3DEP" ? { note: fallbackNote(r.demSource) } : {}),
     },
     { label: "Relief across the parcel", value: `${fmt(t.reliefFt)} ft` },
     {
@@ -45,7 +45,8 @@ export function terrainView(r: PartialScreenResult): TerrainView | null {
     { label: "Acres over 25% grade", value: fmt(t.acresOver25, 1) },
     {
       label: "House sites found",
-      value: `${benches.length} (${fmt(
+      // A house already here (existing-house plan §1b): the search's sites aren't read; shelves and gardens are.
+      value: `${existingHouse ? SITES_NOT_SEARCHED : benches.length} (${fmt(
         benches.reduce((a, x) => a + x.acres, 0),
         2,
       )} ac) · shelves ${r.shelves?.length ?? 0} · garden patches ${r.gardens?.length ?? 0}${compactLine(r)}`,

@@ -385,6 +385,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
     riverWithinM: 100, // the river a launch is on: the nearest named NHD flowline this close
     maxKm: 100, // flatwater launches timed: within this, in a straight line
     points: 6, // at most this many, nearest first
+    otherLakes: 3, // the other lakes those reach, listed by their quickest drive (existing-house plan §2b)
     riverKm: 40, // river put-ins listed in the detail: within this
     rivers: 3, // at most this many
     sameWithinM: 150, // two launches this close are one put-in (OSM often maps a ramp and its access point both)

@@ -51,6 +51,11 @@ export interface SetAside {
   /** One of the person's Musts: the answer line names it. */
   must: boolean;
   at: string;
+  /**
+   * Set aside by the app, not the person (docs/plans/existing-house.md §1b: "House already here"): never stored, no ✎,
+   * and what to check instead.
+   */
+  auto?: { verify: string };
 }
 
 /** The factors set aside among a person's adjustments. */
@@ -80,8 +85,9 @@ export const valueWords = (v: Letter | string | null | undefined): string => v ?
 export const isAdjusted = (c: {
   rows: readonly { adjusted?: unknown }[];
   gates: readonly { adjusted?: unknown }[];
-  setAside?: readonly unknown[];
-}): boolean => c.rows.some((x) => !!x.adjusted) || c.gates.some((g) => !!g.adjusted) || !!c.setAside?.length;
+  setAside?: readonly { auto?: unknown }[];
+}): boolean =>
+  c.rows.some((x) => !!x.adjusted) || c.gates.some((g) => !!g.adjusted) || !!c.setAside?.some((x) => !x.auto);
 
 /** A row's letter as a view shows it: the person's override or set-aside applied, and whether to mark it ✎. */
 export interface ShownLetter {
@@ -100,11 +106,13 @@ export interface ShownLetter {
 export function shownLetter(
   c: {
     rows: readonly { key: string; grade: Letter | null; adjusted?: unknown }[];
-    setAside?: readonly { key: string }[];
+    setAside?: readonly { key: string; auto?: unknown }[];
   },
   key: string,
 ): ShownLetter | null {
-  if (c.setAside?.some((x) => x.key === key)) return { grade: null, adjusted: true, setAside: true };
+  const aside = c.setAside?.find((x) => x.key === key);
+  // An app's set-aside ("House already here") is no adjustment of the person's: no ✎.
+  if (aside) return { grade: null, adjusted: !aside.auto, setAside: true };
   const row = c.rows.find((x) => x.key === key);
   return row ? { grade: row.grade, adjusted: !!row.adjusted, setAside: false } : null;
 }

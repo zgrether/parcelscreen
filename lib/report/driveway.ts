@@ -1,4 +1,5 @@
 /** The Driveway section (proto L1515–1532): entrances, routed alignments with costs, the pioneer track. */
+import { elevationOf, relabel } from "./elevation";
 import { fmt } from "../format";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import { gradeOver, reliefCulverts } from "../screen/driveway";
@@ -388,8 +389,12 @@ export function drivewayView(
       : null,
     caveat: [
       // B12: the prototype said "3 m lidar" whatever the run's DEM cell size; the run's own is shown.
+      // Existing-house plan §3: named for the elevation actually used (unchanged with 3DEP).
       said(
-        `Least-cost route over the ${r.demResM != null ? `${fmt(r.demResM)} m ` : ""}lidar with a hard grade limit; it avoids bottomland and side-hill, and prices crossings as culverts. Costs use the unit rates in Settings, ±30%. Bare-earth DEM (no trees), county soils (not borings), and VDOT decides the entrance — this is a number to put in front of an excavator, not a bid.`,
+        relabelLead(
+          `Least-cost route over the ${r.demResM != null ? `${fmt(r.demResM)} m ` : ""}lidar with a hard grade limit; it avoids bottomland and side-hill, and prices crossings as culverts. Costs use the unit rates in Settings, ±30%. Bare-earth DEM (no trees), county soils (not borings), and VDOT decides the entrance — this is a number to put in front of an excavator, not a bid.`,
+          r,
+        ),
       ),
     ],
   };
@@ -447,3 +452,7 @@ export function routeChoices(
     ...mine.map(({ l, rt }) => column(rt, l.id, lineLabel(l, names))),
   ];
 }
+
+/** The method line's "lidar", named for the elevation actually used (existing-house plan §3). */
+const relabelLead = (text: string, r: { demSource?: string; demResM?: number }): string =>
+  relabel(text, elevationOf(r));

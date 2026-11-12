@@ -62,7 +62,7 @@ export function ResultPins() {
   useEffect(() => {
     if (!map || !display) return;
     // UX part 2 PR 3b2: the best homesite only, until the full key's Every pin asks for the rest.
-    const pins = pinSpecs(display, ranks).filter((pin) => allPins || pin.top);
+    const pins = pinSpecs(display, ranks, !!card?.existingHouse).filter((pin) => allPins || pin.top);
     const markers = pins.map((pin) => {
       const el = document.createElement("div");
       el.className = `sitepin${CLASS[pin.kind]}${pin.top ? " top" : ""}${pin.alt ? " alt" : ""}`;
@@ -97,7 +97,7 @@ export function ResultPins() {
       hideTip(map);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- ranks changes with rankKey
-  }, [map, display, live, rankKey, allPins]);
+  }, [map, display, live, rankKey, allPins, card?.existingHouse]);
 
   return null;
 }

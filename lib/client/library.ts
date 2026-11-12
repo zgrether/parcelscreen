@@ -3,6 +3,7 @@
  * price, state, status and milestones, and both people's grades with the household verdict, the lower of the two
  * (owner, #128). Filters and sorts are views: they never change a parcel. Pure; components/Library renders it.
  */
+import { cardFactsOf } from "@/lib/client/parcelStore";
 import { DEFAULT_COST_SETTINGS, type CostSettings, type Range } from "../config/costs";
 import { isAdjusted } from "@/lib/report/adjust";
 import { biggestMiss } from "@/lib/report/answer";
@@ -181,7 +182,7 @@ export function libraryRow(
         p.drivewayLine,
         { askingPrice: p.askingPrice, ...costs },
         p.key ? adjustMap(ctx.household, p.key, ctx.me) : undefined,
-        p.facts,
+        cardFactsOf(p),
       ),
     );
     // The viewer's (the profile's own rubric comes first): the cost at their best site.

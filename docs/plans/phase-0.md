@@ -1468,4 +1468,22 @@ until step 5 (Q14).
       Wetness; Garden's "Water it holds"; and Septic's line when the build site is on likely wet ground or a water table
       within 2 ft (declared report text; no fixture's build site shows it).
 
+
+81. **Paddling's other lakes; schema v10** (Zach, 2026-11-11, the existing-house step; `docs/plans/existing-house.md`
+    §2b). Grading 010-A-10, Paddling named South Holston Lake and not two wildlife department lakes nearer by map,
+    Hidden Valley Lake (61 ac) and Laurel Bed Lake (360 ac).
+    - **The root cause:** neither was missing or filtered. Both ramps are baked flatwater launches and both were timed;
+      the public OSRM router puts them at 51 and 52 min from the house against South Holston's 47, on back roads it
+      drives at 25, 15 and, on the last unpaved stretch into each WMA, 9 mph (Google Maps says 20–30 min). The row
+      grades and names only the quickest launch. The router's back-road speeds are parked in polish.md.
+    - **The change:** `paddling.others`, the other lakes the timed launches reach, each by its quickest launch,
+      quickest first, at most `paddling.otherLakes` (3). The card's Paddling panel and the Paddling section list them
+      last ("other lakes, not graded: Laurel Bed Lake 51 min; Hidden Valley Lake 52 min"); the grade and the row's
+      line don't move (a tie still goes to the nearer launch).
+    - **Schema v10, a clean break** (Zach chose it knowing the cost): saved v9 grades are dropped with "Saved with an
+      older version; grade it again." `ENGINE_VERSION` 38. The fixtures' expected results gain `others` only.
+    - **`others` is optional:** absent on a result from an earlier engine, read as "not timed". The area catalog's 60
+      sample parcels (engine 37, no live run to redo them in CI) move to v10 as they are, keeping their engine stamp;
+      `SAMPLES_RESCREEN=1 pnpm areas:samples` gives them their other lakes when it next runs.
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

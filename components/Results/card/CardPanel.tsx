@@ -37,7 +37,7 @@ import { useOnline } from "@/lib/client/useOnline";
 /** Offline: "Use as my driveway" does what Try it can't, scoring the route without the network (owner, 10/22). */
 export const OFFLINE_CHOICE =
   "Offline: this scores the route on the card now; its drive times stay the app's pick's until you grade again.";
-import { SET_ASIDE_READING } from "@/lib/report/adjustWords";
+import { asideReading } from "@/lib/report/adjustWords";
 
 export const FROM_THE_REPORT_NOTE =
   "The original report, kept for reference. Its 'overall' score mixes site quality with build cost; the card above grades quality only.";
@@ -78,18 +78,18 @@ function reading(key: PanelKey, card: Card): { mark: string; tone: string; text:
     return { mark: card.grade ?? "–", tone: `v-${card.verdict.toLowerCase()}`, text: card.reason };
   if (key === "cost") {
     // Step 10: the two lines, as the Grade section shows them.
-    const s = costSummary(card.cost, card.rubric.rubric.budgets);
+    const s = costSummary(card.cost, card.rubric.rubric.budgets, !!card.existingHouse);
     const text = !s
       ? "Not priced yet."
       : s.kind === "noWay"
         ? `${s.text}.`
-        : `${s.lines.map(summaryText).join("; ")}.`;
+        : `${s.lines.map(summaryText).join("; ")}.${s.note ? ` ${s.note}` : ""}`;
     // No letter or mark of its own: the lines carry their budgets' marks.
     return { mark: "", tone: "g-none", text };
   }
   // Step 12: set aside on this parcel, with its reason.
   const aside = card.setAside?.find((x) => x.key === key);
-  if (aside) return { mark: "–", tone: "g-none", text: SET_ASIDE_READING(aside.reason) };
+  if (aside) return { mark: "–", tone: "g-none", text: asideReading(aside) };
   const gate = card.gates.find((g) => g.key === key);
   if (gate) return { mark: STATUS[gate.status], tone: `gate ${gate.status}`, text: `${gate.reason}.` };
   const row = card.rows.find((r) => r.key === key);
@@ -193,7 +193,9 @@ export function CardPanel({
         {panel === "septic" && <BottomlandHere result={result} />}
         {/* Water on the land (docs/plans/water.md §2): after the panel's existing text, declared. */}
         {panel === "septic" && <WetGroundHere result={result} />}
-        {(panel === "cost" || panel === "budget") && <CostBreakdown cost={card.cost} />}
+        {(panel === "cost" || panel === "budget") && (
+          <CostBreakdown cost={card.cost} existingHouse={!!card.existingHouse} />
+        )}
         {panel === "easement" && (
           <YourRouteChoice
             result={result}
@@ -241,6 +243,7 @@ export function CardPanel({
             lineNames,
             drivewayLine: card.drivewayLine ?? null,
             ...(card.paving ? { paving: card.paving } : {}),
+            ...(card.existingHouse ? { existingHouse: true } : {}),
           });
           if (body === null) return null;
           const h = heading(result, point);
