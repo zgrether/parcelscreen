@@ -41,11 +41,27 @@ jobs:
         if: always()
         run: cat test-results/existing-house-probe.md >> "$GITHUB_STEP_SUMMARY" || true
 
+  # Vercel's deployment names its commit, not its branch (deployment.ref is the SHA), so the step branch's preview is
+  # the one whose SHA is the branch's tip.
+  which:
+    if: github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      step: ${{ steps.tip.outputs.step }}
+    steps:
+      - id: tip
+        run: |
+          tip=$(gh api "repos/$GITHUB_REPOSITORY/branches/step/existing-house" --jq .commit.sha)
+          echo "step/existing-house is at $tip; this deployment is $SHA"
+          if [ "$tip" = "$SHA" ]; then echo "step=true" >> "$GITHUB_OUTPUT"; else echo "step=false" >> "$GITHUB_OUTPUT"; fi
+        env:
+          SHA: ${{ github.event.deployment.sha }}
+          GH_TOKEN: ${{ github.token }}
+
   deployed:
     # Only the step branch's preview, once it's up.
-    if: >-
-      github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' &&
-      github.event.deployment.ref == 'step/existing-house'
+    needs: which
+    if: needs.which.outputs.step == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
