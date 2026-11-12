@@ -723,6 +723,14 @@ html:has(.explore) body {
 .surface-legend.in-key .sl-title {
   font-weight: 600;
 }
+/* On the key's light panel, the column's light-on-dark ink is too faint: the panel's own ink and size. */
+.surface-legend.in-key .sl-title,
+.surface-legend.in-key .sl-solid,
+.surface-legend.in-key .sl-range,
+.surface-legend.in-key .sl-note {
+  color: var(--color-ink-2);
+  font-size: 12px;
+}
 .slk-ramp {
   display: inline-block;
   width: 96px;
