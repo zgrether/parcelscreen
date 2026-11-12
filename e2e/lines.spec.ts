@@ -6,7 +6,7 @@
 import { centroid } from "@turf/turf";
 import { expect, test, type Page } from "@playwright/test";
 import { loadFixture } from "../test/support/fixtures";
-import { expectAllDone, importParcel, openExplorer, screenIt } from "./flow";
+import { editParcel, expectAllDone, importParcel, openExplorer, screenIt } from "./flow";
 import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -27,6 +27,7 @@ async function at(page: Page, dLat: number, dLon: number): Promise<{ x: number; 
 /** Draws a track across Ferney's middle: three points, Finish. */
 async function drawTrack(page: Page): Promise<void> {
   // + Mark → Track (owner, after #136: the lines are in the Mark picker).
+  await editParcel(page);
   await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).click();
   await page
     .getByRole("dialog", { name: "Mark on the parcel" })

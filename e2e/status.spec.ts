@@ -4,7 +4,7 @@
  * with their dates; and all of it on Your list and kept across a reload.
  */
 import { expect, test, type Page } from "@playwright/test";
-import { importParcel, listRow, openExplorer, reload } from "./flow";
+import { editParcel, importParcel, listRow, openExplorer, reload } from "./flow";
 import { replayHar } from "./replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -23,6 +23,7 @@ test("the parcel's standing: a favorite archived with a reason, restored; milest
   await replayHar(context, FERNEY);
   await openExplorer(page, FERNEY);
   await importParcel(page, FERNEY);
+  await editParcel(page);
   await page.locator('button[aria-label$="acres: parcel details"]').first().click();
   const standing = page.getByRole("group", { name: "Status" });
 

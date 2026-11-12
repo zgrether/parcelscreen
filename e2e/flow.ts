@@ -241,6 +241,18 @@ export async function dragSheet(page: Page, dy: number): Promise<void> {
   await page.mouse.up();
 }
 
+/**
+ * Opens the parcel toolbar for editing (map-room plan §3: with a parcel open it's folded to ✎ Edit), if it's folded; the
+ * bar then holds Boundary ▾, + Mark, the trash and the acres until Done.
+ */
+export async function editParcel(page: Page): Promise<void> {
+  const edit = page.getByRole("button", { name: "Edit the parcel" });
+  // Once a parcel's bar is up: folded (Edit) or already open (its Done).
+  const done = page.locator(".toolbar").getByRole("button", { name: "Done", exact: true });
+  await expect(edit.or(done).first()).toBeVisible({ timeout: 15_000 });
+  if (await edit.isVisible()) await edit.click();
+}
+
 /** A run going: the toolbar's "Grading…", or on a phone the sheet's progress bar in its place (UX part 2 PR 3b, Z-9). */
 export const gradingNow = (page: Page) =>
   page

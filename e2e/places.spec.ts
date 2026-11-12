@@ -6,7 +6,7 @@
  * bar. A production build, the fixtures' HARs replayed.
  */
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { dragSheet, importParcel, openExplorer, screenIt } from "./flow";
+import { dragSheet, editParcel, importParcel, openExplorer, screenIt } from "./flow";
 import { replayHar } from "./replay";
 
 const MUD = "grayson-mud-creek-6273" as const;
@@ -121,6 +121,7 @@ test.describe("a phone at 375 × 667", () => {
     await measure("46%");
 
     // A map tool has the screen: the tabs step aside, and come back when it closes.
+    await editParcel(page);
     await page.getByRole("button", { name: "Boundary ▾" }).click();
     await page.getByRole("menuitem", { name: "Split" }).click();
     await expect(toolbar).toHaveAttribute("data-mode", "split");

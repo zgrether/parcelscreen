@@ -5,7 +5,7 @@
  */
 import { expect, test, type Page } from "@playwright/test";
 import roads from "../test/tools/driveway-validation.roads.json";
-import { importParcel, openExplorer, reload, unfoldListing } from "./flow";
+import { editParcel, importParcel, openExplorer, reload, unfoldListing } from "./flow";
 import { replayHar } from "./replay";
 
 const GRAYSON = "grayson-mud-creek-6273" as const;
@@ -75,6 +75,7 @@ test("Details holds the parcel; Map layers holds the map; Your lines and marks h
   );
 
   // The toolbar's acres: Details again, at Boundary (the county record's facts).
+  await editParcel(page);
   await page.getByRole("button", { name: /acres: parcel details$/ }).click();
   await expect(page.getByRole("tab", { name: "Details" })).toHaveAttribute("aria-selected", "true");
   await expect(details.locator(".pd-sec[data-boundary] table.facts")).toBeVisible();
@@ -145,6 +146,7 @@ test.describe("on a phone", () => {
     await openExplorer(page, GRAYSON);
     await importParcel(page, GRAYSON);
     await withRedGate(page);
+    await editParcel(page);
     await page.getByRole("button", { name: /acres: parcel details$/ }).tap();
     const switchBox = (await page.locator(".parcel-switch").boundingBox())!;
     expect(switchBox.width).toBeGreaterThan(330);

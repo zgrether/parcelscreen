@@ -6,7 +6,7 @@
  * the reminder; cleared, the warning is back.
  */
 import { expect, test } from "@playwright/test";
-import { importParcel, openExplorer, reload, screenIt } from "./flow";
+import { editParcel, importParcel, openExplorer, reload, screenIt } from "./flow";
 import { replayHar } from "./replay";
 
 import { GRAYSON, withRedGate } from "./redGate";
@@ -73,6 +73,7 @@ test("Mud Creek: the red-gate route beside the app's pick; chosen as the drivewa
     if (!(await details.count())) await info.locator(".pd-row").filter({ hasText: "Red gate" }).click();
   };
   const grade = () => page.getByRole("tab", { name: "Grade" }).click();
+  await editParcel(page);
   await page.getByRole("button", { name: /acres: parcel details$/ }).click();
   await openRow();
   await expect(details.getByText("The card scores its route as your driveway.")).toBeVisible();

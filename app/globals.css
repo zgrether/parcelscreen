@@ -894,6 +894,27 @@ html:has(.explore) body {
   .tb-status .long {
     display: none;
   }
+  /* Map room (plan §3): folded to Edit, the bar is one 44 px button at the bottom right, above the sheet. */
+  .toolbar.folded {
+    left: auto;
+    right: 12px;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+  .toolbar.folded .tb-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    font-size: 18px;
+  }
+  .toolbar.folded .tb-edit-word {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
   .switch-toast {
     bottom: calc(var(--sheet-h) + 62px);
   }

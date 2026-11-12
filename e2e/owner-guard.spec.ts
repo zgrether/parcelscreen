@@ -9,6 +9,7 @@ import { OWNER_HIDDEN, SCREENSHOT_COOKIE } from "@/lib/client/screenshots";
 import { assertOwnerFieldsHidden } from "../screenshots/fixtures";
 import { replayHamilton, threeGorgesPoint } from "./hamilton";
 import { replayHar } from "./replay";
+import { editParcel } from "./flow";
 
 async function openFacts(page: Page): Promise<void> {
   const lot = threeGorgesPoint();
@@ -47,6 +48,7 @@ async function openFacts(page: Page): Promise<void> {
   );
   const box = (await page.locator(".maplibregl-canvas").boundingBox())!;
   await page.mouse.click(box.x + xy.x, box.y + xy.y);
+  await editParcel(page);
   await page.getByRole("button", { name: /acres: parcel details$/ }).click();
   await expect(page.locator("table.facts").first()).toContainText("048 045.24");
 }
