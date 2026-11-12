@@ -275,3 +275,28 @@ Edit" step.
    - Otherwise show the GIS acres, labelled as the report labels them.
 
    The line reuses the report's own acreage words, so the two can't drift.
+5. **Full-map's trigger: option A** (Zach, 2026-11-12, after the soils question: with soils on by default a tap inside
+   the parcel shows a soil tip and one outside switches parcels, so a tap that does nothing is rare):
+   - keep the empty-map tap, and add a swipe down on the slim line to hide everything;
+   - restore with a swipe up on the line, the restore button, or another empty-map tap;
+   - a one-time hint the first time the line appears, "Swipe down to hide controls.", once per device, never again;
+   - **desktop:** a small Hide controls button next to the Key chip (§5 had full-map off on a desktop).
+
+## 16. What shipped, and where it differs from this plan
+
+- **PRs:**
+  - #427, the plan;
+  - #428, the measurement (the before);
+  - #429, the sheet's line;
+  - #430, the Key chip and tips that close themselves;
+  - #431, ✎ Edit;
+  - #434, full-map mode;
+  - #435, the after, the review and this record.
+- **The line is 60 px, not 52:** the handle's strip and one 44 px row, so × and Grade meet the 44 px target.
+- **The header keeps its acres words** ("43.88 ac"); only the line uses the report's ("43.88 boundary ac"). On CI's
+  fonts the longer words wrapped the header's row and the 148 px peek no longer held the grade button (#429).
+- **The e2e flows start at the peek** (`openExplorer`'s `sheet` option); the sheet's own tests take a fresh session's
+  line.
+- **Desktop full-map has no empty-click toggle:** only Hide controls and restore. A click on empty map is too common
+  on a desktop to hide everything.
+- **A tap on the line in full-map mode** brings the controls back, as a swipe up does.
