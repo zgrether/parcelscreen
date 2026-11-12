@@ -141,6 +141,17 @@ in the hand-back's PR 6; these are what it left, outside the step or for you to 
 - **Town lots counted as trailheads**: decided (Zach, #425). A lot counts only on a hiking route of 2 mi or more, or
   within 400 m of public land of 100 ac or more (lib/places/qualify.ts), applied to the shipped places by the places
   workflow's `qualify` job; its report is docs/places/trail-lots-qualified.md.
+- **Legal road access reads the app's drive, not the parcel's frontage** (Zach's check, #425; probe round 10). On
+  010-A-10, step 14's frontage walk finds 3,151 ft of frontage on State Rte 80 (Hayters Gap Rd, TIGER S1200) along the
+  south boundary, but the gate reads only the driveway's first entrance, and all three of the app's entrances are on
+  unnamed TIGER local roads (S1400) that OSM maps as tracks and a private driveway. So it says "Frontage on an unnamed
+  road; the road in is a track", a warn that holds the verdict. Not a name or class matching gap: the gate never looks
+  at the frontage walk. The fix (tried): pass on the longest named public-road frontage of 30 ft or more, and say the
+  drive's road in without warning. It moves two fixtures, so it's Zach's call before it ships:
+  - Macks: "Frontage on State Rte 611", the gate a pass; the verdict Maybe → Contender.
+  - Ferney: "Frontage on Ferney Creek Rd NW" in place of "an unnamed road"; still a warn (its road in is marked
+    private); the verdict unchanged.
+  The easement item stays a verify line either way.
 - **From the fresh-eyes review** (the hand-back's screenshots of 010-A-10, house marked):
   - **Ready to camp priced a new driveway to the marked house**: done (Zach, #425). With "House already here" the drive
     in isn't priced: Ready to camp lists "Existing drive — walk it and check its condition", with a drawn existing
