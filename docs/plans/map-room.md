@@ -255,3 +255,23 @@ Edit" step.
    written.*
 3. **Header taps stop cycling the sheet's heights;** the handle collapses, the line expands, and drags resize.
    *Recommended: as written.*
+
+## 15. Zach's answers (#427, 2026-11-12)
+
+1. **After a grade the sheet drops to the line:** yes. The line's verdict and grade are what matters at a glance, and
+   the full grade is one tap up.
+2. **Full-map mode on a tap that does nothing today:** yes, with three rules.
+   - A tap that closes something (a tooltip, the expanded Key, a popup) only closes it. It doesn't also enter
+     full-map mode.
+   - Another tap on empty map restores the controls (a toggle), as well as the restore button.
+   - Never while Edit or any tool is active.
+3. **Header taps stop cycling heights:** yes.
+   - The handle's touch target is at least 44 px.
+   - The sheet gets collapse and expand actions that work with the keyboard and screen readers, with labels:
+     buttons named "Collapse the sheet" and "Expand the sheet". The handle becomes a real, focusable button, no longer
+     `aria-hidden`.
+4. **The acres on the line** (Zach's addition):
+   - With a recorded survey (the listing fact; 010-A-10's is 93.97 ac), show the surveyed acres.
+   - Otherwise show the GIS acres, labelled as the report labels them.
+
+   The line reuses the report's own acreage words, so the two can't drift.
