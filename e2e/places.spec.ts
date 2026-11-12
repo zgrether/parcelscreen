@@ -6,7 +6,7 @@
  * bar. A production build, the fixtures' HARs replayed.
  */
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { importParcel, openExplorer, screenIt } from "./flow";
+import { dragSheet, importParcel, openExplorer, screenIt } from "./flow";
 import { replayHar } from "./replay";
 
 const MUD = "grayson-mud-creek-6273" as const;
@@ -89,7 +89,6 @@ test.describe("a phone at 375 × 667", () => {
       page.locator(".search-btn"),
       ...(await page.locator(".map-col > *:visible").all()),
     ];
-    const handle = page.locator(".sheet-handle");
 
     /**
      * At both snaps the tab bar, the sheet and the toolbar keep apart, and the sheet sits on the tabs. At the peek the
@@ -112,15 +111,14 @@ test.describe("a phone at 375 × 667", () => {
       }
     };
 
-    // After a run the sheet rises to its middle snap: 46% of the space above the tabs.
-    await expect.poll(async () => Math.round((await box(sheet)).height)).toBe(Math.round(611 * 0.46));
-    await measure("46%");
-    // A tap cycles the snaps: 88%, then the peek: 148 px while the grade button shows under the header (step 4c;
-    // Mud Creek's "Try again: 3 sources didn't load").
-    await handle.tap();
-    await handle.tap();
+    // After a run the sheet stays where it was (map-room plan §1), here the peek: 148 px while the grade button shows
+    // under the header (step 4c; Mud Creek's "Try again: 3 sources didn't load").
     await expect.poll(async () => Math.round((await box(sheet)).height)).toBe(148);
     await measure("peek");
+    // Dragged up to the middle snap: 46% of the space above the tabs.
+    await dragSheet(page, -140);
+    await expect.poll(async () => Math.round((await box(sheet)).height)).toBe(Math.round(611 * 0.46));
+    await measure("46%");
 
     // A map tool has the screen: the tabs step aside, and come back when it closes.
     await page.getByRole("button", { name: "Boundary ▾" }).click();

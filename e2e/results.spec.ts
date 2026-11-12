@@ -9,7 +9,7 @@ import { answerReason } from "../lib/report/answer";
 import { AGENT_QUESTIONS, agentQuestions, copyAllText } from "../lib/report/agent";
 import { reportCard } from "../lib/report/card";
 import { defaultNamedRubric } from "../lib/rubric/default";
-import { importParcel, openExplorer, screenIt } from "./flow";
+import { dragSheet, importParcel, openExplorer, screenIt } from "./flow";
 import { replayHar } from "./replay";
 import { siteMeasures } from "../lib/report/siteMeasures";
 
@@ -103,10 +103,7 @@ test.describe("on a phone", () => {
     await openExplorer(page, FERNEY);
     await importParcel(page, FERNEY);
     await screenIt(page);
-    // After a run the sheet rises to its middle: tap back down to the peek.
-    const handle = page.locator(".sheet-handle");
-    await handle.tap();
-    await handle.tap();
+    // After a run the sheet stays at the peek (map-room plan §1).
     const reason = page.locator(".at-peek .sh-reason");
     await expect(reason).toBeVisible();
     await expect(reason).toHaveText(/^Strong elevation and winter sun; /);
@@ -116,7 +113,7 @@ test.describe("on a phone", () => {
     const sheet = (await page.locator(".explore-panel").boundingBox())!;
     expect(box.y + box.height).toBeLessThanOrEqual(sheet.y + sheet.height);
     // Raised, the header no longer repeats it.
-    await handle.tap();
+    await dragSheet(page, -200);
     await expect(page.locator(".sh-reason")).toBeHidden();
   });
 });
