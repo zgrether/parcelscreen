@@ -156,52 +156,72 @@ async function gradeMacks(page: Page): Promise<void> {
   await settle(page);
 }
 
-test.describe("phone, 390 × 844", () => {
-  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+// 390 × 844 is Zach's phone, the measurement's size; 375 × 812 the hand-back's narrow phone (CLAUDE.md).
+for (const [w, h] of [
+  [390, 844],
+  [375, 812],
+] as const) {
+  const at = (name: string) => (w === 390 ? `phone-${name}` : `phone${w}-${name}`);
+  test.describe(`phone, ${w} × ${h}`, () => {
+    test.use({ viewport: { width: w, height: h }, isMobile: true, hasTouch: true });
 
-  test("the map's share with a graded parcel open", async ({ page }) => {
-    test.setTimeout(600_000);
-    await gradeMacks(page);
+    test("the map's share with a graded parcel open", async ({ page }) => {
+      test.setTimeout(600_000);
+      await gradeMacks(page);
+      const hint = page.getByText("Swipe down to hide controls.");
+      await expect(hint).toHaveCount(0, { timeout: 10_000 });
 
-    // 0. The one-time hint over the line, the first time it shows on this device (Zach, #427). Then, once it's gone
-    //    (6 s), the measurement proper.
-    const hint = page.getByText("Swipe down to hide controls.");
-    if (await hint.count()) await page.screenshot({ path: `${OUT}/phone-first-hint.png` });
-    await expect(hint).toHaveCount(0, { timeout: 10_000 });
+      // 1. Right after the grade, as the app leaves it.
+      await record(page, at("after-grading"));
 
-    // 1. Right after the grade, as the app leaves it.
-    await record(page, "phone-after-grading");
+      // 2. As Zach's screenshot had it: the House shading on, and a tap on the parcel (its soil unit's tip). Measured
+      //    6 s later, so a tip that closes itself has had its time.
+      const surface = page.locator(".surface-btn");
+      for (
+        let i = 0;
+        i < 5 && (await surface.count()) && (await surface.getAttribute("data-mode")) !== "house";
+        i++
+      )
+        await surface.click();
+      const mid = await parcelMiddle(page);
+      await settle(page);
+      await page.touchscreen.tap(mid.x, mid.y);
+      await page.waitForTimeout(800);
+      await page.screenshot({ path: `${OUT}/${at("tip-open")}.png` });
+      await page.waitForTimeout(5200);
+      await record(page, at("shading-and-tip"));
 
-    // 2. As Zach's screenshot had it: the House shading on, and a tap on the parcel (its soil unit's tip). Measured
-    //    6 s later, so a tip that closes itself has had its time.
-    const surface = page.locator(".surface-btn");
-    for (
-      let i = 0;
-      i < 5 && (await surface.count()) && (await surface.getAttribute("data-mode")) !== "house";
-      i++
-    )
-      await surface.click();
-    const mid = await parcelMiddle(page);
-    await settle(page);
-    await page.touchscreen.tap(mid.x, mid.y);
-    await page.waitForTimeout(6000);
-    await record(page, "phone-shading-and-tip");
+      // 3. The Key open, with the House legend folded into it.
+      await page.getByRole("button", { name: "Show the map's key" }).tap();
+      await page.waitForTimeout(500);
+      await page.screenshot({ path: `${OUT}/${at("key-open")}.png` });
+      await page.getByRole("button", { name: "Hide", exact: true }).tap();
 
-    // 3. Full-map mode (map-room plan §5; Zach's option A): a swipe down on the sheet's line.
-    const line = (await page.locator(".sheet-line").boundingBox())!;
-    const x = line.x + line.width * 0.3,
-      y = line.y + line.height / 2;
-    await page.mouse.move(x, y);
-    await page.mouse.down();
-    await page.mouse.move(x, y + 60, { steps: 6 });
-    await page.mouse.up();
-    await expect(page.getByRole("button", { name: "Show the map's controls" })).toBeVisible();
-    await page.waitForTimeout(800);
-    await record(page, "phone-full-map");
+      // 4. Full-map mode (map-room plan §5; Zach's option A): a swipe down on the sheet's line.
+      const line = (await page.locator(".sheet-line").boundingBox())!;
+      const x = line.x + line.width * 0.3,
+        y = line.y + line.height / 2;
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      await page.mouse.move(x, y + 60, { steps: 6 });
+      await page.mouse.up();
+      const restore = page.getByRole("button", { name: "Show the map's controls" });
+      await expect(restore).toBeVisible();
+      await page.waitForTimeout(800);
+      await record(page, at("full-map"));
+      await restore.tap();
 
-    expect(results["phone-after-grading"]!.map).toBeGreaterThan(0);
+      // 5. The one-time hint over the line (Zach, #427), as a device sees it the first time.
+      await page.evaluate(() => localStorage.removeItem("ps.fullMapHint"));
+      await page.reload();
+      await expect(hint).toBeVisible({ timeout: 30_000 });
+      await settle(page);
+      await page.screenshot({ path: `${OUT}/${at("first-hint")}.png` });
+
+      expect(results[at("after-grading")]!.map).toBeGreaterThan(0);
+    });
   });
-});
+}
 
 test.describe("desktop, 1280 × 800", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
