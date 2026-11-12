@@ -31,7 +31,7 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec vitest run test/tools/existing-house-probe.test.ts --mode existing-house-probe -t "round [34]"
+      - run: pnpm exec vitest run test/tools/existing-house-probe.test.ts --mode existing-house-probe -t "round 9"
       - name: The report, into the job summary
         if: always()
         run: cat test-results/existing-house-probe.md >> "$GITHUB_STEP_SUMMARY" || true

@@ -207,6 +207,321 @@ describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-ho
     expect(out.length).toBeGreaterThan(4);
   }, 600_000);
 
+  // Round 5 (Zach, 11/11): Google Maps has both WMA lakes at 20 to 30 minutes; OSRM, 51 and 52. Each route's steps:
+  // the roads it takes, their miles and minutes, so the slow part shows.
+  it("round 5: the routes to the WMA lakes", async () => {
+    const from: [number, number] = [36.86562, -81.922];
+    const to: [string, [number, number]][] = [
+      ["Laurel Bed Lake access", [36.957494, -81.813332]],
+      ["Hidden Valley Lake access", [36.846513, -82.079744]],
+      ["South Holston Lake access", [36.6, -81.97]],
+    ];
+    say("## Round 5: the routes OSRM takes", "");
+    for (const [name, ll] of to) {
+      const r = await get(
+        `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${ll[1]},${ll[0]}?steps=true&overview=false&alternatives=true`,
+      );
+      const j = json(r.text) as {
+        routes?: {
+          duration: number;
+          distance: number;
+          legs: {
+            steps: { name: string; ref?: string; distance: number; duration: number; mode: string }[];
+          }[];
+        }[];
+        waypoints?: { name: string; distance: number }[];
+      } | null;
+      if (!j?.routes?.length) {
+        say(`- ${name}: HTTP ${r.status} ${clip(r.text, 200)}`);
+        continue;
+      }
+      say(
+        `### ${name}: ends on "${j.waypoints?.[1]?.name ?? "?"}" ${j.waypoints?.[1]?.distance?.toFixed(0) ?? "?"} m off`,
+        "",
+      );
+      for (const [ri, rt] of j.routes.entries()) {
+        say(
+          `- route ${ri + 1}: ${(rt.duration / 60).toFixed(0)} min, ${(rt.distance / 1609.34).toFixed(1)} mi`,
+        );
+        // The steps merged by road, in order.
+        const roads: { name: string; mi: number; min: number }[] = [];
+        for (const st of rt.legs[0]!.steps) {
+          const n = st.name || st.ref || "(unnamed)";
+          const last = roads[roads.length - 1];
+          if (last && last.name === n) {
+            last.mi += st.distance / 1609.34;
+            last.min += st.duration / 60;
+          } else roads.push({ name: n, mi: st.distance / 1609.34, min: st.duration / 60 });
+        }
+        for (const x of roads)
+          if (x.mi >= 0.1)
+            say(
+              `  - ${x.name}: ${x.mi.toFixed(1)} mi, ${x.min.toFixed(1)} min (${(x.mi / (x.min / 60)).toFixed(0)} mph)`,
+            );
+      }
+      say("");
+    }
+    write();
+    expect(out.length).toBeGreaterThan(2);
+  }, 300_000);
+
+  // Round 6 (Zach, 11/11): Virginia's high-resolution aerial doesn't show at 010-A-10. VBMP's service metadata, and
+  // the app's own export request (components/Map/style.ts VA_ORTHO) over the parcel at zooms 14 to 19: the HTTP status,
+  // the type and size, and whether the PNG is blank (every pixel transparent).
+  it("round 6: Virginia's aerial at 010-A-10", async () => {
+    const base =
+      "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VBMP_Imagery/MostRecentImagery_WGS/MapServer";
+    say("## Round 6: VBMP imagery at 010-A-10", "");
+    const meta = await get(`${base}?f=json`);
+    const mj = json(meta.text) as Record<string, unknown> | null;
+    say(
+      `- metadata: HTTP ${meta.status}; ${clip(
+        mj
+          ? JSON.stringify({
+              minScale: mj.minScale,
+              maxScale: mj.maxScale,
+              layers: (
+                mj.layers as { id: number; name: string; minScale?: number; maxScale?: number }[] | undefined
+              )?.map((l) => `${l.id} ${l.name} (${l.minScale ?? "?"}–${l.maxScale ?? "?"})`),
+              singleFusedMapCache: mj.singleFusedMapCache,
+              capabilities: mj.capabilities,
+              maxImageWidth: mj.maxImageWidth,
+            })
+          : meta.text,
+        1200,
+      )}`,
+    );
+    const lat = 36.86562,
+      lon = -81.922;
+    const merc = (lo: number, la: number): [number, number] => [
+      (lo * 20037508.34) / 180,
+      (Math.log(Math.tan(((90 + la) * Math.PI) / 360)) * 20037508.34) / Math.PI,
+    ];
+    for (const z of [14, 15, 16, 17, 18, 19]) {
+      const n = 2 ** z;
+      const x = Math.floor(((lon + 180) / 360) * n);
+      const y = Math.floor(
+        ((1 - Math.log(Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)) / Math.PI) /
+          2) *
+          n,
+      );
+      const tlon = (xx: number) => (xx / n) * 360 - 180;
+      const tlat = (yy: number) => (Math.atan(Math.sinh(Math.PI * (1 - (2 * yy) / n))) * 180) / Math.PI;
+      const [w, s] = merc(tlon(x), tlat(y + 1));
+      const [e, nn] = merc(tlon(x + 1), tlat(y));
+      const url = `${base}/export?bbox=${w},${s},${e},${nn}&bboxSR=3857&imageSR=3857&size=256,256&format=png32&transparent=true&f=image`;
+      const t0 = Date.now();
+      try {
+        // As a browser asks from the deployed app: CORS needs Access-Control-Allow-Origin back.
+        const r = await live()(url, {
+          headers: { "User-Agent": UA, Origin: "https://parcelscreen.vercel.app" },
+        });
+        say(
+          `- z${z} headers: access-control-allow-origin=${r.headers.get("access-control-allow-origin") ?? "(none)"}, cache-control=${r.headers.get("cache-control") ?? "(none)"}`,
+        );
+        const buf = new Uint8Array(await r.arrayBuffer());
+        const type = r.headers.get("content-type") ?? "?";
+        let blank = "?";
+        if (type.includes("png")) {
+          const { decode } = await import("fast-png");
+          const img = decode(buf);
+          const ch = img.channels;
+          let opaque = 0;
+          for (let i = ch - 1; i < img.data.length; i += ch) if ((img.data[i] as number) > 0) opaque++;
+          blank =
+            ch === 4 ? `${((opaque / (img.width * img.height)) * 100).toFixed(0)}% opaque` : `${ch} channels`;
+        }
+        say(`- z${z}: HTTP ${r.status}, ${type}, ${buf.length} bytes, ${blank}, ${Date.now() - t0} ms`);
+        if (!type.includes("image")) say(`  - ${clip(new TextDecoder().decode(buf), 300)}`);
+      } catch (e) {
+        say(`- z${z}: ${String(e)} after ${Date.now() - t0} ms`);
+      }
+    }
+    // What imagery covers the point, if the service says (an identify on its layers).
+    const id = await get(
+      `${base}/identify?geometry=${lon},${lat}&geometryType=esriGeometryPoint&sr=4326&layers=all&tolerance=1&mapExtent=${lon - 0.01},${lat - 0.01},${lon + 0.01},${lat + 0.01}&imageDisplay=400,400,96&returnGeometry=false&f=json`,
+    );
+    say(`- identify: HTTP ${id.status} ${clip(id.text, 800)}`, "");
+    write();
+    expect(out.length).toBeGreaterThan(2);
+  }, 300_000);
+
+  // Round 7: the tiles themselves, as base64 in the log, to look at: VBMP's export at 256 px (the app's request) and
+  // at 512 px for the same box (what a 2x screen draws), and Esri's tile, all at z19 over the house. Public imagery of a
+  // roof from the air; no owner field.
+  it("round 7: VBMP tiles to look at", async () => {
+    const lat = 36.86562,
+      lon = -81.922,
+      z = 19;
+    const n = 2 ** z;
+    const x = Math.floor(((lon + 180) / 360) * n);
+    const y = Math.floor(
+      ((1 - Math.log(Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)) / Math.PI) / 2) *
+        n,
+    );
+    const tlon = (xx: number) => (xx / n) * 360 - 180;
+    const tlat = (yy: number) => (Math.atan(Math.sinh(Math.PI * (1 - (2 * yy) / n))) * 180) / Math.PI;
+    const m = (lo: number, la: number) => [
+      (lo * 20037508.34) / 180,
+      (Math.log(Math.tan(((90 + la) * Math.PI) / 360)) * 20037508.34) / Math.PI,
+    ];
+    const [w, s] = m(tlon(x), tlat(y + 1));
+    const [e, nn] = m(tlon(x + 1), tlat(y));
+    const base =
+      "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VBMP_Imagery/MostRecentImagery_WGS/MapServer";
+    const urls: [string, string][] = [
+      [
+        "vbmp256",
+        `${base}/export?bbox=${w},${s},${e},${nn}&bboxSR=3857&imageSR=3857&size=256,256&format=jpg&f=image`,
+      ],
+      [
+        "vbmp512",
+        `${base}/export?bbox=${w},${s},${e},${nn}&bboxSR=3857&imageSR=3857&size=512,512&format=jpg&f=image`,
+      ],
+      [
+        "esri",
+        `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`,
+      ],
+    ];
+    for (const [name, url] of urls) {
+      const r = await live()(url, { headers: { "User-Agent": UA } });
+      const b = Buffer.from(await r.arrayBuffer());
+      console.log(
+        `TILE ${name} ${r.status} ${r.headers.get("content-type")} ${b.length} ${b.toString("base64")}`,
+      );
+    }
+    expect(true).toBe(true);
+  }, 120_000);
+
+  // Round 8 (Zach, 11/12): the Virginia Department of Forestry's page for the Brumley Mountain Trail, to cite in the
+  // trailhead overrides: its URL, and what it says about the trailhead at Hayters Gap.
+  it("round 9: 010-A-10 graded live on the step's code: Trails and Paddling's other lakes", async () => {
+    const ids = (
+      (json(
+        (
+          await get(
+            `${VA_PARCELS}/query?${new URLSearchParams({
+              f: "json",
+              where: "1=1",
+              geometry: "-81.97,36.80,-81.90,36.87",
+              geometryType: "esriGeometryEnvelope",
+              inSR: "4326",
+              spatialRel: "esriSpatialRelIntersects",
+              outFields: "PTM_ID,LOCALITY",
+              returnGeometry: "false",
+              resultRecordCount: "60",
+            })}`,
+          )
+        ).text,
+      )?.features as { attributes: Record<string, unknown> }[] | undefined) ?? []
+    ).map((f) => f.attributes);
+    const norm = (id: unknown) =>
+      String(id ?? "")
+        .replace(/[^0-9A-Z]/gi, "")
+        .toUpperCase();
+    const hit = ids.find((a) => norm(a.PTM_ID) === "010A10" || norm(a.PTM_ID) === "10A10");
+    say("## Round 9: 010-A-10 graded live on the step's code (no house mark)", "");
+    if (!hit) {
+      say("- 010-A-10 not found near the gap.", "");
+      write();
+      return;
+    }
+    const fc = json(
+      (
+        await get(
+          `${VA_PARCELS}/query?${new URLSearchParams({
+            f: "geojson",
+            where: `PTM_ID='${String(hit.PTM_ID)}' AND LOCALITY='${String(hit.LOCALITY)}'`,
+            outFields: PARCEL_FIELDS,
+            returnGeometry: "true",
+            outSR: "4326",
+          })}`,
+        )
+      ).text,
+    ) as { features?: Feature<Polygon>[] } | null;
+    const parcel = fc?.features?.[0];
+    if (!parcel?.geometry) {
+      say("- No outline came back.", "");
+      write();
+      return;
+    }
+    const t0 = performance.now();
+    const { result } = await screen(
+      { polygon: parcel.geometry, config: DEFAULT_USER_CONFIG },
+      () => undefined,
+      {
+        http: createHttpClient({
+          env: "node",
+          fetchImpl: live(),
+          userAgent: "ParcelScreen/1.0 (existing-house probe)",
+        }),
+      } as Parameters<typeof screen>[2],
+    );
+    const card = reportCard(result, defaultNamedRubric());
+    const th = result.near?.trailheads ?? [];
+    const p = result.paddling;
+    say(
+      `- Graded in ${((performance.now() - t0) / 1000).toFixed(0)} s; failed ${JSON.stringify(result.failed)}`,
+      `- Trailheads (${result.near?.trailheadCount ?? 0}): ${
+        th
+          .slice(0, 6)
+          .map(
+            (t) =>
+              `${t.name} (${t.source}, ${t.drive ? `${Math.round(t.drive.min)} min, ${t.drive.mi.toFixed(1)} mi` : "no drive"})`,
+          )
+          .join("; ") || "none"
+      }`,
+      `- Paddling: nearest ${p?.flat ? `${p.flat.name} ${Math.round(p.flat.min)} min` : "none"}; other lakes: ${
+        p?.others?.map((o) => `${o.name} ${Math.round(o.min)} min (${o.mi.toFixed(1)} mi)`).join("; ") || "none"
+      }`,
+      "",
+      `- ${card.verdict} · ${card.grade ?? "–"} (${card.points ?? "–"} points): ${clip(card.reason, 300)}`,
+      ...card.gates.map((g) => `- Must ${g.label}: ${g.status}`),
+      ...card.rows.map((r) => `- ${r.label}: ${r.grade ?? "–"}: ${clip(r.detail, 160)}`),
+      "",
+    );
+    write();
+    expect(card.rows.length).toBeGreaterThan(0);
+  }, 900_000);
+
+  it("round 8: VDOF's Brumley Mountain Trail page", async () => {
+    say("## Round 8: VDOF's Brumley Mountain Trail page", "");
+    const pages = [
+      "https://dof.virginia.gov/?s=brumley",
+      "https://dof.virginia.gov/?s=channels+state+forest",
+      "https://dof.virginia.gov/state-forests/",
+      "https://dof.virginia.gov/state-forests/channels-state-forest/",
+      "https://dof.virginia.gov/wp-json/wp/v2/search?search=brumley",
+      "https://dof.virginia.gov/wp-json/wp/v2/search?search=channels",
+    ];
+    const found = new Set<string>();
+    for (const u of pages) {
+      const r = await get(u);
+      const links = [
+        ...r.text.matchAll(/https?:\/\/dof\.virginia\.gov\/[^"'\s<>\\]*(?:brumley|channels)[^"'\s<>\\]*/gi),
+      ].map((m) => m[0]);
+      links.forEach((l) => found.add(l));
+      say(`- ${u}: HTTP ${r.status}, ${r.text.length} chars, ${links.length} links`);
+    }
+    say("", "Links:", ...[...found].map((l) => `- ${l}`), "");
+    found.add("https://dof.virginia.gov/state-forests/channels-state-forest/");
+    for (const l of [...found].filter((x) => !/\?s=|wp-json|\/feed|\.(jpg|png|pdf)$/i.test(x)).slice(0, 4)) {
+      const r = await get(l);
+      const text = r.text
+        .replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, " ")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ");
+      const hits = [
+        ...text.matchAll(/[^.]{0,200}(Hayters|Brumley|Route 80|Rt\. 80|trailhead|parking)[^.]{0,200}\./gi),
+      ]
+        .map((m) => m[0].trim())
+        .slice(0, 6);
+      say(`### ${l} (HTTP ${r.status})`, "", ...hits.map((h) => `> ${clip(h, 400)}`), "");
+    }
+    write();
+    expect(out.length).toBeGreaterThan(2);
+  }, 300_000);
+
   it("round 2: 010-A-10 found and graded live; the trailhead rule tried at Hayters Gap", async () => {
     // ---------- 010-A-10: round 1's LIKE matched nothing, so the format is read from the parcels near the gap ----------
     const sample = json(
