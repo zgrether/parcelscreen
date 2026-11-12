@@ -80,6 +80,8 @@ for (const phone of [false, true]) {
       console.log(`10-A-10, graded: ${JSON.stringify(steps)}`);
       await page.waitForTimeout(1500);
       console.log(`BEFORE (${device}):\n${await cardText(page)}`);
+      // Plan §2's acceptance: the Hayters Gap lot (the override, trailhead-overrides.json) is the nearest trailhead.
+      await expect.soft(page.locator(".card").first()).toContainText("Brumley Mountain Trail (parking)");
       await shot(page, "before");
 
       // + Mark › On the land › House already here, then one tap on the house.
