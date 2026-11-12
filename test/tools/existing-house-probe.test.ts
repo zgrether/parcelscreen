@@ -455,6 +455,8 @@ describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-ho
           fetchImpl: live(),
           userAgent: "ParcelScreen/1.0 (existing-house probe)",
         }),
+        // The step's places, as its preview serves them (the live site serves main's).
+        places: placesFromDir(BAKE_DIR),
       } as Parameters<typeof screen>[2],
     );
     const card = reportCard(result, defaultNamedRubric());
