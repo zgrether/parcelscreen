@@ -55,7 +55,7 @@ export function threeGorgesPoint(): { lat: number; lon: number } {
 /** Routes Hamilton's layer to the recording. Call after replayHar: the route added last is asked first. */
 export async function replayHamilton(context: BrowserContext): Promise<void> {
   const answers = recorded();
-  await context.route(/^https:\/\/mapsdev\.hamiltontn\.gov\/.*\/query/, (route) => {
+  await context.route(/^https:\/\/gis\.hamiltontn\.gov\/.*\/query/, (route) => {
     const req = route.request();
     const kind = kindOf(paramsOf(req.url(), req.postData()));
     const body = (kind && answers.get(kind)) ?? JSON.stringify({ type: "FeatureCollection", features: [] });

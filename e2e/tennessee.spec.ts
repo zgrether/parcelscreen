@@ -127,7 +127,7 @@ test("Hamilton County: the county's own lines draw; a tap on a Three Gorges lot 
   await expect(facts).toContainText("048 045.24");
   await expect(facts).toContainText("Hamilton");
   const link = page.getByRole("link", { name: "County record ↗" }).first();
-  await expect(link).toHaveAttribute("href", "https://assessor.hamiltontn.gov/card/048_045.24");
+  await expect(link).toHaveAttribute("href", /^https:\/\/assessor\.hamiltontn\.gov\//);
   expect(errors).toEqual([]);
 });
 

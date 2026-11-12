@@ -59,7 +59,7 @@ describe("config", () => {
           "woodedPct": 100,
         },
         "endpoints": {
-          "_v": 17,
+          "_v": 18,
           "counties": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1",
           "dem": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
           "lpAtlasBinary": "https://djlorenz.github.io/astronomy/binary_tiles",
@@ -82,7 +82,7 @@ describe("config", () => {
             "https://services.nconemap.gov/secure/rest/services/NC1Map_Parcels/FeatureServer/1",
             "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Parcels/FeatureServer/0",
             "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Property_Boundaries_Public_Use/FeatureServer/0",
-            "https://mapsdev.hamiltontn.gov/hcwa03/rest/services/Live_Parcels/MapServer/0",
+            "https://gis.hamiltontn.gov/server/rest/services/Parcels/MapServer/0",
           ],
           "photon": "https://photon.komoot.io/api/",
           "places": "https://parcelscreen.vercel.app/places/v1",
@@ -1659,5 +1659,17 @@ describe("migrateEndpoints (the prototype's _v rule)", () => {
       "https://overpass.openstreetmap.fr/api/interpreter",
       "https://overpass.kumi.systems/api/interpreter",
     ]);
+  });
+
+  it("_v 18: settings saved at _v 17 drop Hamilton County's old host for its new one (#432)", () => {
+    const OLD = "https://mapsdev.hamiltontn.gov/hcwa03/rest/services/Live_Parcels/MapServer/0";
+    const savedAtV17 = {
+      ...DEFAULT_ENDPOINTS,
+      _v: 17,
+      parcels: DEFAULT_ENDPOINTS.parcels.map((u) => (u.includes("hamiltontn.gov") ? OLD : u)),
+    };
+    const parcels = migrateEndpoints(savedAtV17).parcels;
+    expect(parcels).not.toContain(OLD);
+    expect(parcels).toContain("https://gis.hamiltontn.gov/server/rest/services/Parcels/MapServer/0");
   });
 });

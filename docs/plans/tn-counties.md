@@ -22,6 +22,14 @@ each PR into the step branch when CI is green; the hand-back to main is Zach's.
 - **The hint:** over one of the nine, the map now says "No Tennessee parcel lines here; this county keeps its own
   records. Draw the boundary instead." (`lib/geo/ownRecords.ts`), with a Draw button.
 
+**2026-11-12, issue #432: the county moved its parcels.** `mapsdev.hamiltontn.gov`'s `Live_Parcels` stopped answering
+(Cloudflare 522 for every request, which the browser reports as a CORS error), so a tap in Hamilton opened no parcel.
+The app now asks `https://gis.hamiltontn.gov/server/rest/services/Parcels/MapServer/0` (ArcGIS 11.3; 170,205 records,
+`maxRecordCount` 2000; JSON, GeoJSON and PBF; CORS for the app's origins). Its fields are the old layer's but for two
+renames: `PARCEL_TYP` is `PARCEL_TYPE` (1 still a plain parcel) and `RecordsOnl` is `RecordsOnlineLink`. Tract 1 of
+Three Gorges Farms is object id 90551262 there. Endpoints `_v` 18 replaces saved copies of the old list, and the
+recording (`test/fixtures/tn-hamilton/parcels.har`) was made again. The rest of this section is as found on 2026-10-30.
+
 **What the probe found** (round 1, CI's runners, 2026-10-30; `test/tools/tn-counties-probe.test.ts`):
 - **Hamilton:**
   - **The service:** `https://mapsdev.hamiltontn.gov/hcwa03/rest/services/Live_Parcels/MapServer`, with two layers both

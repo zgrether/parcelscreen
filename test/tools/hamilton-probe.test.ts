@@ -1,7 +1,7 @@
 /**
  * Issue #432: a tap on Hamilton County's live parcel service opens no parcel (since about 2026-10-30). What the service
  * answers now, on CI's runners (hamilton.yml; this repo's cloud sessions can't reach the county host):
- *   1. the layer's metadata, the hcwa03 directory and its Live_Parcels service, and nearby hosts;
+ *   1. the app's layer's metadata (since the fix, the county's new Parcels layer), its directory, and nearby hosts;
  *   2. the app's own query at Three Gorges Farms (lib/geo/parcels.ts pickParcelAt), sent with the production origin:
  *      status, CORS header, any token or rate-limit answer, error, feature count;
  *   3. the fallback: whether the Comptroller's statewide layer has Hamilton's parcels now.
@@ -71,7 +71,7 @@ const clip = (s: unknown, n = 300) =>
 const line = (label: string, g: Got) =>
   `- **${label}**: HTTP ${g.status} in ${g.ms} ms; ${JSON.stringify(g.headers)}; ${clip(g.text, 240)}`;
 
-/** The app's Hamilton service, from its config. */
+/** The app's Hamilton service, from its config (gis.hamiltontn.gov's Parcels since #432; mapsdev's Live_Parcels before). */
 const HAMILTON_LAYER = DEFAULT_ENDPOINTS.parcels.find((u) => u.includes("hamiltontn.gov"))!;
 const STATE_LAYER = DEFAULT_ENDPOINTS.parcels.find((u) => u.includes("Tennessee_Property_Boundaries"))!;
 /** Inside Three Gorges Farms tract 1 (screenshots/tn-counties.spec.ts). */
@@ -84,7 +84,7 @@ const appQuery = (layer: string, where: string, f = "geojson") =>
     inSR: "4326",
     spatialRel: "esriSpatialRelIntersects",
     where,
-    outFields: "OBJECTID,GISLINK,MAP,GROUP_,PARCEL,PARCEL_TYP",
+    outFields: "OBJECTID,GISLINK,MAP,GROUP_,PARCEL,PARCEL_TYPE",
     returnGeometry: "true",
     outSR: "4326",
     f,
@@ -131,9 +131,9 @@ describe.runIf(import.meta.env.MODE === "hamilton-probe")("Hamilton County's par
     // 2. The app's query, as the browser sends it.
     say("## 2. The app's query at Three Gorges Farms", "");
     for (const [label, url] of [
-      ["geojson, PARCEL_TYP=1 (the app's)", appQuery(HAMILTON_LAYER, "PARCEL_TYP=1")],
+      ["geojson, PARCEL_TYPE=1 (the app's)", appQuery(HAMILTON_LAYER, "PARCEL_TYPE=1")],
       ["geojson, 1=1", appQuery(HAMILTON_LAYER, "1=1")],
-      ["json, PARCEL_TYP=1", appQuery(HAMILTON_LAYER, "PARCEL_TYP=1", "json")],
+      ["json, PARCEL_TYPE=1", appQuery(HAMILTON_LAYER, "PARCEL_TYPE=1", "json")],
     ] as const) {
       const g = await get(url);
       const j = json(g.text);
@@ -156,7 +156,7 @@ describe.runIf(import.meta.env.MODE === "hamilton-probe")("Hamilton County's par
     );
     say(line("COUNTY_NAME LIKE 'Ham%'", counties));
     const atPt = await get(
-      appQuery(STATE_LAYER, "1=1").replace("MAP,GROUP_,PARCEL,PARCEL_TYP", "COUNTY_NAME"),
+      appQuery(STATE_LAYER, "1=1").replace("MAP%2CGROUP_%2CPARCEL%2CPARCEL_TYPE", "COUNTY_NAME"),
     );
     const atJ = json(atPt.text);
     say(

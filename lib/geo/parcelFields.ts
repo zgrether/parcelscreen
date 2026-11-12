@@ -116,20 +116,30 @@ const SERVICES: readonly ParcelService[] = [
       taxCard: { map: "CMAP", group: "GP", parcel: "PARCEL" },
     },
   },
-  // Hamilton County's Live_Parcels (tn-counties.md §0): the tax card's MAP, GROUP_ and PARCEL; GISLINK the parcel, as
-  // the state's; OWNERNAME1 and ADDRESS; RecordsOnl the assessor's card. PARCEL_TYP 1 is a plain parcel; the other types
-  // (condominium units, leased sites, mineral rights, improvements) repeat a parcel's polygon. Every record is one
-  // feature, fetched by object id (an equality query on GISLINK matched nothing).
+  // Hamilton County's parcels (tn-counties.md §0; since #432 on the county's ArcGIS Enterprise, its old Live_Parcels
+  // host gone): the tax card's MAP, GROUP_ and PARCEL; GISLINK the parcel, as the state's; OWNERNAME1 and ADDRESS;
+  // RecordsOnlineLink the assessor's card. PARCEL_TYPE 1 is a plain parcel; the other types (condominium units, leased
+  // sites, mineral rights, improvements) repeat a parcel's polygon. Every record is one feature, fetched by object id
+  // (an equality query on GISLINK matched nothing).
   {
-    prefix: "https://mapsdev.hamiltontn.gov/hcwa03/rest/services/Live_Parcels/",
+    prefix: "https://gis.hamiltontn.gov/server/rest/services/Parcels/",
     state: "TN",
     fields: {
       oid: "OBJECTID",
       id: "GISLINK",
       county: "COUNTY_NAME",
       maxRecords: 1000,
-      record: ["OBJECTID", "GISLINK", "MAP", "GROUP_", "PARCEL", "OWNERNAME1", "ADDRESS", "RecordsOnl"],
-      where: "PARCEL_TYP=1",
+      record: [
+        "OBJECTID",
+        "GISLINK",
+        "MAP",
+        "GROUP_",
+        "PARCEL",
+        "OWNERNAME1",
+        "ADDRESS",
+        "RecordsOnlineLink",
+      ],
+      where: "PARCEL_TYPE=1",
       search: "mapGroupParcel",
       taxCard: { map: "MAP", group: "GROUP_", parcel: "PARCEL" },
       onlyCounty: "Hamilton",

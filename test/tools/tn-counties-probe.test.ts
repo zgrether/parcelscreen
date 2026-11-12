@@ -6,7 +6,7 @@
  *
  * Round 1 listed the service directories, the parcel layers' fields, limits and CORS, and the terms pages (its findings
  * are the plan's §0). Round 2 compared Live_Parcels' two "Parcels" layers and found the Worley Road and Three Gorges
- * lots. Round 3, kept here, samples each PARCEL_TYP that isn't a plain parcel. Read-only; nothing is written to the repo.
+ * lots. Round 3, kept here, samples each PARCEL_TYPE that isn't a plain parcel. Read-only; nothing is written to the repo.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -44,11 +44,14 @@ const clip = (s: unknown, n = 400) =>
     .replace(/\s+/g, " ")
     .slice(0, n);
 
-/** Hamilton's parcel layers (round 2: the first round found Live_Parcels' two "Parcels" layers). */
-const HAMILTON = "https://mapsdev.hamiltontn.gov/hcwa03/rest/services/Live_Parcels/MapServer";
-/** The fields a sample prints (no owner or mailing fields). */
+/**
+ * Hamilton's parcel layers (round 2: the first round found Live_Parcels' two "Parcels" layers). Since #432 the county's
+ * Parcels service on its ArcGIS Enterprise, which renamed PARCEL_TYP and RecordsOnl.
+ */
+const HAMILTON = "https://gis.hamiltontn.gov/server/rest/services/Parcels/MapServer";
+/** The fields a sample prints (no owner, mailing or site address fields). */
 const SHOWN_FIELDS =
-  "OBJECTID,PARCEL_TYP,GISLINK,MAP,GROUP_,PARCEL,TAX_MAP_NO,STNUM,STNAME,ADDRESS,LEGALDESC1,CALCACRES,RecordsOnl";
+  "OBJECTID,PARCEL_TYPE,GISLINK,MAP,GROUP_,PARCEL,TAX_MAP_NO,LEGALDESC1,CALCACRES,RecordsOnlineLink";
 
 async function query(layer: string, params: Record<string, string>): Promise<Record<string, unknown> | null> {
   const q = new URLSearchParams({ f: "json", ...params });
@@ -60,18 +63,18 @@ describe.runIf(import.meta.env.MODE === "tn-counties-probe")("Tennessee county p
     const l = `${HAMILTON}/0`;
     for (const t of [5, 6, 10, 11, 12, 13]) {
       const j = await query(l, {
-        where: `PARCEL_TYP=${t}`,
+        where: `PARCEL_TYPE=${t}`,
         outFields: SHOWN_FIELDS,
         returnGeometry: "false",
         resultRecordCount: "4",
       });
       const feats = (j?.features as { attributes: Record<string, unknown> }[] | undefined) ?? [];
-      say(`## PARCEL_TYP ${t}`, "", ...feats.map((f) => `- ${clip(JSON.stringify(f.attributes), 400)}`), "");
+      say(`## PARCEL_TYPE ${t}`, "", ...feats.map((f) => `- ${clip(JSON.stringify(f.attributes), 400)}`), "");
     }
     // Several polygons for one GISLINK among regular parcels (the state layer's two-part tracts)?
     const multi = await query(l, {
-      where: "PARCEL_TYP=1 AND GISLINK IN ('033048 04501','033039 01800','033039 02000')",
-      outFields: "OBJECTID,GISLINK,PARCEL_TYP,CALCACRES",
+      where: "PARCEL_TYPE=1 AND GISLINK IN ('033048 04501','033039 01800','033039 02000')",
+      outFields: "OBJECTID,GISLINK,PARCEL_TYPE,CALCACRES",
       returnGeometry: "false",
     });
     say("## Polygons per GISLINK (three samples)", "", clip(JSON.stringify(multi?.features), 600), "");

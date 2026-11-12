@@ -1,11 +1,12 @@
 /**
  * Hamilton County's own parcel service (the Tennessee counties mission, docs/plans/tn-counties.md): the requests the
- * unit tests replay, recorded once from the live Live_Parcels layer by `pnpm record:tn-hamilton` into
+ * unit tests replay, recorded once from the live layer by `pnpm record:tn-hamilton` into
  * test/fixtures/tn-hamilton/parcels.har (owner and address fields scrubbed). As tnCarter.ts, the recorder and the
- * tests make the same calls, through the app's own functions.
+ * tests make the same calls, through the app's own functions. Issue #432: the county moved the layer from
+ * mapsdev.hamiltontn.gov's Live_Parcels to gis.hamiltontn.gov's Parcels, and the recording was made again.
  *
- * The parcel: Three Gorges Farms tract 1, 048 045.24 (on Three Gorges Road, Soddy-Daisy, 5.09 ac, object id 8192),
- * just east of Worley Road (checked live 2026-10-30, tn-counties.md §0).
+ * The parcel: Three Gorges Farms tract 1, 048 045.24 (on Three Gorges Road, Soddy-Daisy, 5.09 ac), just east of
+ * Worley Road (checked live 2026-10-30, tn-counties.md §0; on the new layer, object id 90551262, 2026-11-12).
  */
 import { join, resolve } from "node:path";
 import { pointOnFeature } from "@turf/turf";
@@ -20,16 +21,21 @@ import { createReplayFetch, loadHar } from "./replayFetch";
 import { instantClock } from "./pipeline";
 
 /** Hamilton County's parcel host, matched exactly (a substring would match any host containing it). */
-export const HAMILTON_HOST = "mapsdev.hamiltontn.gov";
+export const HAMILTON_HOST = "gis.hamiltontn.gov";
 export const HAMILTON_SOURCE = DEFAULT_ENDPOINTS.parcels.find((u) => new URL(u).host === HAMILTON_HOST)!;
 export const HAMILTON_HAR_DIR = join(resolve(process.cwd(), "test", "fixtures"), "tn-hamilton");
 export const HAMILTON_HAR = join(HAMILTON_HAR_DIR, "parcels.har");
 
 export const TN_SERVICES = DEFAULT_ENDPOINTS.parcels.filter((u) => stateOf(u) === "TN");
 
-export const THREE_GORGES_OID = 8192;
+export const THREE_GORGES_OID = 90551262;
 export const THREE_GORGES_TAX_CARD = "048 045.24";
-export const THREE_GORGES_GISLINK = "033048    04524";
+/**
+ * Its GISLINK with runs of spaces made one: the old layer padded it ("033048    04524"), and the new layer's padding
+ * isn't known until it's recorded (#432). Compare with `sameGislink`.
+ */
+export const THREE_GORGES_GISLINK = "033048 04524";
+export const sameGislink = (s: string | null | undefined): string | null => s?.replace(/\s+/g, " ") ?? null;
 
 /** Every request the tests replay, in one run. */
 export async function hamiltonSamples(http: HttpClient) {

@@ -13,7 +13,7 @@ import type { Curve } from "./util";
 
 /** Service endpoints. `_v` bumps when a default moves, so stale stored copies are replaced. */
 export const DEFAULT_ENDPOINTS: Endpoints = {
-  _v: 17,
+  _v: 18,
   dem: "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
   terrarium: "https://s3.amazonaws.com/elevation-tiles-prod/terrarium",
   sda: "https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest",
@@ -51,8 +51,9 @@ export const DEFAULT_ENDPOINTS: Endpoints = {
     // service it replaces is the back end of the Comptroller's own viewer (docs/plans/phase-0.md §9.46).
     "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Property_Boundaries_Public_Use/FeatureServer/0",
     // The Tennessee counties mission (_v 17; docs/plans/tn-counties.md): Hamilton County's own parcels, which the
-    // state's layer leaves out. Asked only over Hamilton (lib/geo/ownRecords.ts).
-    "https://mapsdev.hamiltontn.gov/hcwa03/rest/services/Live_Parcels/MapServer/0",
+    // state's layer leaves out. Asked only over Hamilton (lib/geo/ownRecords.ts). Issue #432 (_v 18): the county moved
+    // them from mapsdev.hamiltontn.gov's Live_Parcels, which no longer answers, to its ArcGIS Enterprise.
+    "https://gis.hamiltontn.gov/server/rest/services/Parcels/MapServer/0",
   ],
   // Step 14 (_v 14): HIFLD Open's electric power transmission lines (official; data as of its SOURCEDATE).
   power:
