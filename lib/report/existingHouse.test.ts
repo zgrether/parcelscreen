@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import { ZACH } from "@/test/support/rubrics";
 import { expectedOf } from "@/test/support/expected";
 import { isAdjusted, shownLetter } from "./adjust";
-import { reportCard } from "./card";
+import { costInputOf, reportCard } from "./card";
 import { agentQuestions } from "./agent";
 import { asideMustsLine } from "./answer";
 import { costSummary } from "./costLines";
@@ -114,6 +114,30 @@ describe("House already here", () => {
     expect(agentQuestions(reportCard(house(), DRIVE)).map((q) => q.question)).not.toContain(
       EXISTING_HOUSE_QUESTIONS[0],
     );
+  });
+
+  it("asks the cost not to price the drive in, with the drawn existing drive's measures (Zach, #425)", () => {
+    const r = house();
+    r.lines = [
+      {
+        id: "d1",
+        kind: "track",
+        lengthFt: 900,
+        widthFt: null,
+        outsideFt: 0,
+        gradedFt: 900,
+        avgGradePct: 9,
+        maxGradePct: 14,
+      },
+    ];
+    const cost = { lines: [], askingPrice: null, rates: {} } as unknown as NonNullable<
+      ReturnType<typeof here>["cost"]
+    >;
+    expect(costInputOf(r, 0, { ...here(["d1"]), cost })?.existingHouse).toEqual({
+      drive: { lengthFt: 900, maxGradePct: 14 },
+    });
+    expect(costInputOf(r, 0, { ...here(), cost })?.existingHouse).toEqual({ drive: null });
+    expect(costInputOf(r, 0, { ...drawnOf([]), cost })?.existingHouse).toBeUndefined();
   });
 
   it("leaves Ready to build out of the cost, and says why", () => {

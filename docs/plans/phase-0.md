@@ -1490,6 +1490,14 @@ until step 5 (Q14).
       - The Hayters Gap lot is also a cited override (`lib/screen/data/trailhead-overrides.json`: OSM and VDOF).
       - Bake 5 came back short of the bar Zach set (547 lots against bake 2's 1,140; 34 quarters below the shipped
         lots); shipped as he said, with the shortfall and pruning in polish.md.
+      - **Only a lot on a hiking route of 2 mi, or within 400 m of public land of 100 ac** (Zach, #425): town greenway
+        and shopping-centre lots drop out (`lib/places/qualify.ts`: Overpass's length() of the routes on the trails
+        within 60 m, then PAD-US, any access but closed). Tagged trailheads aren't judged, and a lot whose evidence
+        won't load is kept. The bake applies it to every lot; the places workflow's `qualify` job applied it to the
+        shipped places. The Hayters Gap lot passes on both: the Brumley Mountain Trail, 13.5 mi, and The Channels
+        State Forest, 4,836 ac.
+    - **Ready to camp with the house already here** (Zach, #425): the drive in isn't priced. It reads "Existing drive —
+      walk it and check its condition", with the drawn existing drive's length and steepest grade when there is one.
 
 
 81. **Paddling's other lakes; schema v10** (Zach, 2026-11-11, the existing-house step; `docs/plans/existing-house.md`
