@@ -411,7 +411,8 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
                 title={SHOW_CONTROLS}
                 onClick={() => fullMap({ type: "show" })}
               >
-                <span aria-hidden="true">⤢</span>
+                {/* Words, not ⤢: the fresh-eyes review read the arrows as "go full screen" (#435). */}
+                Show controls
               </button>
             )}
             {!docked && sheet.atLine && !fullMapOn && store.open && mapOnShow && <FullMapHint />}
