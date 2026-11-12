@@ -1,0 +1,21 @@
+{
+  "phone-after-grading": {
+    "map": 65.8,
+    "covers": {
+      "absolute": 20.5,
+      "explore-panel": 7.1,
+      "app-nav": 6,
+      "maplibregl-control-container": 0.5
+    }
+  },
+  "phone-shading-and-tip": {
+    "map": 62.4,
+    "covers": {
+      "absolute": 20.5,
+      "explore-panel": 7.1,
+      "app-nav": 6,
+      "maplibregl-popup": 3.4,
+      "maplibregl-control-container": 0.5
+    }
+  }
+}
