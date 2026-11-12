@@ -323,6 +323,11 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // Step 2 (owner, 2026-10-17): a TREC point names a trail, not a trailhead, so it joins any trailhead (or another TREC
     // point) within this, whatever the names; the trailhead then lists the trails it serves.
     trecMergeM: 150,
+    // The existing-house step (docs/plans/existing-house.md §2, owner #416): a parking lot within this of a hiking or
+    // foot route's trail, or of a named path an agency runs, is a trailhead (OSM tags most state forest lots as plain
+    // parking). Such lots are one with any other trailhead, or each other, within trailLotMergeM, whatever the names.
+    trailLotM: 60,
+    trailLotMergeM: 150,
     // TREC trails asked per page, and pages at most (the layer's maxRecordCount is 2,000).
     trecPageSize: 1000,
     trecMaxPages: 3,

@@ -20,6 +20,11 @@ import { createHttpClient } from "@/lib/http";
 import { reportCard } from "@/lib/report/card";
 import { defaultNamedRubric } from "@/lib/rubric/default";
 import { screen } from "@/lib/screen";
+import { trailLotQuery, trailLots, type OsmElement } from "@/lib/places/bake";
+import { BAKE_DIR, placesFromDir } from "@/lib/places/disk";
+import { driveTable } from "@/lib/screen/drive";
+import { paddlingNear } from "@/lib/screen/paddling";
+import { cellsWithin, type BakedLaunch } from "@/lib/screen/placeData";
 import { DEFAULT_ENDPOINTS, DEFAULT_USER_CONFIG } from "@/lib/screen/config";
 import type { ProgressEvent } from "@/lib/screen/types";
 
@@ -100,6 +105,108 @@ type OsmEl = {
 };
 
 describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-house probe", () => {
+  // Round 3 (#420): bake 2 kept 594 lots, but none at Hayters Gap. The bake's own query, for the gap's cell and for a
+  // small box, with Overpass's remark (a runtime error comes back as HTTP 200 with partial elements).
+  it("round 3: the bake's trail-lot query for the gap's cell", async () => {
+    say("## Round 3: the bake's trail-lot query at Hayters Gap", "");
+    const bb = `${GAP_BOX.s},${GAP_BOX.w},${GAP_BOX.n},${GAP_BOX.e}`;
+    const cellQ = trailLotQuery("36_-82");
+    // Round 4: the routes' members of any highway, the trail rule applied in trailLots.
+    const variants: [string, string][] = [
+      ["the bake's, cell 36_-82", cellQ],
+      ["the bake's, the gap's box", cellQ.replace(/\[bbox:[^\]]+\]/, `[bbox:${bb}]`)],
+    ];
+    for (const [name, q] of variants) {
+      const t0 = Date.now();
+      const j = await overpass(q);
+      const els = (j?.elements as OsmElement[] | undefined) ?? [];
+      const lots = els.filter((e) => e.tags?.amenity === "parking");
+      const gap = lots.filter((e) => [808088841, 808088844].includes(e.id));
+      const nullGeom = els.filter((e) => e.geometry?.some((g) => g == null)).length;
+      let named: string[] = [];
+      try {
+        named = trailLots(els)
+          .filter((l) => /80808884[14]/.test(l.id))
+          .map((l) => `${l.id} "${l.name}"`);
+      } catch (e) {
+        named = [`trailLots threw: ${String(e)}`];
+      }
+      say(
+        `### ${name}`,
+        "",
+        `- ${((Date.now() - t0) / 1000).toFixed(0)} s; remark: ${clip(j?.remark ?? "none", 300)}`,
+        `- ${els.length} elements: ${lots.length} lots, ${els.filter((e) => e.type === "way" && e.tags?.highway).length} trail ways, ${els.filter((e) => e.type === "relation").length} routes; ${nullGeom} ways with null points`,
+        `- the gap's lots: ${gap.map((e) => `${e.type}/${e.id}`).join(", ") || "none"}; named: ${named.join("; ") || "none"}`,
+        "",
+      );
+      write();
+    }
+    // The gap's trail and its route, as OSM has them.
+    const near = await overpass(
+      `[out:json][timeout:60];way(808088841);out center tags;way(around:300)["highway"]->.w;.w out tags center;rel(bw.w)["route"];out tags;`,
+    );
+    say(
+      "### Within 300 m of the gap's lot",
+      "",
+      ...((near?.elements as OsmEl[] | undefined) ?? []).map(
+        (e) => `- ${e.type}/${e.id}: ${clip(JSON.stringify(e.tags), 220)}`,
+      ),
+      "",
+    );
+    write();
+    expect(out.length).toBeGreaterThan(4);
+  }, 1_800_000);
+
+  // Round 4 (Zach, 11/11): grading 010-A-10, Paddling found South Holston Lake (42 min) and missed Hidden Valley Lake
+  // and Laurel Bed Lake, both baked as flatwater launches. The six nearest flatwater launches from the house, each one's
+  // OSRM table leg and where OSRM snaps it, and paddlingNear's own answer, from the repo's bake.
+  it("round 4: the paddling launches from 010-A-10", async () => {
+    const from: [number, number] = [36.86562, -81.922];
+    const http = createHttpClient({
+      env: "node",
+      fetchImpl: live(),
+      userAgent: "ParcelScreen/1.0 (existing-house probe)",
+    });
+    const deps = { http, endpoints: DEFAULT_ENDPOINTS };
+    const places = placesFromDir(BAKE_DIR);
+    const cells = cellsWithin(from, 100);
+    const all = [...(await places("osm", cells)), ...(await places("official", cells))].filter(
+      (p): p is BakedLaunch => p.kind === "launch" && p.water === "flat",
+    );
+    const km = (ll: [number, number]) =>
+      Math.hypot((ll[0] - from[0]) * 111.2, (ll[1] - from[1]) * 111.2 * Math.cos((from[0] * Math.PI) / 180));
+    const near = all
+      .map((l) => ({ l, km: km(l.ll) }))
+      .sort((a, b) => a.km - b.km)
+      .slice(0, 10);
+    const table = await driveTable(
+      from,
+      near.map((x) => x.l.ll),
+      deps,
+    );
+    say(
+      "## Round 4: paddling from 010-A-10 (the house point)",
+      "",
+      `- table snap at the start: ${table?.snapM ?? "?"} m`,
+      "",
+    );
+    for (const [i, x] of near.entries()) {
+      const nr = await get(
+        `https://router.project-osrm.org/nearest/v1/driving/${x.l.ll[1]},${x.l.ll[0]}?number=1`,
+      );
+      const w = (json(nr.text)?.waypoints as { name?: string; distance?: number }[] | undefined)?.[0];
+      const leg = table?.legs[i];
+      say(
+        `- ${x.l.id} "${x.l.name}" on ${x.l.waterName ?? "?"} (${x.l.waterAc ?? "?"} ac), ${x.km.toFixed(1)} km: ` +
+          `${leg ? `${leg.min} min, ${leg.mi} mi` : "no leg"}; snaps to "${w?.name ?? "?"}" ${w?.distance?.toFixed(0) ?? "?"} m off`,
+      );
+    }
+    const pd = await paddlingNear(from, undefined, places, deps);
+    say("", `- paddlingNear: ${clip(JSON.stringify(pd?.flat ?? pd), 300)}`, "");
+    write();
+    expect(out.length).toBeGreaterThan(4);
+  }, 600_000);
+
   it("round 2: 010-A-10 found and graded live; the trailhead rule tried at Hayters Gap", async () => {
     // ---------- 010-A-10: round 1's LIKE matched nothing, so the format is read from the parcels near the gap ----------
     const sample = json(

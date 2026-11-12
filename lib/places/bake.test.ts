@@ -1,18 +1,31 @@
 import { describe, expect, it } from "vitest";
 import { createHttpClient } from "../http";
-import { PlaceCellSchema, PlacesIndexSchema, type Place, type PlacesIndex } from "../screen/placeData";
+import {
+  PlaceCellSchema,
+  PlacesIndexSchema,
+  type BakedTrailhead,
+  type Place,
+  type PlacesIndex,
+} from "../screen/placeData";
 import type { Polygon } from "geojson";
 import {
   areaCells,
   bakePlaces,
   classifyLaunches,
   inArea,
+  mergeTrailLots,
   osmCellQuery,
   osmLaunches,
   osmPlaces,
+  overpass,
+  trailLotQuery,
+  trailLotReport,
+  trailLots,
+  type OsmElement,
   type RawLaunch,
 } from "./bake";
 import { RIDB_LAUNCHES } from "./ridb";
+import { trailheadOverrides } from "./trailheadOverrides";
 
 const MUD_CREEK: [number, number] = [36.598, -81.303];
 
@@ -58,7 +71,16 @@ describe("OSM's places", () => {
 
 /** A fake of every source the bake asks: Overpass answers per query, ArcGIS layers by host. */
 function fakeFetch(
-  opts: { usfsFails?: boolean; launch?: boolean; nhd?: () => "ok" | "down"; towns?: boolean } = {},
+  opts: {
+    usfsFails?: boolean;
+    launch?: boolean;
+    nhd?: () => "ok" | "down";
+    towns?: boolean;
+    /** The trail-lot query's answer (existing-house plan §2). */
+    lots?: unknown[];
+    /** The trail-lot query never answers in the gap's cell. */
+    lotsFail?: boolean;
+  } = {},
 ): typeof fetch {
   return async (input, init) => {
     const url = String(input);
@@ -67,6 +89,15 @@ function fakeFetch(
       new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
     if (url.includes("interpreter")) {
       const ql = new URLSearchParams(String(init?.body)).get("data")!;
+      // The trail lots' query (existing-house plan §2) asks parking too: answered on its own.
+      // Asked a quarter cell at a time (Zach, 11/12); the bake keeps the lots inside each quarter.
+      if (
+        ql.includes('rel["route"~"^(hiking|foot)$"]') &&
+        opts.lotsFail &&
+        ql.includes("[bbox:36.5,-82,37,-81.5]")
+      )
+        return json({}, 504);
+      if (ql.includes('rel["route"~"^(hiking|foot)$"]')) return json({ elements: opts.lots ?? [] });
       if (ql.includes("place~"))
         return json({
           elements: opts.towns
@@ -92,6 +123,8 @@ function fakeFetch(
               tags: { amenity: "parking", name: "Elk Garden" },
             },
             { type: "node", id: 91, lat: 36.651, lon: -81.501, tags: { amenity: "parking", hiking: "yes" } },
+            // A trail lot is parking too, and is asked for again around itself (bake 3, 11/11).
+            ...(opts.lots ? GAP.filter((e) => e.tags?.amenity === "parking") : []),
           ],
         });
       if (ql.includes("[bbox:36,-82,37,-81]"))
@@ -154,6 +187,7 @@ const http = (f: typeof fetch) =>
 describe("bakePlaces", () => {
   it("writes each source to its licence's folder, by cell, with the index's counts", async () => {
     const { index, cells } = await bakePlaces({
+      sleep: async () => {},
       http: http(fakeFetch()),
       overpass: ["https://o.test/api/interpreter"],
       today: "2026-10-25",
@@ -161,7 +195,13 @@ describe("bakePlaces", () => {
     for (const c of cells) PlaceCellSchema.parse(c);
     PlacesIndexSchema.parse(index);
     const osm = cells.find((c) => c.folder === "osm" && c.cell === "36_-82")!;
-    expect(osm.places.map((p) => p.id)).toEqual(["osm:node/1", "osm:node/91", "osm:way/90"]);
+    // With the cited override at Hayters Gap (lib/screen/data/trailhead-overrides.json).
+    expect(osm.places.map((p) => p.id)).toEqual([
+      "osm:node/1",
+      "osm:node/91",
+      "osm:way/808088841",
+      "osm:way/90",
+    ]);
     expect(osm.places.find((p) => p.id === "osm:node/91")).toEqual({
       kind: "parking",
       id: "osm:node/91",
@@ -184,13 +224,14 @@ describe("bakePlaces", () => {
         trec: true,
       },
     ]);
-    expect(index.cells.osm["36_-82"]).toBe(3);
+    expect(index.cells.osm["36_-82"]).toBe(4);
     expect(index.sources.find((s) => s.id === "usfs")).toMatchObject({
       count: 1,
       fetched: "2026-10-25",
       folder: "official",
     });
-    expect(index.sources.find((s) => s.id === "osm")).toMatchObject({ count: 1, licence: "ODbL 1.0" });
+    // The supermarket and the cited override.
+    expect(index.sources.find((s) => s.id === "osm")).toMatchObject({ count: 2, licence: "ODbL 1.0" });
     // Recreation.gov's fixed list (#350): every bake carries it as is, dated when it was read.
     expect(cells.flatMap((c) => c.places).filter((p) => p.src === "ridb")).toHaveLength(RIDB_LAUNCHES.length);
     expect(index.sources.find((s) => s.id === "ridb")).toMatchObject({
@@ -202,12 +243,14 @@ describe("bakePlaces", () => {
 
   it("keeps the previous bake's places for a source that doesn't answer, dated then", async () => {
     const first = await bakePlaces({
+      sleep: async () => {},
       http: http(fakeFetch()),
       overpass: ["https://o.test/api/interpreter"],
       today: "2026-09-25",
     });
     const places: Place[] = first.cells.flatMap((c) => c.places);
     const again = await bakePlaces({
+      sleep: async () => {},
       http: http(fakeFetch({ usfsFails: true })),
       overpass: ["https://o.test/api/interpreter"],
       today: "2026-10-25",
@@ -220,6 +263,7 @@ describe("bakePlaces", () => {
 
   it("the towns over the area, for the refresh summary; outside it, none", async () => {
     const { index } = await bakePlaces({
+      sleep: async () => {},
       http: http(fakeFetch({ towns: true })),
       overpass: ["https://o.test/api/interpreter"],
       today: "2026-10-25",
@@ -230,6 +274,7 @@ describe("bakePlaces", () => {
   it("fails when a source doesn't answer and there's no previous bake", async () => {
     await expect(
       bakePlaces({
+        sleep: async () => {},
         http: http(fakeFetch({ usfsFails: true })),
         overpass: ["https://o.test/api/interpreter"],
         today: "2026-10-25",
@@ -454,5 +499,306 @@ describe("paddle launches (step 14d plan §2.4)", () => {
     const [l] = classifyLaunches([launch()], [lake(0, 640, { FTYPE: 390, AREASQKM: 0.162 })], []);
     expect(l).toMatchObject({ water: "flat", name: "Boat launch" });
     expect(l!.waterName).toBeUndefined();
+  });
+});
+
+/**
+ * Hayters Gap (the existing-house probe, #417): the gap's unnamed DCR lot beside the Brumley Mountain Trail, the trail's
+ * named lot at its west end, a private lot by the trail, and a hiking route that follows a road.
+ */
+const GAP: OsmElement[] = [
+  {
+    type: "way",
+    id: 808088841,
+    center: { lat: 36.8646, lon: -81.9469 },
+    tags: { amenity: "parking", operator: "Virginia Department of Conservation and Recreation" },
+  },
+  {
+    type: "way",
+    id: 808088844,
+    center: { lat: 36.837, lon: -82.0865 },
+    tags: { amenity: "parking", name: "Brumley Mountain Trailhead", access: "yes" },
+  },
+  { type: "node", id: 5, lat: 36.8655, lon: -81.9475, tags: { amenity: "parking", access: "private" } },
+  {
+    type: "way",
+    id: 1426934898,
+    tags: { highway: "path", name: "Brumley Mountain Trail", operator: "Virginia Department of Forestry" },
+    geometry: [
+      { lat: 36.8648, lon: -81.9472 },
+      { lat: 36.8666, lon: -81.967 },
+    ],
+  },
+  {
+    type: "way",
+    id: 15491676,
+    tags: { highway: "path" },
+    geometry: [
+      { lat: 36.8372, lon: -82.0862 },
+      { lat: 36.8557, lon: -82.0406 },
+    ],
+  },
+  {
+    type: "relation",
+    id: 19562221,
+    tags: { route: "hiking", name: "Brumley Mountain Trail" },
+    members: [
+      { type: "way", ref: 1426934898, role: "" },
+      { type: "way", ref: 15491676, role: "" },
+    ],
+  },
+];
+
+describe("the trail lots (existing-house plan §2)", () => {
+  it("asks for lots by a hiking route's trails (never its roads) or an agency's named path", () => {
+    const q = trailLotQuery("36_-82");
+    // Every member with a highway (filtered in Overpass, the gap's trail came back empty: probe round 3).
+    expect(q).toContain('way(r.hr)["highway"]->.rw;');
+    expect(q).toContain('["operator"~"forest|park|conservation|wildlife",i]');
+    // Measured to the trails' lines, not a node set (a cell's trail nodes timed Overpass out, 11/11).
+    expect(q).toContain('nwr["amenity"="parking"](around.tw:60)');
+    expect(q).not.toContain("node(w.tw)");
+  });
+
+  it("names each public lot for itself, else for its trail's route; skips private ones", () => {
+    expect(trailLots(GAP).map((l) => [l.id, l.name, l.ownName])).toEqual([
+      ["osm:way/808088841", "Brumley Mountain Trail (parking)", false],
+      ["osm:way/808088844", "Brumley Mountain Trailhead", true],
+    ]);
+  });
+
+  it("merges by distance alone: a lot by another trailhead is that one, and lots near each other are one", () => {
+    const lots = trailLots(GAP);
+    // A tagged trailhead 100 m from the gap's lot: that lot is it.
+    expect(mergeTrailLots(lots, [{ ll: [36.8655, -81.9469] }]).map((l) => l.id)).toEqual([
+      "osm:way/808088844",
+    ]);
+    // Two lots 90 m apart: one, the one with its own name kept.
+    const twin = {
+      ...lots[1]!,
+      id: "osm:node/9",
+      name: "x (parking)",
+      ownName: false,
+      ll: [36.8378, -82.0865] as [number, number],
+    };
+    expect(mergeTrailLots([twin, ...lots], []).map((l) => l.name)).toEqual([
+      "Brumley Mountain Trailhead",
+      "Brumley Mountain Trail (parking)",
+    ]);
+  });
+
+  it("bakes the gap's lot as an OSM trailhead, and reports the lots kept", async () => {
+    const { cells, trailLots: kept } = await bakePlaces({
+      sleep: async () => {},
+      http: http(fakeFetch({ lots: GAP })),
+      overpass: ["https://o.test/api/interpreter"],
+      today: "2026-11-11",
+    });
+    const osm = cells.find((c) => c.folder === "osm" && c.cell === "36_-82")!;
+    expect(osm.places.find((p) => p.id === "osm:way/808088841")).toMatchObject({
+      kind: "trailhead",
+      name: "Brumley Mountain Trail (parking)",
+      src: "osm",
+    });
+    // The gap's own lot is the cited override's (the same id, within near.trailLotMergeM): kept once, as the override.
+    expect(kept.map((l) => l.id)).toEqual(["osm:way/808088844"]);
+    // Asked for again as parking around the trailheads, with the same ids: still the trailheads, not parking.
+    const all = cells.flatMap((c) => c.places);
+    for (const id of ["osm:way/808088841", "osm:way/808088844"])
+      expect(all.filter((p) => p.id === id).map((p) => p.kind)).toEqual(["trailhead"]);
+  });
+
+  it("a quarter Overpass won't answer is asked again, keeps its shipped lots, and the summary says so", async () => {
+    const lines: string[] = [];
+    // The shipped bake had a lot in the failing quarter (36_-82/nw) and one in the next (36_-82/ne).
+    const shipped = (id: string, ll: [number, number]): Place => ({
+      kind: "trailhead",
+      id,
+      name: "Somewhere Trail (parking)",
+      ll,
+      src: "osm",
+    });
+    const previous = {
+      index: PlacesIndexSchema.parse({
+        version: 1,
+        baked: "2026-11-11",
+        bounds: [-90, 33, -75, 40],
+        marginKm: 60,
+        sources: [],
+        cells: { osm: {}, official: {}, curated: {} },
+      }),
+      places: [shipped("osm:way/7", [36.7, -81.7]), shipped("osm:way/8", [36.7, -81.2])],
+    };
+    const { cells, kept, trailLotCells } = await bakePlaces({
+      http: http(fakeFetch({ lots: GAP, lotsFail: true })),
+      overpass: ["https://o.test/api/interpreter"],
+      today: "2026-11-12",
+      previous,
+      sleep: async () => {},
+      log: (l) => lines.push(l),
+    });
+    expect(kept).toContain("trail lots in 1 quarter cell (36_-82/nw)");
+    expect(lines.filter((l) => l.startsWith("trail lots: 36_-82/nw") && l.includes("again in"))).toHaveLength(
+      2,
+    );
+    // Both shipped lots stay: the failing quarter's, and the one this bake's answer didn't have.
+    const all = cells.flatMap((c) => c.places).map((p) => p.id);
+    expect(all).toContain("osm:way/7");
+    expect(all).toContain("osm:way/8");
+    expect(trailLotCells.find((c) => c.cell === "36_-82/nw")).toEqual({
+      cell: "36_-82/nw",
+      found: null,
+      baseline: 1,
+      merged: 1,
+      retried: true,
+    });
+    expect(trailLotCells.find((c) => c.cell === "36_-82/ne")).toMatchObject({
+      found: 0,
+      baseline: 1,
+      merged: 1,
+    });
+    // The override stands whatever Overpass answered.
+    expect(all).toContain("osm:way/808088841");
+  });
+
+  it("a trail's points outside the cell's box come back null: skipped, not thrown on", () => {
+    const cut = GAP.map((e) => (e.id === 1426934898 ? { ...e, geometry: [null, ...e.geometry!, null] } : e));
+    expect(trailLots(cut).map((l) => l.name)).toEqual(trailLots(GAP).map((l) => l.name));
+  });
+  it("measures a lot to the route's trails only: one by the road a route follows isn't a trailhead", () => {
+    const road: OsmElement[] = [
+      { type: "node", id: 41, lat: 36.9, lon: -81.9, tags: { amenity: "parking" } },
+      {
+        type: "way",
+        id: 42,
+        tags: { highway: "primary", ref: "VA 80" },
+        geometry: [
+          { lat: 36.9002, lon: -81.901 },
+          { lat: 36.9002, lon: -81.899 },
+        ],
+      },
+      {
+        type: "way",
+        id: 43,
+        tags: { highway: "path" },
+        geometry: [
+          { lat: 36.903, lon: -81.901 },
+          { lat: 36.903, lon: -81.899 },
+        ],
+      },
+      {
+        type: "relation",
+        id: 44,
+        tags: { route: "hiking", name: "X Trail" },
+        members: [
+          { type: "way", ref: 42 },
+          { type: "way", ref: 43 },
+        ],
+      },
+    ];
+    // 22 m from the road, 330 m from the path.
+    expect(trailLots(road)).toEqual([]);
+  });
+
+  it("a service road the route follows counts (the gap's gated road up to the footpath); its route names the lot", () => {
+    const gap: OsmElement[] = [
+      { type: "way", id: 808088841, center: { lat: 36.8646, lon: -81.9469 }, tags: { amenity: "parking" } },
+      {
+        type: "way",
+        id: 1426934900,
+        tags: { highway: "service", name: "Raven Ridge", access: "destination" },
+        geometry: [
+          { lat: 36.8647, lon: -81.9471 },
+          { lat: 36.866, lon: -81.95 },
+        ],
+      },
+      {
+        type: "relation",
+        id: 19562221,
+        tags: { route: "hiking", name: "Brumley Mountain Trail" },
+        members: [{ type: "way", ref: 1426934900 }],
+      },
+    ];
+    expect(trailLots(gap).map((l) => l.name)).toEqual(["Brumley Mountain Trail (parking)"]);
+  });
+});
+
+describe("overpass", () => {
+  it("a runtime error's remark is a failure, not an answer (its elements are partial)", async () => {
+    const answer = (body: unknown) => async () =>
+      new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } });
+    const deps = (body: unknown) => ({
+      http: http(answer(body)),
+      overpass: ["https://o.test/api/interpreter"],
+    });
+    await expect(
+      overpass(
+        "q",
+        deps({ elements: [{ type: "node", id: 1 }], remark: 'runtime error: Query timed out in "query"' }),
+      ),
+    ).rejects.toThrow(/Overpass unreachable.*runtime error/);
+    expect(await overpass("q", deps({ elements: [{ type: "node", id: 1 }] }))).toHaveLength(1);
+  });
+});
+
+describe("the trail-lot report (Zach, 11/12)", () => {
+  it("counts the lots by state (inside a state's outline, the distance to it is negative)", () => {
+    const lot = (ll: [number, number]): BakedTrailhead => ({
+      kind: "trailhead",
+      id: "osm:way/1",
+      name: "x",
+      ll,
+      src: "osm",
+    });
+    expect(trailLotReport([lot([36.8646, -81.9469]), lot([35.6, -82.5])], [])).toContain(
+      "by state: VA 1, NC 1.",
+    );
+  });
+
+  it("lists every quarter, and first the ones retried, failed or below the shipped", () => {
+    const md = trailLotReport(
+      [],
+      [],
+      [
+        { cell: "36_-82/sw", found: 3, baseline: 3, merged: 3, retried: false },
+        { cell: "36_-82/nw", found: null, baseline: 2, merged: 2, retried: true },
+        { cell: "36_-82/ne", found: 1, baseline: 2, merged: 3, retried: false },
+      ],
+    );
+    expect(md).toContain("### Retried, failed or below the shipped (2)");
+    expect(md).toContain("| 36_-82/nw | failed | 2 | 2 | yes |");
+    expect(md).toContain("| 36_-82/ne | 1 | 2 | 3 |  |");
+    expect(md).toContain("found 4, shipped 7, kept 8");
+    expect(md).toContain(
+      "8 after merging with the shipped (bar 1140), 0 kept after merging with the other trailheads (bar 594): short.",
+    );
+  });
+});
+
+describe("the trailhead overrides", () => {
+  it("each cited by OpenStreetMap and its agency, and baked as an OSM trailhead under its own id", () => {
+    const [gap] = trailheadOverrides();
+    expect(gap).toEqual({
+      kind: "trailhead",
+      id: "osm:way/808088841",
+      name: "Brumley Mountain Trail (parking)",
+      ll: [36.8646, -81.9469],
+      src: "osm",
+    });
+    expect(() =>
+      trailheadOverrides({
+        about: "",
+        trailheads: [
+          {
+            id: "osm:way/1",
+            name: "x",
+            ll: [36, -81],
+            sources: ["https://a.test/"],
+            note: "",
+            checked: "2026-11-12",
+          },
+        ],
+      }),
+    ).toThrow();
   });
 });
