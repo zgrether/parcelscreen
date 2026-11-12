@@ -33,6 +33,7 @@ import { WATER_COLOR } from "./results/WaterLayer";
 import { useOverlayPrefs } from "./results/useOverlayPrefs";
 import { SurfaceLegend } from "./results/SurfaceLegend";
 import { useMap } from "./MapView";
+import { fullMap, HIDE_CONTROLS } from "@/components/Explore/fullMap";
 
 const SWATCH: Record<KeyEntry, React.ReactNode> = {
   best: (
@@ -120,8 +121,14 @@ export function MapKeyLine() {
     const fold = (e: { originalEvent?: unknown }) => {
       if (e.originalEvent) setOpenFor(null);
     };
+    // A tap on the map folds it too (Zach, #427: such a tap only closes it; the map's tap checks for an open Key).
+    const close = () => setOpenFor(null);
     map.on("movestart", fold);
-    return () => void map.off("movestart", fold);
+    map.on("click", close);
+    return () => {
+      map.off("movestart", fold);
+      map.off("click", close);
+    };
   }, [map]);
   const r = s && !s.stale && !tool ? s.display : null;
   if (!s || !r) return null;
@@ -135,6 +142,15 @@ export function MapKeyLine() {
           onClick={() => setOpenFor(parcel)}
         >
           {KEY_CHIP}
+        </button>
+        {/* A desktop's way into full-map mode (Zach, #427); a phone swipes the sheet's line down instead. */}
+        <button
+          className="mkl-key mkl-hide-controls"
+          aria-label={HIDE_CONTROLS}
+          title={HIDE_CONTROLS}
+          onClick={() => fullMap({ type: "hide" })}
+        >
+          Hide controls
         </button>
       </div>
     );

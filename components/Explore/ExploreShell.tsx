@@ -37,6 +37,14 @@ import {
   type SheetWhy,
 } from "@/components/Results/panel/ScreenIt";
 import { SheetLine } from "@/components/Results/panel/SheetLine";
+import {
+  FULL_MAP_HINT,
+  FULL_MAP_HINT_KEY,
+  SHOW_CONTROLS,
+  fullMap,
+  setFullMapBlockers,
+  useFullMap,
+} from "./fullMap";
 import { HeaderActions } from "@/components/Results/panel/HeaderActions";
 import { GradeNote } from "@/components/Results/panel/GradeNote";
 import { GradeAction } from "@/components/Results/panel/GradeAction";
@@ -152,7 +160,17 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   const answered = !!store.open && !!screen.shown && !screen.stale && !screen.runningHere && !withAction;
   const peek = withAction ? PEEK_WITH_ACTION : PEEK + (answered ? PEEK_ANSWER : 0);
   // Step 8b: Details is in the sheet, so only a map tool steps it aside now.
-  const sheet = useBottomSheet(root, panel, mode !== null || split !== null, peek);
+  // Full-map mode (map-room plan §5): on a phone the line's swipes hide and show the map's controls.
+  const fullMapOn = useFullMap();
+  const sheet = useBottomSheet(
+    root,
+    panel,
+    mode !== null || split !== null,
+    peek,
+    explore.docked
+      ? undefined
+      : { folded: fullMapOn, down: () => fullMap({ type: "hide" }), up: () => fullMap({ type: "show" }) },
+  );
   useEffect(() => {
     raiseSheet.current = sheet.raise;
     restoreSheet.current = sheet.restore;
@@ -189,6 +207,17 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
     document.documentElement.classList.toggle("map-tool", tool);
     return () => document.documentElement.classList.remove("map-tool");
   }, [tool]);
+  // Full-map mode: never with a tool in use (a tool starting ends it), and it ends when the parcel closes. On a phone the
+  // tab bar steps aside too, as for a tool (the same CSS, html.full-map).
+  useEffect(() => setFullMapBlockers({ tool }), [tool]);
+  const anyOpen = store.open !== null;
+  useEffect(() => {
+    if (!anyOpen) fullMap({ type: "end" });
+  }, [anyOpen]);
+  useEffect(() => {
+    document.documentElement.classList.toggle("full-map", fullMapOn);
+    return () => document.documentElement.classList.remove("full-map");
+  }, [fullMapOn]);
   const tabs = useTabsHeight();
   // Esc on desktop closes the open parcel (17e), when nothing else should take it: no map tool, no panel, no
   // menu, viewer or dialog, no text field. Those keep their own Esc.
@@ -275,7 +304,9 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
         <GroundProvider timeZone={config.timeZone} endpoints={config.endpoints}>
           <div
             ref={root}
-            className={sheetTall ? "explore sheet-tall" : "explore"}
+            className={["explore", sheetTall ? "sheet-tall" : "", fullMapOn ? "full-map" : ""]
+              .filter(Boolean)
+              .join(" ")}
             style={vars as CSSProperties}
           >
             <div className="explore-map">
@@ -367,10 +398,53 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
               )}
             </aside>
             {collapsed && <DockTab s={screen} reopen={() => setCollapsed(false)} />}
+            {/* Full-map mode's way back (map-room plan §5): one 44 px button, top right. */}
+            {fullMapOn && (
+              <button
+                type="button"
+                className="map-ctl-btn full-map-restore"
+                aria-label={SHOW_CONTROLS}
+                title={SHOW_CONTROLS}
+                onClick={() => fullMap({ type: "show" })}
+              >
+                <span aria-hidden="true">⤢</span>
+              </button>
+            )}
+            {!docked && sheet.atLine && !fullMapOn && store.open && <FullMapHint />}
           </div>
           <PwaShell running={screen.running} open={screen.ctl.state.store.open?.key ?? null} />
         </GroundProvider>
       </ScreenItContext.Provider>
     </ExploreContext.Provider>
+  );
+}
+
+/**
+ * The one-time hint over the line (Zach, #427 option A): "Swipe down to hide controls.", the first time the line shows on
+ * this device, for a few seconds; never again (`ps.fullMapHint`).
+ */
+function FullMapHint() {
+  const [show, setShow] = useState(() => {
+    try {
+      return localStorage.getItem(FULL_MAP_HINT_KEY) !== "1";
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    if (!show) return;
+    try {
+      localStorage.setItem(FULL_MAP_HINT_KEY, "1");
+    } catch {
+      /* storage blocked: it may show again next time */
+    }
+    const t = setTimeout(() => setShow(false), 6000);
+    return () => clearTimeout(t);
+  }, [show]);
+  if (!show) return null;
+  return (
+    <p className="full-map-hint" role="status">
+      {FULL_MAP_HINT}
+    </p>
   );
 }

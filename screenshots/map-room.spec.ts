@@ -163,6 +163,12 @@ test.describe("phone, 390 × 844", () => {
     test.setTimeout(600_000);
     await gradeMacks(page);
 
+    // 0. The one-time hint over the line, the first time it shows on this device (Zach, #427). Then, once it's gone
+    //    (6 s), the measurement proper.
+    const hint = page.getByText("Swipe down to hide controls.");
+    if (await hint.count()) await page.screenshot({ path: `${OUT}/phone-first-hint.png` });
+    await expect(hint).toHaveCount(0, { timeout: 10_000 });
+
     // 1. Right after the grade, as the app leaves it.
     await record(page, "phone-after-grading");
 
@@ -181,9 +187,17 @@ test.describe("phone, 390 × 844", () => {
     await page.waitForTimeout(6000);
     await record(page, "phone-shading-and-tip");
 
-    // 3. Full-map mode, once the app has it (map-room plan §5): its restore button shows after an empty tap.
-    const restore = page.getByRole("button", { name: "Show the map's controls" });
-    if (await restore.count()) await record(page, "phone-full-map");
+    // 3. Full-map mode (map-room plan §5; Zach's option A): a swipe down on the sheet's line.
+    const line = (await page.locator(".sheet-line").boundingBox())!;
+    const x = line.x + line.width * 0.3,
+      y = line.y + line.height / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x, y + 60, { steps: 6 });
+    await page.mouse.up();
+    await expect(page.getByRole("button", { name: "Show the map's controls" })).toBeVisible();
+    await page.waitForTimeout(800);
+    await record(page, "phone-full-map");
 
     expect(results["phone-after-grading"]!.map).toBeGreaterThan(0);
   });
@@ -196,5 +210,10 @@ test.describe("desktop, 1280 × 800", () => {
     test.setTimeout(600_000);
     await gradeMacks(page);
     await page.screenshot({ path: `${OUT}/desktop-after-grading.png` });
+    // The desktop's way into full-map mode: Hide controls, beside the Key chip (Zach, #427).
+    await page.getByRole("button", { name: "Hide the map's controls" }).click();
+    await expect(page.getByRole("button", { name: "Show the map's controls" })).toBeVisible();
+    await page.waitForTimeout(800);
+    await page.screenshot({ path: `${OUT}/desktop-full-map.png` });
   });
 });

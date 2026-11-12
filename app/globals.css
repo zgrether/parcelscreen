@@ -198,6 +198,10 @@ html:has(.explore) body {
     padding: 0 4px 0 14px;
     touch-action: none;
     cursor: pointer;
+    /* A swipe across its text mustn't select it: the next press on a selection starts a text drag, which cancels the
+       swipe (full-map mode's swipes, map-room plan §5). */
+    user-select: none;
+    -webkit-user-select: none;
   }
   .sl-name {
     flex: 1 1 0;
@@ -2485,8 +2489,13 @@ html:has(.app-nav) .explore {
     --tabs-h: 0px;
   }
   html.map-tool:has(.app-map:not([hidden])) .app-nav,
-  html.note-typing:has(.app-map:not([hidden])) .app-nav {
+  html.note-typing:has(.app-map:not([hidden])) .app-nav,
+  html.full-map:has(.app-map:not([hidden])) .app-nav {
     display: none;
+  }
+  /* Full-map mode (map-room plan §5) steps the tab bar aside as a tool does. */
+  html.full-map:has(.app-map:not([hidden])) {
+    --tabs-h: 0px;
   }
   html:has(.app-nav) .explore {
     padding-top: env(safe-area-inset-top, 0px);
@@ -9582,4 +9591,53 @@ button.use-row[aria-expanded="true"] .use-name::after {
 }
 .pay-note {
   margin: 0 0 4px;
+}
+
+/* ---------- Map room §5: full-map mode. The sheet's line and the restore button stay; every other control hides. */
+.explore.full-map .map-col,
+.explore.full-map .search-btn,
+.explore.full-map .back-chip,
+.explore.full-map .map-key-line,
+.explore.full-map .toolbar,
+.explore.full-map .switch-toast,
+.explore.full-map .tilt-hint,
+.explore.full-map .map-hint,
+.explore.full-map .finish-prompt {
+  display: none;
+}
+.full-map-restore {
+  position: absolute;
+  z-index: 21;
+  /* Under the map's ⓘ (its credits stay: the basemaps' terms). */
+  top: calc(env(safe-area-inset-top, 0px) + 48px);
+  right: 12px;
+  border: 0;
+  font-size: 20px;
+  cursor: pointer;
+}
+/* The one-time hint over the line (Zach: once per device). */
+.full-map-hint {
+  position: absolute;
+  z-index: 16;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--sheet-h, 0px) + 64px);
+  margin: 0 auto;
+  width: fit-content;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(28, 38, 32, 0.92);
+  color: var(--tb-ink);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+  font-size: 14px;
+  pointer-events: none;
+}
+/* The desktop's way in, beside the Key chip; a phone swipes the line down instead. */
+.mkl-hide-controls {
+  margin-left: -6px;
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  .mkl-hide-controls {
+    display: none;
+  }
 }

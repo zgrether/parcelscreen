@@ -30,6 +30,7 @@ import { NEIGHBOUR_WORDS } from "@/lib/report/raise";
 import { isPreview } from "@/lib/client/samples";
 import { SAMPLE_WORDS } from "@/lib/areas/words";
 import { SPLIT_WORDS } from "@/lib/split/words";
+import { setFullMapBlockers } from "@/components/Explore/fullMap";
 
 const GRADE_COMBINATION = NEIGHBOUR_WORDS.go;
 
@@ -95,6 +96,12 @@ function Bar({ ctl }: { ctl: ExploreController }) {
   const open = store.open;
   const [confirming, setConfirming] = useState(false);
   const [editing, setEditing] = useState(false);
+  // Full-map mode never runs with the bar open for editing (map-room plan §5; Zach, #427).
+  const editingNow = editing && !!open;
+  useEffect(() => {
+    setFullMapBlockers({ editing: editingNow });
+    return () => setFullMapBlockers({ editing: false });
+  }, [editingNow]);
   const tap = useTapWord();
   const folded = !!open && !mode && !editing && !isPreview(open);
   const body = folded ? (
