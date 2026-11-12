@@ -415,6 +415,7 @@ describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-ho
       say(`- ${u}: HTTP ${r.status}, ${r.text.length} chars, ${links.length} links`);
     }
     say("", "Links:", ...[...found].map((l) => `- ${l}`), "");
+    found.add("https://dof.virginia.gov/state-forests/channels-state-forest/");
     for (const l of [...found].filter((x) => !/\?s=|wp-json|\/feed|\.(jpg|png|pdf)$/i.test(x)).slice(0, 4)) {
       const r = await get(l);
       const text = r.text
