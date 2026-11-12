@@ -393,6 +393,45 @@ describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-ho
     expect(true).toBe(true);
   }, 120_000);
 
+  // Round 8 (Zach, 11/12): the Virginia Department of Forestry's page for the Brumley Mountain Trail, to cite in the
+  // trailhead overrides: its URL, and what it says about the trailhead at Hayters Gap.
+  it("round 8: VDOF's Brumley Mountain Trail page", async () => {
+    say("## Round 8: VDOF's Brumley Mountain Trail page", "");
+    const pages = [
+      "https://dof.virginia.gov/?s=brumley",
+      "https://dof.virginia.gov/?s=channels+state+forest",
+      "https://dof.virginia.gov/state-forests/",
+      "https://dof.virginia.gov/state-forests/channels-state-forest/",
+      "https://dof.virginia.gov/wp-json/wp/v2/search?search=brumley",
+      "https://dof.virginia.gov/wp-json/wp/v2/search?search=channels",
+    ];
+    const found = new Set<string>();
+    for (const u of pages) {
+      const r = await get(u);
+      const links = [
+        ...r.text.matchAll(/https?:\/\/dof\.virginia\.gov\/[^"'\s<>\\]*(?:brumley|channels)[^"'\s<>\\]*/gi),
+      ].map((m) => m[0]);
+      links.forEach((l) => found.add(l));
+      say(`- ${u}: HTTP ${r.status}, ${r.text.length} chars, ${links.length} links`);
+    }
+    say("", "Links:", ...[...found].map((l) => `- ${l}`), "");
+    for (const l of [...found].filter((x) => !/\?s=|wp-json|\/feed|\.(jpg|png|pdf)$/i.test(x)).slice(0, 4)) {
+      const r = await get(l);
+      const text = r.text
+        .replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, " ")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ");
+      const hits = [
+        ...text.matchAll(/[^.]{0,200}(Hayters|Brumley|Route 80|Rt\. 80|trailhead|parking)[^.]{0,200}\./gi),
+      ]
+        .map((m) => m[0].trim())
+        .slice(0, 6);
+      say(`### ${l} (HTTP ${r.status})`, "", ...hits.map((h) => `> ${clip(h, 400)}`), "");
+    }
+    write();
+    expect(out.length).toBeGreaterThan(2);
+  }, 300_000);
+
   it("round 2: 010-A-10 found and graded live; the trailhead rule tried at Hayters Gap", async () => {
     // ---------- 010-A-10: round 1's LIKE matched nothing, so the format is read from the parcels near the gap ----------
     const sample = json(
