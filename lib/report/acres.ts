@@ -1,7 +1,7 @@
 /**
  * A parcel's acres, named as the report names them (perAcre.ts: "on 93.97 surveyed ac", "on 38.8 boundary ac"): a
- * recorded survey's when the listing fact is set (J-5), else the boundary's, which is the county GIS's line. The sheet's
- * header and its line (map-room plan, Zach's #427 answer 4) both use it, so they can't drift from each other.
+ * recorded survey's when the listing fact is set (J-5), else the boundary's, which is the county GIS's line. For the phone
+ * sheet's line (map-room plan, Zach's #427 answer 4: labelled as the report labels them).
  */
 import { fmt } from "../format";
 
