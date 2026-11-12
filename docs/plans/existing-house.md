@@ -137,9 +137,13 @@ Channels State Forest.
       out. But a forest's point is the forest, not its access lot, so it's no fix.
     - No Department of Forestry layer of access points was found on ArcGIS Online.
 - **The fix, at the source.** The OSM bake also takes a parking lot within 60 m (`near.trailLotM`, new) of a trail:
-  - **which trails:** a hiking or foot route relation's members that are paths, footways, tracks or bridleways (never
-    its road members, so a route that follows a road doesn't make every lot along it a trailhead), or a named
-    path or footway that an agency runs (operator matching forest, park, conservation or wildlife);
+  - **which trails:** a hiking or foot route relation's members that are paths, footways, tracks, bridleways or
+    service roads (never its public road members, residential up to trunk, so a route that follows a road doesn't make
+    every lot along it a trailhead), or a named path or footway that an agency runs (operator matching forest, park,
+    conservation or wildlife). Service roads were added after the bake (Zach, 11/11): the Hayters Gap lot is 20 m from
+    Raven Ridge, the gated service road the Brumley Mountain Trail follows up to its footpath, 300 m on. The members
+    are asked of Overpass whatever their highway and the rule is applied in `trailLots` (filtered in Overpass, the
+    gap's route members came back empty: probe round 3);
   - **its name:** the lot's own name when it has one, else the trail's: "Brumley Mountain Trail (parking)";
   - **skipped:** lots tagged `access` private, customers, permit or no;
   - **merged by distance alone** (`near.trailLotMergeM`, new, 150 m, as `near.trecMergeM`), not by the name rule.
@@ -154,10 +158,27 @@ Channels State Forest.
     - the named "Brumley Mountain Trailhead";
     - three Department of Forestry lots in Channels State Forest.
   - The places are then baked again (places.yml).
-- **If the source fix isn't simple:** `lib/screen/data/trailhead-overrides.json`, cited and dated, in
-  er-overrides.json's pattern, read by the bake.
+- **What four bakes showed** (11/11): each found the gap's lot only when Overpass answered in full.
+  - Bake 1 lost all of OSM to one cell's timeout; the lots now have a pass of their own, after OSM's.
+  - Bake 2 kept 594 lots, none at the gap: the route members' highway filter, done in Overpass, came back empty there;
+    the rule moved into `trailLots` (and gained service roads, Zach).
+  - Bake 3 kept 422, but parking asked around every trailhead came back with each lot's own id and replaced it.
+  - Bake 4 kept 122 under their own names, none at the gap: whole 1° cells came back uneven (1,140, 824, 356 lots).
+- **The pass now** (Zach, 11/12):
+  - **by quarter cell,** one request at a time, 2 s apart;
+  - **any remark is a failure** (a timeout or a runtime error answers 200 with what it had so far), asked again twice
+    with backoff, the main server first;
+  - **merged with the shipped:** a quarter's lots are the previous bake's (OSM trailheads that aren't this bake's
+    tagged ones) and this bake's, one per OSM id, so a short answer never takes lots away and a failed quarter keeps
+    its own. A lot gone from OSM lingers; pruning one missing for several bakes is in polish.md;
+  - **reported:** every quarter's found, shipped and kept, and first those retried, failed or below the shipped.
+- **The cited override:** `lib/screen/data/trailhead-overrides.json` (er-overrides.json's pattern) adds the gap's lot
+  as an OSM trailhead under its own id, cited by OSM way 808088841 and VDOF's Channels State Forest page ("The Brumley
+  Mountain Trail to the Channels is now open"; its parking "limited to 10 vehicles"), whatever Overpass answers.
 - **Acceptance:** 010-A-10, graded again, lists a trailhead about 2 mi by road at Hayters Gap, and the Trails row
-  reflects it.
+  reflects it (the override guarantees it). The trail lots kept are at least the larger of main's and bake 2's (594),
+  less any removed on purpose; if a bake still comes back short, it ships with the merge and the override, the
+  shortfall in polish.md (Zach, 11/12).
 
 ## 2b. The missed paddling lakes (Zach, 11/11, after grading 010-A-10)
 

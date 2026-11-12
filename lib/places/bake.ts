@@ -34,6 +34,7 @@ import cragsJson from "../screen/data/crags.json";
 import { cragPlace, lastChecked, parseCrags } from "./crags";
 import { flatwaterByName } from "./flatwater";
 import { RIDB_EXPORT, RIDB_LAUNCHES } from "./ridb";
+import { trailheadOverrides } from "./trailheadOverrides";
 
 /** The baked area: within this of VA, NC or TN (the brief: "plus 60 km"). */
 export const MARGIN_KM = 60;
@@ -63,7 +64,33 @@ export interface Bake {
   cells: PlaceCell[];
   /** What kept the previous bake's places this time, as the refresh summary says it: "usfs", "osm towns", … */
   kept: string[];
+  /** The trail lots baked as trailheads (existing-house plan §2), for the bake's report; empty when OSM kept last bake's. */
+  trailLots: BakedTrailhead[];
+  /** Each quarter's trail lots this bake, for the report (Zach, 11/12): found, the shipped baseline, kept after merging. */
+  trailLotCells: TrailLotCell[];
 }
+
+/** One quarter's trail-lot pass. */
+export interface TrailLotCell {
+  cell: string;
+  /** Found by this bake's query, or null when it failed after its retries. */
+  found: number | null;
+  /** The shipped lots in the quarter (the previous bake's). */
+  baseline: number;
+  /** This bake's and the shipped, one per OSM id. */
+  merged: number;
+  /** Asked again after a failure. */
+  retried: boolean;
+}
+
+/**
+ * The trail lots a bake should keep at least (Zach, 11/12): bake 2's, the most a whole-cell query ever answered (1,140
+ * found, 594 kept after merging with the other trailheads), or the shipped baseline if that's larger.
+ */
+export const TRAIL_LOT_BAR = { found: 1_140, kept: 594 } as const;
+
+/** The pause between one quarter's trail-lot query and the next: one request at a time, politely (Zach, 11/12). */
+const TRAIL_LOT_GAP_MS = 2_000;
 
 const round6 = ([lat, lon]: LatLon): LatLon => [+lat.toFixed(6), +lon.toFixed(6)];
 
@@ -114,10 +141,25 @@ export function areaCells(): string[] {
   return (AREA_CELLS = out);
 }
 
+/** A 1° cell's box (west, south, east, north); a quarter's ("36_-82/ne") is its half-degree corner. */
 const cellBox = (cell: string): [number, number, number, number] => {
-  const [lat, lon] = cell.split("_").map(Number) as [number, number];
-  return [lon, lat, lon + 1, lat + 1];
+  const [whole, q] = cell.split("/") as [string, string | undefined];
+  const [lat, lon] = whole.split("_").map(Number) as [number, number];
+  if (!q) return [lon, lat, lon + 1, lat + 1];
+  const s = lat + (q[0] === "n" ? 0.5 : 0);
+  const w = lon + (q[1] === "e" ? 0.5 : 0);
+  return [w, s, w + 0.5, s + 0.5];
 };
+
+/** A cell's four quarters, for the trail-lot query: a whole cell's answer came back uneven (Zach, 11/12). */
+export const QUARTERS = ["sw", "se", "nw", "ne"] as const;
+export const quartersOf = (cell: string): string[] => QUARTERS.map((q) => `${cell}/${q}`);
+
+/** Whether a place is in a cell's or a quarter's box (west and south edges in, east and north out). */
+export function inBox(cell: string, [lat, lon]: LatLon): boolean {
+  const [w, s, e, n] = cellBox(cell);
+  return lon >= w && lon < e && lat >= s && lat < n;
+}
 
 // ---------- OpenStreetMap ----------
 
@@ -130,6 +172,8 @@ export interface OsmElement {
   tags?: Record<string, string>;
   /** A relation's members (`out body`). */
   members?: { type: string; ref: number; role?: string }[];
+  /** A way's points (`out geom`); a point outside the query's bbox comes back null. */
+  geometry?: ({ lat: number; lon: number } | null)[];
 }
 
 /** One Overpass query, each mirror in turn (POST, as the area profiler sends it). */
@@ -143,12 +187,39 @@ export async function overpass(ql: string, deps: Pick<BakeDeps, "http" | "overpa
         timeoutMs: 200_000,
       });
       if (!r.ok) throw new Error(`${new URL(m).host} ${r.status}`);
-      return ((await r.json()) as { elements?: OsmElement[] }).elements ?? [];
+      const j = (await r.json()) as { elements?: OsmElement[]; remark?: string };
+      // A query past its time or memory comes back 200 with what it found so far and a remark (a runtime error, a
+      // timeout): not an answer, whatever the remark says (Zach, 11/12).
+      if (j.remark) throw new Error(`${new URL(m).host}: ${j.remark}`);
+      return j.elements ?? [];
     } catch (e) {
       errs.push(String(e));
     }
   }
   throw new Error(`Overpass unreachable (${errs.join("; ")})`);
+}
+
+/** The waits before each retry of a cell's Overpass query when no mirror answered (both 502/504 at once, 11/11). */
+const OVERPASS_RETRY_MS = [30_000, 90_000];
+
+/** `overpass`, every mirror again after each of OVERPASS_RETRY_MS. */
+async function overpassRetried(
+  ql: string,
+  deps: Pick<BakeDeps, "http" | "overpass" | "sleep" | "log">,
+  what: string,
+  onRetry?: () => void,
+): Promise<OsmElement[]> {
+  const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await overpass(ql, deps);
+    } catch (e) {
+      if (attempt >= OVERPASS_RETRY_MS.length) throw e;
+      onRetry?.();
+      deps.log?.(`${what}: ${String(e)}; again in ${OVERPASS_RETRY_MS[attempt]! / 1000} s`);
+      await sleep(OVERPASS_RETRY_MS[attempt]!);
+    }
+  }
 }
 
 export const at = (e: OsmElement): LatLon | null =>
@@ -167,6 +238,134 @@ export function osmCellQuery(cell: string): string {
     `nwr["whitewater"~"^(put_in|egress|put_in;egress)$"];nwr["waterway"="access_point"];)->.l;` +
     `(.p;.l;);out center tags;rel(bn.l)["route"="canoe"];out body;`
   );
+}
+
+/**
+ * The parking lots by a trail in a cell or a quarter of one (existing-house plan §2): lots within near.trailLotM of a hiking or foot route's
+ * paths, footways, tracks, bridleways or service roads (never its public roads), or of a named path or footway an
+ * agency runs; then the
+ * trails near those lots with their points, and the routes they're on (`out body`: their members), to name each lot.
+ */
+export function trailLotQuery(cell: string): string {
+  const [w, s, e, n] = cellBox(cell);
+  const M = SCREEN_CONSTANTS.near.trailLotM;
+  // The routes' members are asked for whatever their highway: filtered in Overpass, the Brumley Mountain Trail's
+  // members came back empty (probe round 3, 11/11). trailLots keeps only the lots near a path, footway, track,
+  // bridleway or service road (never a public road), measured to each line here.
+  return (
+    `[out:json][timeout:180][bbox:${s},${w},${n},${e}];` +
+    `rel["route"~"^(hiking|foot)$"]->.hr;` +
+    `way(r.hr)["highway"]->.rw;` +
+    `way["highway"~"^(path|footway)$"]["name"]["operator"~"forest|park|conservation|wildlife",i]->.aw;` +
+    `(.rw;.aw;)->.tw;` +
+    `nwr["amenity"="parking"](around.tw:${M})->.p;.p out center tags;` +
+    `way.tw(around.p:${M})->.near;.near out tags geom;` +
+    `rel(bw.near)["route"~"^(hiking|foot)$"];out body;`
+  );
+}
+
+/**
+ * The ways a lot is measured to: a route's paths, footways, tracks and bridleways, and the service roads it follows
+ * (a gated forest road up to the footpath, as the Brumley Mountain Trail's at Hayters Gap; Zach, 11/11). Never a public
+ * through road (residential up to trunk), even one a hiking route follows.
+ */
+const TRAIL_HIGHWAY = /^(path|footway|track|bridleway|service)$/;
+
+/** Lots a trailhead can't be: no public access. */
+const PRIVATE_LOT = /^(private|customers|permit|no)$/;
+
+/** A trail lot, before merging: its own name when it had one (kept first when two are one). */
+export interface TrailLot extends BakedTrailhead {
+  ownName: boolean;
+}
+
+const metres = (a: LatLon, b: LatLon): number => {
+  const R = 6_371_000,
+    rad = Math.PI / 180;
+  const dLat = (b[0] - a[0]) * rad,
+    dLon = (b[1] - a[1]) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * rad) * Math.cos(b[0] * rad) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+};
+
+/** The nearest point of a polyline to a place, metres (each segment, in a local flat frame). */
+function toLine(ll: LatLon, line: readonly LatLon[]): number {
+  const k = Math.cos((ll[0] * Math.PI) / 180);
+  const xy = ([la, lo]: LatLon): [number, number] => [(lo - ll[1]) * k * 111_320, (la - ll[0]) * 111_320];
+  let best = Infinity;
+  for (let i = 0; i + 1 < line.length; i++) {
+    const [ax, ay] = xy(line[i]!),
+      [bx, by] = xy(line[i + 1]!);
+    const dx = bx - ax,
+      dy = by - ay;
+    const t = dx || dy ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / (dx * dx + dy * dy))) : 0;
+    best = Math.min(best, Math.hypot(ax + t * dx, ay + t * dy));
+  }
+  return line.length === 1 ? metres(ll, line[0]!) : best;
+}
+
+/**
+ * trailLotQuery's answer as trailheads (existing-house plan §2): each public lot named for itself, else for the nearest
+ * trail's route ("Brumley Mountain Trail (parking)"), else the trail's own name.
+ */
+export function trailLots(elements: readonly OsmElement[]): TrailLot[] {
+  const ways = elements.filter(
+    (e) => e.type === "way" && e.geometry && TRAIL_HIGHWAY.test(e.tags?.highway ?? ""),
+  );
+  const M = SCREEN_CONSTANTS.near.trailLotM;
+  const routeOf = new Map<number, string>();
+  for (const r of elements)
+    if (r.type === "relation" && r.tags?.name)
+      for (const m of r.members ?? [])
+        if (m.type === "way" && !routeOf.has(m.ref)) routeOf.set(m.ref, r.tags.name);
+  const out: TrailLot[] = [];
+  for (const e of elements) {
+    const t = e.tags ?? {};
+    if (t.amenity !== "parking" || PRIVATE_LOT.test(t.access ?? "")) continue;
+    const ll = at(e);
+    if (!ll || !inArea(ll)) continue;
+    const near = ways
+      .map((w) => ({
+        w,
+        m: toLine(
+          ll,
+          w.geometry!.flatMap((g): LatLon[] => (g ? [[g.lat, g.lon]] : [])),
+        ),
+      }))
+      .sort((a, b) => a.m - b.m)[0];
+    // Near a road the route follows, not its trail: not a trailhead.
+    if (!near || near.m > M) continue;
+    const trail = routeOf.get(near.w.id) ?? near.w.tags?.name;
+    const own = !!t.name?.trim();
+    out.push({
+      kind: "trailhead",
+      id: `osm:${e.type}/${e.id}`,
+      name: own ? t.name!.trim() : trail ? `${trail} (parking)` : "Trailhead (parking)",
+      ll: round6(ll),
+      src: "osm",
+      ownName: own,
+    });
+  }
+  return out;
+}
+
+/**
+ * The trail lots kept (existing-house plan §2): one within near.trailLotMergeM of any other trailhead is that trailhead;
+ * lots within it of each other are one, a lot with its own name kept first, else the first found. By distance alone:
+ * "Brumley Mountain Trail (parking)" and "Brumley Mountain Trailhead" don't share a name.
+ */
+export function mergeTrailLots(
+  lots: readonly TrailLot[],
+  others: readonly { ll: LatLon }[],
+): BakedTrailhead[] {
+  const M = SCREEN_CONSTANTS.near.trailLotMergeM;
+  const kept: BakedTrailhead[] = [];
+  for (const l of [...lots].sort((a, b) => Number(b.ownName) - Number(a.ownName))) {
+    if (others.some((o) => metres(o.ll, l.ll) <= M) || kept.some((k) => metres(k.ll, l.ll) <= M)) continue;
+    const { ownName: _o, ...place } = l;
+    kept.push(place);
+  }
+  return kept;
 }
 
 /** Overpass's answer for a cell as places: supermarkets as grocers (named "Supermarket" when unnamed), trailheads. */
@@ -676,11 +875,12 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
   }
 
   // OSM, a cell at a time; one cell failing fails the source (a partial OSM would read as places closing).
+  let osmOk = false;
   try {
     const osm: Place[] = [];
     const launches: RawLaunch[] = [];
     for (const [i, cell] of cells.entries()) {
-      const elements = await overpass(osmCellQuery(cell), deps);
+      const elements = await overpassRetried(osmCellQuery(cell), deps, `osm: cell ${cell}`);
       osm.push(...osmPlaces(elements));
       launches.push(...osmLaunches(elements));
       log(
@@ -689,9 +889,63 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     }
     got.set("osm", osm);
     raw.push(...launches);
+    osmOk = true;
   } catch (e) {
     keep("osm", e);
   }
+
+  // Existing-house plan §2: the lots by a trail, merged once every source has answered. Their own pass, after OSM's,
+  // a quarter cell at a time, one request at a time (Zach, 11/12). Each quarter's lots are the shipped ones (the previous
+  // bake's) and this bake's, one per OSM id: an Overpass answer that comes back short never takes lots away, and a
+  // quarter that won't answer keeps its shipped lots. A lot gone from OSM lingers (pruning is in polish.md).
+  const lots: TrailLot[] = [];
+  const lotCells: TrailLotCell[] = [];
+  if (osmOk) {
+    const tagged = new Set((got.get("osm") ?? []).map((p) => p.id));
+    // The shipped lots: OSM trailheads the previous bake had that this bake's tagged ones don't.
+    const shipped = (deps.previous?.places ?? []).filter(
+      (p): p is BakedTrailhead => p.src === "osm" && p.kind === "trailhead" && !tagged.has(p.id),
+    );
+    const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+    const quarters = cells.flatMap(quartersOf);
+    for (const [i, q] of quarters.entries()) {
+      if (i) await sleep(TRAIL_LOT_GAP_MS);
+      let retried = false;
+      let found: TrailLot[] | null = null;
+      try {
+        found = trailLots(
+          await overpassRetried(trailLotQuery(q), deps, `trail lots: ${q}`, () => (retried = true)),
+        ).filter((l) => inBox(q, l.ll));
+      } catch (e) {
+        log(`trail lots: ${q}: ${String(e)}; its shipped lots kept`);
+      }
+      const base = shipped
+        .filter((p) => inBox(q, p.ll))
+        .map((p): TrailLot => ({ ...p, ownName: !p.name.endsWith("(parking)") }));
+      const byId = new Map(base.map((l) => [l.id, l]));
+      for (const l of found ?? []) byId.set(l.id, l);
+      lots.push(...byId.values());
+      lotCells.push({
+        cell: q,
+        found: found?.length ?? null,
+        baseline: base.length,
+        merged: byId.size,
+        retried,
+      });
+      if (retried || found === null || found.length < base.length)
+        log(
+          `trail lots: ${q}: ${found === null ? "failed" : `${found.length} found`}, ${base.length} shipped, ${byId.size} kept${retried ? " (retried)" : ""}`,
+        );
+    }
+    const missed = lotCells.filter((c) => c.found === null).map((c) => c.cell);
+    if (missed.length)
+      failed.push(
+        `trail lots in ${missed.length} quarter cell${missed.length === 1 ? "" : "s"} (${missed.join(", ")})`,
+      );
+  }
+
+  // The cited trailhead overrides (lib/places/data/trailhead-overrides.json): kept with OSM's, whatever Overpass says.
+  const overrides = trailheadOverrides();
 
   // USFS: its trailheads, and its boating sites as launches (the subtype's value as the layer has it: BOATING SITE).
   try {
@@ -736,6 +990,18 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     log(`${src}: ${got.get(src)?.length ?? 0}`);
   }
 
+  // The trail lots (existing-house plan §2), against every other trailhead (the overrides among them) and each other;
+  // kept with OSM's.
+  const tagged = [
+    ...[...got.values()].flat().filter((p): p is BakedTrailhead => p.kind === "trailhead"),
+    ...overrides,
+  ];
+  const keptLots = mergeTrailLots(lots, tagged);
+  got.set("osm", [...(got.get("osm") ?? []), ...overrides, ...keptLots]);
+  log(
+    `trail lots: ${lots.length} after merging with the shipped, ${keptLots.length} kept; ${overrides.length} overrides`,
+  );
+
   // Parking around every trailhead, whichever source: kept with OSM (it is OSM's).
   const trailheads = [...got.values()].flat().filter((p): p is BakedTrailhead => p.kind === "trailhead");
   let parking: BakedParking[];
@@ -747,6 +1013,10 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     log(`parking: ${String(e)}; keeping the previous bake's`);
     parking = deps.previous.places.filter((p): p is BakedParking => p.kind === "parking");
   }
+  // A lot that is a trailhead itself (a trail lot, or a lot tagged as one) is asked for again here, around itself, with
+  // the same id: kept as the trailhead, never as its own parking (the cells keep one place per id, the last).
+  const trailheadIds = new Set(trailheads.map((t) => t.id));
+  parking = parking.filter((p) => !trailheadIds.has(p.id));
 
   // Each launch on its water (NHD), a batch at a time; a batch NHD won't answer keeps the previous bake's.
   const classified = await classifyAll(raw, deps);
@@ -802,7 +1072,7 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     ) as PlacesIndex["cells"],
   };
   if (failed.length) log(`kept the previous bake's: ${failed.join(", ")}`);
-  return { index, cells: cellFiles, kept: failed };
+  return { index, cells: cellFiles, kept: failed, trailLots: keptLots, trailLotCells: lotCells };
 }
 
 /** OSM's named towns and cities over the baked box. */
@@ -825,5 +1095,78 @@ function boundsOf(cells: readonly string[]): [number, number, number, number] {
     Math.min(...boxes.map((b) => b[1])),
     Math.max(...boxes.map((b) => b[2])),
     Math.max(...boxes.map((b) => b[3])),
+  ];
+}
+
+/**
+ * The bake's report on the trail lots (existing-house plan §5, PR 4): how many per state (inside it, else "nearby"), and
+ * the ten nearest a town's centre, where a town park's lot would be the likeliest false trailhead.
+ */
+export function trailLotReport(
+  lots: readonly BakedTrailhead[],
+  towns: readonly { name: string; ll: LatLon }[],
+  quarters: readonly TrailLotCell[] = [],
+): string {
+  const per = new Map<string, number>();
+  for (const l of lots) {
+    const st = STATES.find((s) => kmToState(s, l.ll) <= 0) ?? "nearby";
+    per.set(st, (per.get(st) ?? 0) + 1);
+  }
+  const nearest = lots
+    .map((l) => {
+      const t = towns.map((x) => ({ x, m: metres(l.ll, x.ll) })).sort((a, b) => a.m - b.m)[0];
+      return { l, t };
+    })
+    .filter((x) => x.t)
+    .sort((a, b) => a.t!.m - b.t!.m)
+    .slice(0, 10);
+  return [
+    "# The trail lots baked as trailheads",
+    "",
+    `${lots.length} lots, by state: ${[...per].map(([k, n]) => `${k} ${n}`).join(", ") || "none"}.`,
+    "",
+    "## The ten nearest a town's centre",
+    "",
+    "| Lot | Where | Town | Distance |",
+    "|---|---|---|---|",
+    ...nearest.map(
+      ({ l, t }) =>
+        `| ${l.name} | ${l.ll[0].toFixed(4)}, ${l.ll[1].toFixed(4)} | ${t!.x.name} | ${Math.round(t!.m)} m |`,
+    ),
+    "",
+    ...quarterReport(quarters, lots.length),
+  ].join("\n");
+}
+
+/**
+ * Each quarter cell's trail lots (Zach, 11/12): the ones retried, failed or found below the shipped baseline first (the
+ * signal of Overpass trouble), then every quarter's counts.
+ */
+function quarterReport(quarters: readonly TrailLotCell[], kept: number): string[] {
+  if (!quarters.length) return [];
+  const odd = quarters.filter((q) => q.retried || q.found === null || q.found < q.baseline);
+  const row = (q: TrailLotCell) =>
+    `| ${q.cell} | ${q.found ?? "failed"} | ${q.baseline} | ${q.merged} | ${q.retried ? "yes" : ""} |`;
+  const head = ["| Quarter | Found | Shipped | Kept | Retried |", "|---|---|---|---|---|"];
+  const merged = quarters.reduce((t, q) => t + q.merged, 0);
+  const shipped = quarters.reduce((t, q) => t + q.baseline, 0);
+  const barMerged = Math.max(TRAIL_LOT_BAR.found, shipped);
+  const barKept = Math.max(TRAIL_LOT_BAR.kept, shipped);
+  return [
+    "## Each quarter cell",
+    "",
+    `Against the bar (Zach, 11/12; bake 2's, or the shipped if larger): ${merged} after merging with the shipped (bar ${barMerged}), ${kept} kept after merging with the other trailheads (bar ${barKept})${merged < barMerged || kept < barKept ? ": short" : ""}.`,
+    "",
+    `${quarters.length} quarters; found ${quarters.reduce((t, q) => t + (q.found ?? 0), 0)}, shipped ${quarters.reduce((t, q) => t + q.baseline, 0)}, kept ${quarters.reduce((t, q) => t + q.merged, 0)} before merging with the other trailheads.`,
+    "",
+    `### Retried, failed or below the shipped (${odd.length})`,
+    "",
+    ...(odd.length ? [...head, ...odd.map(row)] : ["None."]),
+    "",
+    "### All",
+    "",
+    ...head,
+    ...quarters.map(row),
+    "",
   ];
 }

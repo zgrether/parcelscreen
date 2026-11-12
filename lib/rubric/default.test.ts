@@ -126,6 +126,26 @@ const renamed = (want: Recorded1): Recorded1 => {
 };
 
 /**
+ * The existing-house step's declared change (plan §2, #420): a parking lot by a trail is a trailhead. On Mud Creek the
+ * quickest is the Appalachian Trail's lot, 17 minutes by road as Grayson Highlands State Park was: the same letter, the
+ * row's words name the nearer lot. Nothing else may differ.
+ */
+const TRAIL_LOTS: Partial<Record<FixtureSlug, [string, string]>> = {
+  "grayson-mud-creek-6273": [
+    "a trailhead 17 min (6.7 mi) by road, 5.0 mi straight (Grayson Highlands State Park)",
+    "a trailhead 17 min (5.6 mi) by road, 4.3 mi straight (Appalachian Trail (parking))",
+  ],
+};
+const lots = (slug: FixtureSlug, want: Recorded1): Recorded1 => {
+  const d = TRAIL_LOTS[slug];
+  if (!d) return want;
+  return {
+    ...want,
+    rows: want.rows.map((x) => (x.key === "trails" && x.detail === d[0] ? { ...x, detail: d[1] } : x)),
+  };
+};
+
+/**
  * Step 7's guard (plan §2): graded at site #1, with the Driveway row as Don't care (it is, on both shipped weight
  * sets), every card is today's, byte for byte. So a grade or verdict that changes can only come from the best site or
  * the Driveway row, the two sources the step declared.
@@ -135,7 +155,7 @@ describe("the default rubric reproduces today's cards (cards-v7.json; a port-onl
     for (const scenario of SCENARIOS[slug])
       for (const nr of PERSONS)
         it(`${slug} ${scenario}, ${nr.id}`, () => {
-          const want = renamed(ers(slug, split(recorded(slug)[scenario]![nr.id]!)));
+          const want = lots(slug, renamed(ers(slug, split(recorded(slug)[scenario]![nr.id]!))));
           const { person: _p, ...wantRest } = want;
           const got = comparable(reportCard(expectedOf(slug, scenario), nr, undefined, undefined, { at: 0 }));
           expect(differences(got, wantRest)).toEqual([]);

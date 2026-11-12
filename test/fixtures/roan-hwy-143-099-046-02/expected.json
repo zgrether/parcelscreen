@@ -2449,6 +2449,19 @@
      "drive": null
     },
     {
+     "name": "Anst - Appalachian Rd",
+     "ll": [
+      36.130387,
+      -82.137638
+     ],
+     "km": 8.339345059632496,
+     "source": "state",
+     "serves": [
+      "Anst - Appalachian Rd"
+     ],
+     "drive": null
+    },
+    {
      "name": "Coon Den Falls",
      "ll": [
       36.256842,
@@ -2529,6 +2542,16 @@
      "drive": null
     },
     {
+     "name": "Rhododendron Garden Trail (parking)",
+     "ll": [
+      36.101928,
+      -82.135137
+     ],
+     "km": 10.776133993618915,
+     "source": "osm",
+     "drive": null
+    },
+    {
      "name": "High Water Alternate Trail",
      "ll": [
       36.272511,
@@ -2540,32 +2563,9 @@
       "High Water Alternate Trail"
      ],
      "drive": null
-    },
-    {
-     "name": "Hampton Trailhead",
-     "ll": [
-      36.285338,
-      -82.152073
-     ],
-     "km": 13.040651285124895,
-     "source": "usfs",
-     "drive": null
-    },
-    {
-     "name": "Laurel Fork Trailhead",
-     "ll": [
-      36.285403,
-      -82.152124
-     ],
-     "km": 13.049203080116621,
-     "source": "osm",
-     "serves": [
-      "Hampton-Blueline Trail"
-     ],
-     "drive": null
     }
    ],
-   "trailheadCount": 125
+   "trailheadCount": 159
   },
   "road": {
    "name": "State Rte 143",
@@ -6072,15 +6072,13 @@
     "min": 28,
     "mi": 17.7
    },
-   "others": [
-    {
-     "name": "Price Lake access",
-     "water": "Price Lake",
-     "min": 56,
-     "mi": 30.7
-    }
-   ],
+   "others": [],
    "rivers": [
+    {
+     "name": "Rat Branch Launch",
+     "river": null,
+     "km": 13.6
+    },
     {
      "name": "Watauga River access",
      "river": "Watauga River",
@@ -6090,11 +6088,6 @@
      "name": "Watauga River access",
      "river": "Watauga River",
      "km": 23
-    },
-    {
-     "name": "Watauga River access",
-     "river": "Watauga River",
-     "km": 26.2
     }
    ],
    "pond": null
@@ -8627,6 +8620,19 @@
      "drive": null
     },
     {
+     "name": "Anst - Appalachian Rd",
+     "ll": [
+      36.130387,
+      -82.137638
+     ],
+     "km": 8.339345059632496,
+     "source": "state",
+     "serves": [
+      "Anst - Appalachian Rd"
+     ],
+     "drive": null
+    },
+    {
      "name": "Coon Den Falls",
      "ll": [
       36.256842,
@@ -8707,6 +8713,16 @@
      "drive": null
     },
     {
+     "name": "Rhododendron Garden Trail (parking)",
+     "ll": [
+      36.101928,
+      -82.135137
+     ],
+     "km": 10.776133993618915,
+     "source": "osm",
+     "drive": null
+    },
+    {
      "name": "High Water Alternate Trail",
      "ll": [
       36.272511,
@@ -8718,32 +8734,9 @@
       "High Water Alternate Trail"
      ],
      "drive": null
-    },
-    {
-     "name": "Hampton Trailhead",
-     "ll": [
-      36.285338,
-      -82.152073
-     ],
-     "km": 13.040651285124895,
-     "source": "usfs",
-     "drive": null
-    },
-    {
-     "name": "Laurel Fork Trailhead",
-     "ll": [
-      36.285403,
-      -82.152124
-     ],
-     "km": 13.049203080116621,
-     "source": "osm",
-     "serves": [
-      "Hampton-Blueline Trail"
-     ],
-     "drive": null
     }
    ],
-   "trailheadCount": 125
+   "trailheadCount": 159
   },
   "road": {
    "name": "State Rte 143",
@@ -11943,15 +11936,13 @@
     "min": 28,
     "mi": 17.7
    },
-   "others": [
-    {
-     "name": "Price Lake access",
-     "water": "Price Lake",
-     "min": 56,
-     "mi": 30.7
-    }
-   ],
+   "others": [],
    "rivers": [
+    {
+     "name": "Rat Branch Launch",
+     "river": null,
+     "km": 13.6
+    },
     {
      "name": "Watauga River access",
      "river": "Watauga River",
@@ -11961,11 +11952,6 @@
      "name": "Watauga River access",
      "river": "Watauga River",
      "km": 23
-    },
-    {
-     "name": "Watauga River access",
-     "river": "Watauga River",
-     "km": 26.2
     }
    ],
    "pond": null
