@@ -17,7 +17,12 @@ type MapWindow = Window & {
   __psMap: { getStyle(): { layers: { id: string }[] }; panBy(by: [number, number], o: object): void };
 };
 const mapLayers = (page: Page) =>
-  page.evaluate(() => (window as unknown as MapWindow).__psMap.getStyle().layers.map((l) => l.id).join());
+  page.evaluate(() =>
+    (window as unknown as MapWindow).__psMap
+      .getStyle()
+      .layers.map((l) => l.id)
+      .join(),
+  );
 const header = (page: Page) => page.locator(".explore-header");
 
 test.describe("on a desktop", () => {
@@ -153,7 +158,10 @@ test.describe("on a phone", () => {
     await line.locator(".sl-name").tap();
     await expect(line).toHaveCount(0);
     await expect(header(page)).toBeVisible();
-    await expect(page.getByRole("button", { name: "Collapse the sheet" })).toHaveAttribute("aria-expanded", "true");
+    await expect(page.getByRole("button", { name: "Collapse the sheet" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
     await page.locator(".sheet-handle").tap();
     await expect(line).toBeVisible();
 

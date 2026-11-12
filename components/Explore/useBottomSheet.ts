@@ -81,9 +81,7 @@ export function useBottomSheet(
   const [room, setRoom] = useState(() => window.innerHeight);
   const [state, setState] = useState<SheetState>(() => initialSheet(readChosen()));
   const [dragMapMode, setDragMapMode] = useState<boolean | null>(null);
-  const drag = useRef<{ startY: number; startH: number; moved: boolean; h: number; grip: Grip } | null>(
-    null,
-  );
+  const drag = useRef<{ startY: number; startH: number; moved: boolean; h: number; grip: Grip } | null>(null);
   const height = sheetNow ? snapHeights(room, peek)[state.at] : null;
   useLayoutEffect(() => {
     const measure = () => {

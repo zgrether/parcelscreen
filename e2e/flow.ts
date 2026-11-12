@@ -252,7 +252,10 @@ export async function screenIt(page: Page): Promise<Record<string, string>> {
   if (await page.locator(".menu-panel").count()) await page.keyboard.press("Escape");
   // Wait for this run to start, then to finish.
   // On a phone the sheet's line has its own Grade (map-room plan §1), with the header's hidden under it.
-  await page.locator(".grade-btn:enabled:visible, .sl-grade:enabled:visible, .grade-again-link:enabled").first().click();
+  await page
+    .locator(".grade-btn:enabled:visible, .sl-grade:enabled:visible, .grade-again-link:enabled")
+    .first()
+    .click();
   const grading = gradingNow(page);
   await expect(grading.first()).toBeVisible();
   await expect(grading).toHaveCount(0, { timeout: 200_000 });
