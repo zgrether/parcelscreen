@@ -46,7 +46,6 @@ import { useRubricView } from "@/lib/client/useRubricView";
 import { costInputOf, reportCard } from "@/lib/report/card";
 import { perAcre } from "@/lib/report/perAcre";
 import { answerReason, verdictParts } from "@/lib/report/answer";
-import { acresLabel } from "@/lib/report/acres";
 import { lineNamesOf, type LineNames } from "@/lib/report/lines";
 import { isFactRow, type FactProps, type FactRow } from "@/components/Results/card/FactSection";
 import { drawnOf, type Drawn } from "@/lib/report/marks";
@@ -787,7 +786,7 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
           {/* P-2: the acres, then the county and the tax map number, the listing's way of naming it. */}
           {(d?.ok || place) && (
             <span className="sh-acres">
-              {[acresLabel(s.ctl.state.store.open?.facts?.survey?.acres, d?.ok ? d.acres : null), place]
+              {[acresWords(s.ctl.state.store.open, d?.ok ? d.acres : null), place]
                 .filter(Boolean)
                 .join(" · ")}
             </span>
@@ -822,6 +821,16 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
     </>
   );
 }
+
+/**
+ * The header's acres (J-5, UX part 2 PR 3c2): a survey's, named so, before the boundary's. Shorter than the sheet's line's
+ * (lib/report/acres.ts): the header's row has the county and tax map too, and must fit the 148 px peek on one line.
+ */
+const acresWords = (open: WorkingParcel | null, boundary: number | null): string | null => {
+  const surveyed = open?.facts?.survey?.acres ?? null;
+  if (surveyed !== null) return `${fmt(surveyed, 1)} ac, surveyed`;
+  return boundary !== null ? `${fmt(boundary, 2)} ac` : null;
+};
 
 /** The ×'s tooltip (J-2: × only closes, as Esc does on a desktop). */
 const closeTitle = (_open: WorkingParcel | null, desk: boolean): string =>
