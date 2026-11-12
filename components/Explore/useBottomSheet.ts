@@ -69,11 +69,27 @@ const readChosen = () => {
  */
 export type Grip = "handle" | "header" | "line";
 
+/**
+ * Full-map mode's gestures on the line (map-room plan §5, Zach's option A): a swipe down hides the map's controls, a
+ * swipe up shows them again. While `folded` (full-map mode is on) the sheet shows only its line, whatever height it
+ * rests at, and any move the person makes on it ends full-map mode first.
+ */
+export interface LineGestures {
+  folded: boolean;
+  /** A swipe down on the line. */
+  down(): void;
+  /** A swipe up on the line, a tap on it, or any other move of the sheet while folded: the controls come back. */
+  up(): void;
+}
+/** How far a swipe on the line goes before it counts, px. */
+const SWIPE_PX = 30;
+
 export function useBottomSheet(
   root: RefObject<HTMLElement | null>,
   panel: RefObject<HTMLElement | null>,
   stepAside = false,
   peek = PEEK,
+  line?: LineGestures,
 ) {
   // The explorer renders client-side only, so this runs in the browser.
   const [sheetNow, setSheetNow] = useState(isSheet);
@@ -81,7 +97,14 @@ export function useBottomSheet(
   const [room, setRoom] = useState(() => window.innerHeight);
   const [state, setState] = useState<SheetState>(() => initialSheet(readChosen()));
   const [dragMapMode, setDragMapMode] = useState<boolean | null>(null);
-  const drag = useRef<{ startY: number; startH: number; moved: boolean; h: number; grip: Grip } | null>(null);
+  const drag = useRef<{
+    startY: number;
+    startH: number;
+    moved: boolean;
+    h: number;
+    y: number;
+    grip: Grip;
+  } | null>(null);
   const height = sheetNow ? snapHeights(room, peek)[state.at] : null;
   useLayoutEffect(() => {
     const measure = () => {
@@ -135,6 +158,7 @@ export function useBottomSheet(
 
   // Stepping aside and back animates like a snap; so does a peek that changes under a sheet resting at it.
   const aside = stepAside && height != null;
+  const foldedNow = !!line?.folded;
   const first = useRef(true);
   useEffect(() => {
     if (first.current) return void (first.current = false);
@@ -142,7 +166,7 @@ export function useBottomSheet(
     p?.style.setProperty("transition", `height ${SNAP_MS}ms`);
     const t = setTimeout(() => p?.style.removeProperty("transition"), SNAP_MS + 20);
     return () => clearTimeout(t);
-  }, [aside, panel]);
+  }, [aside, foldedNow, panel]);
   const atPeek = state.at === "peek";
   const firstPeek = useRef(true);
   useEffect(() => {
@@ -160,10 +184,23 @@ export function useBottomSheet(
     const d = drag.current;
     if (!d) return;
     drag.current = null;
+    const folded = !!line?.folded;
     if (d.moved) {
       dragged.current = d.grip === "handle";
+      // Full-map mode's swipes on the line (map-room plan §5): down hides the controls, up brings them back.
+      const dy = d.startY - d.y;
+      if (d.grip === "line" && (state.at === "line" || folded) && Math.abs(dy) >= SWIPE_PX) {
+        paint(LINE);
+        setDragMapMode(null);
+        if (dy < 0) line?.down();
+        else line?.up();
+        return;
+      }
+      if (folded) line?.up();
       return settle(d.h);
     }
+    // Folded, a tap on the line brings the controls back first.
+    if (folded && d.grip === "line") return line?.up();
     // A tap on the line opens the sheet; the header no longer cycles (Zach, #427 Q3). The handle's tap is its click.
     if (d.grip === "line") move({ type: "expand" });
   };
@@ -176,13 +213,14 @@ export function useBottomSheet(
       const grip = (e.currentTarget.dataset.grip ?? "header") as Grip;
       dragged.current = false;
       const h = panel.current?.getBoundingClientRect().height ?? 0;
-      drag.current = { startY: e.clientY, startH: h, moved: false, h, grip };
+      drag.current = { startY: e.clientY, startH: h, moved: false, h, y: e.clientY, grip };
       e.currentTarget.setPointerCapture(e.pointerId);
     },
     onPointerMove: (e: PointerEvent<HTMLElement>) => {
       const d = drag.current;
       if (!d) return;
       const dy = d.startY - e.clientY;
+      d.y = e.clientY;
       if (Math.abs(dy) > 4) d.moved = true;
       d.h = clamp(d.startH + dy, root.current);
       if (d.moved) paint(d.h);
@@ -191,10 +229,11 @@ export function useBottomSheet(
     onPointerCancel: onPointerUp,
   };
 
-  // A tool has the screen: the plain peek at most, whatever the header holds.
-  const shown = aside && height != null ? Math.min(height, PEEK) : height;
+  // A tool has the screen: the plain peek at most, whatever the header holds. Full-map mode: the line alone.
+  const folded = !!line?.folded && height != null;
+  const shown = folded ? LINE : aside && height != null ? Math.min(height, PEEK) : height;
   const mapMode = dragMapMode ?? (shown != null && shown < MAP_MODE_BELOW);
-  const atLine = sheetNow && state.at === "line";
+  const atLine = sheetNow && (state.at === "line" || folded);
 
   return {
     /** The sheet's height as shown (null when the panel is at the side): its peek at most while it steps aside. */
@@ -219,6 +258,7 @@ export function useBottomSheet(
      */
     onHandleClick: () => {
       if (dragged.current) dragged.current = false;
+      else if (line?.folded) line.up();
       else move({ type: "toggle" });
     },
     /**
