@@ -8,7 +8,7 @@
  */
 import { expect, test, type Page } from "@playwright/test";
 import { expectedOf } from "../test/support/expected";
-import { expectAllDone, importParcel, openExplorer, reload, screenIt } from "./flow";
+import { editParcel, expectAllDone, importParcel, openExplorer, reload, screenIt } from "./flow";
 import { replayHar } from "./replay";
 import { reportCard } from "../lib/report/card";
 import { defaultNamedRubric } from "../lib/rubric/default";
@@ -30,6 +30,7 @@ async function onMap(page: Page, [lat, lon]: [number, number]): Promise<{ x: num
 const picker = (page: Page) => page.getByRole("dialog", { name: "Mark on the parcel" });
 /** + Mark, then a kind from its group. */
 async function mark(page: Page, group: string, kind: string): Promise<void> {
+  await editParcel(page);
   await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).click();
   await picker(page)
     .getByRole("group", { name: group })
@@ -51,6 +52,7 @@ test("the Mark picker: a septic permit (a point, then a field), its gate, a drag
   await expect(gate).toHaveAttribute("aria-label", "Septic: warn");
 
   // The picker, a popover on a desktop: four groups, no Recent yet.
+  await editParcel(page);
   await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).click();
   await expect(picker(page).getByRole("group")).toHaveText([
     /^Build/,
@@ -156,6 +158,7 @@ test("the Mark picker: a septic permit (a point, then a field), its gate, a drag
 
   // Recent: the last kinds used, newest first, each once, above the groups; kept after a reload.
   const recent = () => picker(page).getByRole("group", { name: "Recent" }).getByRole("button");
+  await editParcel(page);
   await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).click();
   await expect(recent()).toHaveText(["Clearing", "Septic permit"]);
   await page.keyboard.press("Escape");
@@ -176,6 +179,7 @@ test("the Mark picker: a septic permit (a point, then a field), its gate, a drag
     ["area", "Septic permit 2"],
     ["area", "Clearing 1"],
   ]);
+  await editParcel(page);
   await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).click();
   await expect(recent()).toHaveText(["Clearing", "Septic permit"]);
   expect(errors).toEqual([]);
@@ -213,6 +217,7 @@ test("Boundary ▾ holds Parcel, Custom and Split, each starting its tool", asyn
     ["Custom", "draw"],
     ["Split", "split"],
   ] as const) {
+    await editParcel(page);
     await page.getByRole("button", { name: "Boundary ▾" }).click();
     await page.getByRole("menuitem", { name: item }).click();
     await expect(bar).toHaveAttribute("data-mode", mode);
@@ -254,6 +259,7 @@ test("a Septic field saved by #136 reads as a Septic permit drawn as an area", a
   }, site);
   await reload(page);
   const info = page.locator(".parcel-details");
+  await editParcel(page);
   await page.getByRole("button", { name: /acres: parcel details$/ }).click();
   const row = info.locator(".pd-row").filter({ hasText: "Septic permit 1" });
   await expect(row.locator(".pd-meta")).toHaveText(/^septic permit · \d+\.\d\d ac$/);
@@ -276,6 +282,7 @@ test.describe("on a phone", () => {
     await importParcel(page, MACKS);
 
     // The sheet: along the bottom, the full width, a grid of four.
+    await editParcel(page);
     await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).tap();
     const sheet = picker(page);
     const box = (await sheet.boundingBox())!;

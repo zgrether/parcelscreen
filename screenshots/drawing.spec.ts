@@ -7,7 +7,7 @@ import { centroid } from "@turf/turf";
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { loadFixture } from "../test/support/fixtures";
-import { importParcel, openExplorer, screenIt } from "../e2e/flow";
+import { editParcel, importParcel, openExplorer, screenIt } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -31,6 +31,7 @@ for (const phone of [false, true]) {
       await openExplorer(page, FERNEY);
       await importParcel(page, FERNEY);
       await screenIt(page);
+      await editParcel(page);
       await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).click();
       await page
         .getByRole("dialog", { name: "Mark on the parcel" })

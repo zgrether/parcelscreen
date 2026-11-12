@@ -7,7 +7,7 @@
  */
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { screenIt } from "../e2e/flow";
+import { editParcel, screenIt } from "../e2e/flow";
 import { HOUSE_ASIDE_WORDS } from "../lib/report/adjustWords";
 
 const OUT = "test-results/screenshots/existing-house";
@@ -72,6 +72,7 @@ for (const phone of [false, true]) {
       await openAt(page, { ...HOUSE, z: 16 });
       await drawn(page);
       await tapAt(page, HOUSE);
+      await editParcel(page);
       await expect(page.getByRole("button", { name: /acres: parcel details$/ })).toBeVisible({
         timeout: 60_000,
       });
@@ -85,6 +86,7 @@ for (const phone of [false, true]) {
       await shot(page, "before");
 
       // + Mark › On the land › House already here, then one tap on the house.
+      await editParcel(page);
       await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).click();
       await page
         .getByRole("group", { name: "On the land" })
