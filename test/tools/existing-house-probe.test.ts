@@ -395,6 +395,95 @@ describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-ho
 
   // Round 8 (Zach, 11/12): the Virginia Department of Forestry's page for the Brumley Mountain Trail, to cite in the
   // trailhead overrides: its URL, and what it says about the trailhead at Hayters Gap.
+  it("round 9: 010-A-10 graded live on the step's code: Trails and Paddling's other lakes", async () => {
+    const ids = (
+      (json(
+        (
+          await get(
+            `${VA_PARCELS}/query?${new URLSearchParams({
+              f: "json",
+              where: "1=1",
+              geometry: "-81.97,36.80,-81.90,36.87",
+              geometryType: "esriGeometryEnvelope",
+              inSR: "4326",
+              spatialRel: "esriSpatialRelIntersects",
+              outFields: "PTM_ID,LOCALITY",
+              returnGeometry: "false",
+              resultRecordCount: "60",
+            })}`,
+          )
+        ).text,
+      )?.features as { attributes: Record<string, unknown> }[] | undefined) ?? []
+    ).map((f) => f.attributes);
+    const norm = (id: unknown) =>
+      String(id ?? "")
+        .replace(/[^0-9A-Z]/gi, "")
+        .toUpperCase();
+    const hit = ids.find((a) => norm(a.PTM_ID) === "010A10" || norm(a.PTM_ID) === "10A10");
+    say("## Round 9: 010-A-10 graded live on the step's code (no house mark)", "");
+    if (!hit) {
+      say("- 010-A-10 not found near the gap.", "");
+      write();
+      return;
+    }
+    const fc = json(
+      (
+        await get(
+          `${VA_PARCELS}/query?${new URLSearchParams({
+            f: "geojson",
+            where: `PTM_ID='${String(hit.PTM_ID)}' AND LOCALITY='${String(hit.LOCALITY)}'`,
+            outFields: PARCEL_FIELDS,
+            returnGeometry: "true",
+            outSR: "4326",
+          })}`,
+        )
+      ).text,
+    ) as { features?: Feature<Polygon>[] } | null;
+    const parcel = fc?.features?.[0];
+    if (!parcel?.geometry) {
+      say("- No outline came back.", "");
+      write();
+      return;
+    }
+    const t0 = performance.now();
+    const { result } = await screen(
+      { polygon: parcel.geometry, config: DEFAULT_USER_CONFIG },
+      () => undefined,
+      {
+        http: createHttpClient({
+          env: "node",
+          fetchImpl: live(),
+          userAgent: "ParcelScreen/1.0 (existing-house probe)",
+        }),
+      } as Parameters<typeof screen>[2],
+    );
+    const card = reportCard(result, defaultNamedRubric());
+    const th = result.near?.trailheads ?? [];
+    const p = result.paddling;
+    say(
+      `- Graded in ${((performance.now() - t0) / 1000).toFixed(0)} s; failed ${JSON.stringify(result.failed)}`,
+      `- Trailheads (${result.near?.trailheadCount ?? 0}): ${
+        th
+          .slice(0, 6)
+          .map(
+            (t) =>
+              `${t.name} (${t.source}, ${t.drive ? `${Math.round(t.drive.min)} min, ${t.drive.mi.toFixed(1)} mi` : "no drive"})`,
+          )
+          .join("; ") || "none"
+      }`,
+      `- Paddling: nearest ${p?.flat ? `${p.flat.name} ${Math.round(p.flat.min)} min` : "none"}; other lakes: ${
+        p?.others?.map((o) => `${o.name} ${Math.round(o.min)} min (${o.mi.toFixed(1)} mi)`).join("; ") || "none"
+      }`,
+      "",
+      `- ${card.verdict} · ${card.grade ?? "–"} (${card.points ?? "–"} points): ${clip(card.reason, 300)}`,
+      ...card.gates.map((g) => `- Must ${g.label}: ${g.status}`),
+      ...card.rows.map((r) => `- ${r.label}: ${r.grade ?? "–"}: ${clip(r.detail, 160)}`),
+      "",
+    );
+    write();
+    expect(card.rows.length).toBeGreaterThan(0);
+  }, 900_000);
+
   it("round 8: VDOF's Brumley Mountain Trail page", async () => {
     say("## Round 8: VDOF's Brumley Mountain Trail page", "");
     const pages = [
