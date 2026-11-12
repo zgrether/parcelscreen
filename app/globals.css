@@ -917,19 +917,12 @@ html:has(.explore) body {
   .toolbar.folded .tb-btn {
     min-width: 44px;
     min-height: 44px;
-    padding: 0;
-    font-size: 18px;
+    padding: 0 12px;
+    font-size: 15px;
   }
   /* The folded Key chip takes the same row, at the left, while the bar is folded (it sits above the open bar). */
   .explore:has(.toolbar.folded) .map-key-line.folded {
     bottom: calc(var(--sheet-h) + 10px);
-  }
-  .toolbar.folded .tb-edit-word {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
   }
   .switch-toast {
     bottom: calc(var(--sheet-h) + 62px);
@@ -9611,8 +9604,10 @@ button.use-row[aria-expanded="true"] .use-name::after {
   /* Under the map's ⓘ (its credits stay: the basemaps' terms). */
   top: calc(env(safe-area-inset-top, 0px) + 48px);
   right: 12px;
+  width: auto;
+  padding: 0 14px;
   border: 0;
-  font-size: 20px;
+  font: 600 14px/1 var(--font-sans);
   cursor: pointer;
 }
 /* The one-time hint over the line (Zach: once per device). */

@@ -1517,4 +1517,31 @@ until step 5 (Q14).
       sample parcels (engine 37, no live run to redo them in CI) move to v10 as they are, keeping their engine stamp;
       `SAMPLES_RESCREEN=1 pnpm areas:samples` gives them their other lakes when it next runs.
 
+82. **Room for the map (phone first)** (owner, 2026-11-12; the plan `docs/plans/map-room.md`, #427; built in #428–#435).
+    On Zach's phone a graded parcel left the map about half the screen. At 390 × 844, measured with Macks, it had
+    30% right after a grade (the sheet rose to 46%); the target was 75% by default and 90% in full-map mode.
+    - **Collapse is not close:**
+      - the sheet gets a fourth snap, the line (60 px): the parcel, its verdict and letter, and its acres;
+      - the acres are a recorded survey's ("93.97 surveyed ac") or else the boundary's, named as the report names them
+        ("boundary ac");
+      - the handle collapses the sheet and is a real, named button; a tap on the line opens the sheet again; header
+        taps no longer cycle;
+      - × still closes the parcel;
+      - the person's choice is kept for the session (`ps.sheet`). A fresh session starts at the line, and a grade no
+        longer raises the sheet (Zach, #427 Q1).
+    - **The key is a "Key" chip:**
+      - it opens folded, and folds again on the person's own camera move or a tool starting;
+      - on a phone the shading legend is inside it.
+    - **Tips close themselves** after 5 s, on a move, or when a tool starts.
+    - **The drawing toolbar is ✎ Edit** until Edit opens it (Boundary ▾ · + Mark · 🗑 · acres ▾ · Done).
+    - **Full-map mode** (Zach's option A): a swipe down on the line, or a tap that does nothing today, hides every
+      control but the line and a restore button.
+      - A swipe up, restore, or another such tap brings them back.
+      - A tap that closed a tip, popup or the open Key only closes it.
+      - Never with Edit or a tool open.
+      - "Swipe down to hide controls." shows once per device.
+      - On a desktop, Hide controls sits beside the Key chip.
+    - **After, at 390 × 844:** 80.6% by default and 91.7% in full-map mode (#434's run of `screenshots/map-room.spec.ts`).
+    - **No numbers changed:** expected.json, grades and report text are as they were.
+
 **Process:** one PR per §6 step, with a pause for review at each. The next step's branch isn't started until the previous PR is merged.

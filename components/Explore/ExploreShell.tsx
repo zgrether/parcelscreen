@@ -26,7 +26,7 @@ import { GroundProvider } from "@/components/Ground/GroundContext";
 import { PwaShell } from "@/components/Pwa/PwaShell";
 import { MapArea } from "./MapArea";
 import { Search } from "@/components/Map/Search";
-import { mapShowing } from "@/lib/client/mapShowing";
+import { mapShowing, onMapShowing } from "@/lib/client/mapShowing";
 import { ScreenItContext } from "@/components/Results/ScreenItContext";
 import { debugFromUrl } from "@/lib/client/debugHandle";
 import {
@@ -207,6 +207,10 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
     document.documentElement.classList.toggle("map-tool", tool);
     return () => document.documentElement.classList.remove("map-tool");
   }, [tool]);
+  // The explorer stays mounted behind the other tabs (step 4b): the one-time hint waits until the map is on show, or a
+  // parcel opened from Your list would spend it unseen.
+  const [mapOnShow, setMapOnShow] = useState(mapShowing);
+  useEffect(() => onMapShowing(setMapOnShow), []);
   // Full-map mode: never with a tool in use (a tool starting ends it), and it ends when the parcel closes. On a phone the
   // tab bar steps aside too, as for a tool (the same CSS, html.full-map).
   useEffect(() => setFullMapBlockers({ tool }), [tool]);
@@ -407,10 +411,11 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
                 title={SHOW_CONTROLS}
                 onClick={() => fullMap({ type: "show" })}
               >
-                <span aria-hidden="true">⤢</span>
+                {/* Words, not ⤢: the fresh-eyes review read the arrows as "go full screen" (#435). */}
+                Show controls
               </button>
             )}
-            {!docked && sheet.atLine && !fullMapOn && store.open && <FullMapHint />}
+            {!docked && sheet.atLine && !fullMapOn && store.open && mapOnShow && <FullMapHint />}
           </div>
           <PwaShell running={screen.running} open={screen.ctl.state.store.open?.key ?? null} />
         </GroundProvider>

@@ -163,3 +163,35 @@ in the hand-back's PR 6; these are what it left, outside the step or for you to 
   - **"2 set aside" doesn't name them**: the answer line could say which ("Septic and Room to build").
   - **Build-site words on the house's rows**: "Elevation at the build site … at the marked house", "Best homesite … the
     house" (with the "The existing house" title above).
+
+## Room for the map (hand-back)
+
+From the fresh-eyes review of the hand-back's screenshots (Macks, phone at 390 and 375, desktop). Fixed in #435:
+- the phone's ✎ now says "✎ Edit";
+- the restore button says "Show controls" (⤢ read as "go full screen").
+
+Left as they are:
+- **The key's swatches don't match the map's drawing** (reviewer items 2, 4, 5, 6):
+  - the key's best-homesite pin reads "1" where the map's pin reads "3", the site's rank;
+  - one red skyline ray among grey ones;
+  - the soil units drawn white-and-blue where the key shows purple dashes;
+  - the House ramp looks brown and orange on aerial imagery.
+
+  The key is step 3b2's and polish 2's: a pass over the key's swatches against the map's styles.
+- **"Stand here" reads as an instruction** (3): the label is step 17's, unchanged by this step.
+- **"Maybe" beside "B"** (1): the verdict and the letter are the card's (J-4); "held by" is the joining word.
+- **The soil tip has no close button and sits over the pin** (10): it closes itself after 5 s now (map-room §4). A
+  close button would undo the point of a tip.
+- **The line's name is ellipsised at 375 px** (11): by design; the header has it whole, one tap up. "boundary ac" is
+  the report's word for the GIS acres (Zach, #427 answer 4).
+- **"Swipe down to hide controls." is vague** (13): Zach's wording (#427). The reviewer thought a swipe down might pan
+  the map; the hint sits over the line it means.
+- **"‹ Your list" covers part of the Stand here pin at 375 px** (14): the polish list's "the phone's tall sheet: the
+  map's floating buttons sit over the Stand here pin", now at the line too.
+- **The ⓘ credits** (15): MapLibre's control, tight in the corner, over a contour label on a desktop.
+- **The desktop panel's wording** (16, 17): "On your list" as a state or a button, "Ask someone", "Cost to enjoy",
+  "Steps ▸", and the collapse tab "‹": all from earlier steps.
+- **The "House" label on the layers button** (8): it names the shading on show; after a reload the shading is off and
+  the button shows no label.
+- **`screenshots/water.spec.ts`'s "Wetness's legend sits above the key line"** (#430): on a phone the legend is inside
+  the Key now. The check runs only from `water.yml` and is left as it was.
