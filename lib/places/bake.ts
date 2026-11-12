@@ -34,6 +34,7 @@ import cragsJson from "../screen/data/crags.json";
 import { cragPlace, lastChecked, parseCrags } from "./crags";
 import { flatwaterByName } from "./flatwater";
 import { RIDB_EXPORT, RIDB_LAUNCHES } from "./ridb";
+import { trailheadOverrides } from "./trailheadOverrides";
 
 /** The baked area: within this of VA, NC or TN (the brief: "plus 60 km"). */
 export const MARGIN_KM = 60;
@@ -65,7 +66,31 @@ export interface Bake {
   kept: string[];
   /** The trail lots baked as trailheads (existing-house plan §2), for the bake's report; empty when OSM kept last bake's. */
   trailLots: BakedTrailhead[];
+  /** Each quarter's trail lots this bake, for the report (Zach, 11/12): found, the shipped baseline, kept after merging. */
+  trailLotCells: TrailLotCell[];
 }
+
+/** One quarter's trail-lot pass. */
+export interface TrailLotCell {
+  cell: string;
+  /** Found by this bake's query, or null when it failed after its retries. */
+  found: number | null;
+  /** The shipped lots in the quarter (the previous bake's). */
+  baseline: number;
+  /** This bake's and the shipped, one per OSM id. */
+  merged: number;
+  /** Asked again after a failure. */
+  retried: boolean;
+}
+
+/**
+ * The trail lots a bake should keep at least (Zach, 11/12): bake 2's, the most a whole-cell query ever answered (1,140
+ * found, 594 kept after merging with the other trailheads), or the shipped baseline if that's larger.
+ */
+export const TRAIL_LOT_BAR = { found: 1_140, kept: 594 } as const;
+
+/** The pause between one quarter's trail-lot query and the next: one request at a time, politely (Zach, 11/12). */
+const TRAIL_LOT_GAP_MS = 2_000;
 
 const round6 = ([lat, lon]: LatLon): LatLon => [+lat.toFixed(6), +lon.toFixed(6)];
 
@@ -116,10 +141,25 @@ export function areaCells(): string[] {
   return (AREA_CELLS = out);
 }
 
+/** A 1° cell's box (west, south, east, north); a quarter's ("36_-82/ne") is its half-degree corner. */
 const cellBox = (cell: string): [number, number, number, number] => {
-  const [lat, lon] = cell.split("_").map(Number) as [number, number];
-  return [lon, lat, lon + 1, lat + 1];
+  const [whole, q] = cell.split("/") as [string, string | undefined];
+  const [lat, lon] = whole.split("_").map(Number) as [number, number];
+  if (!q) return [lon, lat, lon + 1, lat + 1];
+  const s = lat + (q[0] === "n" ? 0.5 : 0);
+  const w = lon + (q[1] === "e" ? 0.5 : 0);
+  return [w, s, w + 0.5, s + 0.5];
 };
+
+/** A cell's four quarters, for the trail-lot query: a whole cell's answer came back uneven (Zach, 11/12). */
+export const QUARTERS = ["sw", "se", "nw", "ne"] as const;
+export const quartersOf = (cell: string): string[] => QUARTERS.map((q) => `${cell}/${q}`);
+
+/** Whether a place is in a cell's or a quarter's box (west and south edges in, east and north out). */
+export function inBox(cell: string, [lat, lon]: LatLon): boolean {
+  const [w, s, e, n] = cellBox(cell);
+  return lon >= w && lon < e && lat >= s && lat < n;
+}
 
 // ---------- OpenStreetMap ----------
 
@@ -148,8 +188,9 @@ export async function overpass(ql: string, deps: Pick<BakeDeps, "http" | "overpa
       });
       if (!r.ok) throw new Error(`${new URL(m).host} ${r.status}`);
       const j = (await r.json()) as { elements?: OsmElement[]; remark?: string };
-      // A query past its time or memory comes back 200 with what it found so far and a remark: not an answer.
-      if (j.remark && /runtime error/i.test(j.remark)) throw new Error(`${new URL(m).host}: ${j.remark}`);
+      // A query past its time or memory comes back 200 with what it found so far and a remark (a runtime error, a
+      // timeout): not an answer, whatever the remark says (Zach, 11/12).
+      if (j.remark) throw new Error(`${new URL(m).host}: ${j.remark}`);
       return j.elements ?? [];
     } catch (e) {
       errs.push(String(e));
@@ -166,6 +207,7 @@ async function overpassRetried(
   ql: string,
   deps: Pick<BakeDeps, "http" | "overpass" | "sleep" | "log">,
   what: string,
+  onRetry?: () => void,
 ): Promise<OsmElement[]> {
   const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   for (let attempt = 0; ; attempt++) {
@@ -173,6 +215,7 @@ async function overpassRetried(
       return await overpass(ql, deps);
     } catch (e) {
       if (attempt >= OVERPASS_RETRY_MS.length) throw e;
+      onRetry?.();
       deps.log?.(`${what}: ${String(e)}; again in ${OVERPASS_RETRY_MS[attempt]! / 1000} s`);
       await sleep(OVERPASS_RETRY_MS[attempt]!);
     }
@@ -198,7 +241,7 @@ export function osmCellQuery(cell: string): string {
 }
 
 /**
- * The parking lots by a trail in a cell (existing-house plan §2): lots within near.trailLotM of a hiking or foot route's
+ * The parking lots by a trail in a cell or a quarter of one (existing-house plan §2): lots within near.trailLotM of a hiking or foot route's
  * paths, footways, tracks, bridleways or service roads (never its public roads), or of a named path or footway an
  * agency runs; then the
  * trails near those lots with their points, and the routes they're on (`out body`: their members), to name each lot.
@@ -852,23 +895,57 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
   }
 
   // Existing-house plan §2: the lots by a trail, merged once every source has answered. Their own pass, after OSM's,
-  // so a cell Overpass won't answer loses only its lots (said in the summary), never the rest of OSM.
+  // a quarter cell at a time, one request at a time (Zach, 11/12). Each quarter's lots are the shipped ones (the previous
+  // bake's) and this bake's, one per OSM id: an Overpass answer that comes back short never takes lots away, and a
+  // quarter that won't answer keeps its shipped lots. A lot gone from OSM lingers (pruning is in polish.md).
   const lots: TrailLot[] = [];
+  const lotCells: TrailLotCell[] = [];
   if (osmOk) {
-    const missed: string[] = [];
-    for (const cell of cells) {
+    const tagged = new Set((got.get("osm") ?? []).map((p) => p.id));
+    // The shipped lots: OSM trailheads the previous bake had that this bake's tagged ones don't.
+    const shipped = (deps.previous?.places ?? []).filter(
+      (p): p is BakedTrailhead => p.src === "osm" && p.kind === "trailhead" && !tagged.has(p.id),
+    );
+    const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+    const quarters = cells.flatMap(quartersOf);
+    for (const [i, q] of quarters.entries()) {
+      if (i) await sleep(TRAIL_LOT_GAP_MS);
+      let retried = false;
+      let found: TrailLot[] | null = null;
       try {
-        lots.push(...trailLots(await overpassRetried(trailLotQuery(cell), deps, `trail lots: cell ${cell}`)));
+        found = trailLots(
+          await overpassRetried(trailLotQuery(q), deps, `trail lots: ${q}`, () => (retried = true)),
+        ).filter((l) => inBox(q, l.ll));
       } catch (e) {
-        missed.push(cell);
-        log(`trail lots: cell ${cell}: ${String(e)}`);
+        log(`trail lots: ${q}: ${String(e)}; its shipped lots kept`);
       }
+      const base = shipped
+        .filter((p) => inBox(q, p.ll))
+        .map((p): TrailLot => ({ ...p, ownName: !p.name.endsWith("(parking)") }));
+      const byId = new Map(base.map((l) => [l.id, l]));
+      for (const l of found ?? []) byId.set(l.id, l);
+      lots.push(...byId.values());
+      lotCells.push({
+        cell: q,
+        found: found?.length ?? null,
+        baseline: base.length,
+        merged: byId.size,
+        retried,
+      });
+      if (retried || found === null || found.length < base.length)
+        log(
+          `trail lots: ${q}: ${found === null ? "failed" : `${found.length} found`}, ${base.length} shipped, ${byId.size} kept${retried ? " (retried)" : ""}`,
+        );
     }
+    const missed = lotCells.filter((c) => c.found === null).map((c) => c.cell);
     if (missed.length)
       failed.push(
-        `trail lots in ${missed.length} cell${missed.length === 1 ? "" : "s"} (${missed.join(", ")})`,
+        `trail lots in ${missed.length} quarter cell${missed.length === 1 ? "" : "s"} (${missed.join(", ")})`,
       );
   }
+
+  // The cited trailhead overrides (lib/places/data/trailhead-overrides.json): kept with OSM's, whatever Overpass says.
+  const overrides = trailheadOverrides();
 
   // USFS: its trailheads, and its boating sites as launches (the subtype's value as the layer has it: BOATING SITE).
   try {
@@ -913,11 +990,17 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     log(`${src}: ${got.get(src)?.length ?? 0}`);
   }
 
-  // The trail lots (existing-house plan §2), against every other trailhead and each other; kept with OSM's.
-  const tagged = [...got.values()].flat().filter((p): p is BakedTrailhead => p.kind === "trailhead");
+  // The trail lots (existing-house plan §2), against every other trailhead (the overrides among them) and each other;
+  // kept with OSM's.
+  const tagged = [
+    ...[...got.values()].flat().filter((p): p is BakedTrailhead => p.kind === "trailhead"),
+    ...overrides,
+  ];
   const keptLots = mergeTrailLots(lots, tagged);
-  if (keptLots.length) got.set("osm", [...(got.get("osm") ?? []), ...keptLots]);
-  log(`trail lots: ${lots.length} found, ${keptLots.length} kept`);
+  got.set("osm", [...(got.get("osm") ?? []), ...overrides, ...keptLots]);
+  log(
+    `trail lots: ${lots.length} after merging with the shipped, ${keptLots.length} kept; ${overrides.length} overrides`,
+  );
 
   // Parking around every trailhead, whichever source: kept with OSM (it is OSM's).
   const trailheads = [...got.values()].flat().filter((p): p is BakedTrailhead => p.kind === "trailhead");
@@ -930,6 +1013,10 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     log(`parking: ${String(e)}; keeping the previous bake's`);
     parking = deps.previous.places.filter((p): p is BakedParking => p.kind === "parking");
   }
+  // A lot that is a trailhead itself (a trail lot, or a lot tagged as one) is asked for again here, around itself, with
+  // the same id: kept as the trailhead, never as its own parking (the cells keep one place per id, the last).
+  const trailheadIds = new Set(trailheads.map((t) => t.id));
+  parking = parking.filter((p) => !trailheadIds.has(p.id));
 
   // Each launch on its water (NHD), a batch at a time; a batch NHD won't answer keeps the previous bake's.
   const classified = await classifyAll(raw, deps);
@@ -985,7 +1072,7 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     ) as PlacesIndex["cells"],
   };
   if (failed.length) log(`kept the previous bake's: ${failed.join(", ")}`);
-  return { index, cells: cellFiles, kept: failed, trailLots: keptLots };
+  return { index, cells: cellFiles, kept: failed, trailLots: keptLots, trailLotCells: lotCells };
 }
 
 /** OSM's named towns and cities over the baked box. */
@@ -1018,10 +1105,11 @@ function boundsOf(cells: readonly string[]): [number, number, number, number] {
 export function trailLotReport(
   lots: readonly BakedTrailhead[],
   towns: readonly { name: string; ll: LatLon }[],
+  quarters: readonly TrailLotCell[] = [],
 ): string {
   const per = new Map<string, number>();
   for (const l of lots) {
-    const st = STATES.find((s) => kmToState(s, l.ll) === 0) ?? "nearby";
+    const st = STATES.find((s) => kmToState(s, l.ll) <= 0) ?? "nearby";
     per.set(st, (per.get(st) ?? 0) + 1);
   }
   const nearest = lots
@@ -1046,5 +1134,39 @@ export function trailLotReport(
         `| ${l.name} | ${l.ll[0].toFixed(4)}, ${l.ll[1].toFixed(4)} | ${t!.x.name} | ${Math.round(t!.m)} m |`,
     ),
     "",
+    ...quarterReport(quarters, lots.length),
   ].join("\n");
+}
+
+/**
+ * Each quarter cell's trail lots (Zach, 11/12): the ones retried, failed or found below the shipped baseline first (the
+ * signal of Overpass trouble), then every quarter's counts.
+ */
+function quarterReport(quarters: readonly TrailLotCell[], kept: number): string[] {
+  if (!quarters.length) return [];
+  const odd = quarters.filter((q) => q.retried || q.found === null || q.found < q.baseline);
+  const row = (q: TrailLotCell) =>
+    `| ${q.cell} | ${q.found ?? "failed"} | ${q.baseline} | ${q.merged} | ${q.retried ? "yes" : ""} |`;
+  const head = ["| Quarter | Found | Shipped | Kept | Retried |", "|---|---|---|---|---|"];
+  const merged = quarters.reduce((t, q) => t + q.merged, 0);
+  const shipped = quarters.reduce((t, q) => t + q.baseline, 0);
+  const barMerged = Math.max(TRAIL_LOT_BAR.found, shipped);
+  const barKept = Math.max(TRAIL_LOT_BAR.kept, shipped);
+  return [
+    "## Each quarter cell",
+    "",
+    `Against the bar (Zach, 11/12; bake 2's, or the shipped if larger): ${merged} after merging with the shipped (bar ${barMerged}), ${kept} kept after merging with the other trailheads (bar ${barKept})${merged < barMerged || kept < barKept ? ": short" : ""}.`,
+    "",
+    `${quarters.length} quarters; found ${quarters.reduce((t, q) => t + (q.found ?? 0), 0)}, shipped ${quarters.reduce((t, q) => t + q.baseline, 0)}, kept ${quarters.reduce((t, q) => t + q.merged, 0)} before merging with the other trailheads.`,
+    "",
+    `### Retried, failed or below the shipped (${odd.length})`,
+    "",
+    ...(odd.length ? [...head, ...odd.map(row)] : ["None."]),
+    "",
+    "### All",
+    "",
+    ...head,
+    ...quarters.map(row),
+    "",
+  ];
 }
