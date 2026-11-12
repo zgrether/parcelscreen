@@ -750,6 +750,9 @@ describe("the trail-lot report (Zach, 11/12)", () => {
     expect(md).toContain("| 36_-82/nw | failed | 2 | 2 | yes |");
     expect(md).toContain("| 36_-82/ne | 1 | 2 | 3 |  |");
     expect(md).toContain("found 4, shipped 7, kept 8");
+    expect(md).toContain(
+      "8 after merging with the shipped (bar 1140), 0 kept after merging with the other trailheads (bar 594): short.",
+    );
   });
 });
 

@@ -83,6 +83,12 @@ export interface TrailLotCell {
   retried: boolean;
 }
 
+/**
+ * The trail lots a bake should keep at least (Zach, 11/12): bake 2's, the most a whole-cell query ever answered (1,140
+ * found, 594 kept after merging with the other trailheads), or the shipped baseline if that's larger.
+ */
+export const TRAIL_LOT_BAR = { found: 1_140, kept: 594 } as const;
+
 /** The pause between one quarter's trail-lot query and the next: one request at a time, politely (Zach, 11/12). */
 const TRAIL_LOT_GAP_MS = 2_000;
 
@@ -1128,7 +1134,7 @@ export function trailLotReport(
         `| ${l.name} | ${l.ll[0].toFixed(4)}, ${l.ll[1].toFixed(4)} | ${t!.x.name} | ${Math.round(t!.m)} m |`,
     ),
     "",
-    ...quarterReport(quarters),
+    ...quarterReport(quarters, lots.length),
   ].join("\n");
 }
 
@@ -1136,14 +1142,20 @@ export function trailLotReport(
  * Each quarter cell's trail lots (Zach, 11/12): the ones retried, failed or found below the shipped baseline first (the
  * signal of Overpass trouble), then every quarter's counts.
  */
-function quarterReport(quarters: readonly TrailLotCell[]): string[] {
+function quarterReport(quarters: readonly TrailLotCell[], kept: number): string[] {
   if (!quarters.length) return [];
   const odd = quarters.filter((q) => q.retried || q.found === null || q.found < q.baseline);
   const row = (q: TrailLotCell) =>
     `| ${q.cell} | ${q.found ?? "failed"} | ${q.baseline} | ${q.merged} | ${q.retried ? "yes" : ""} |`;
   const head = ["| Quarter | Found | Shipped | Kept | Retried |", "|---|---|---|---|---|"];
+  const merged = quarters.reduce((t, q) => t + q.merged, 0);
+  const shipped = quarters.reduce((t, q) => t + q.baseline, 0);
+  const barMerged = Math.max(TRAIL_LOT_BAR.found, shipped);
+  const barKept = Math.max(TRAIL_LOT_BAR.kept, shipped);
   return [
     "## Each quarter cell",
+    "",
+    `Against the bar (Zach, 11/12; bake 2's, or the shipped if larger): ${merged} after merging with the shipped (bar ${barMerged}), ${kept} kept after merging with the other trailheads (bar ${barKept})${merged < barMerged || kept < barKept ? ": short" : ""}.`,
     "",
     `${quarters.length} quarters; found ${quarters.reduce((t, q) => t + (q.found ?? 0), 0)}, shipped ${quarters.reduce((t, q) => t + q.baseline, 0)}, kept ${quarters.reduce((t, q) => t + q.merged, 0)} before merging with the other trailheads.`,
     "",
