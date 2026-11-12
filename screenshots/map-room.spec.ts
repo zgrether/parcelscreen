@@ -12,6 +12,7 @@
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import type { Page } from "@playwright/test";
+import { pointOnFeature } from "@turf/turf";
 import { expect, test } from "./fixtures";
 import { loadFixture, type FixtureSlug } from "../test/support/fixtures";
 import {
@@ -100,16 +101,26 @@ async function coverage(page: Page): Promise<Coverage> {
   });
 }
 
-/** The open parcel's middle, in the page's pixels: where a tap lands on the parcel (and its soil unit). */
+/**
+ * A point inside the open parcel, in the page's pixels: where a tap lands on the parcel (and its soil unit). The map is
+ * centred on it first, so it's in the part the sheet leaves showing. (The vertices' average isn't always inside: the
+ * first run's tap landed on the neighbour, 36-7, and switched to it.)
+ */
 async function parcelMiddle(page: Page): Promise<{ x: number; y: number }> {
-  const ring = loadFixture(MACKS).input.polygon.geometry.coordinates[0]!;
-  const lon = ring.reduce((a, p) => a + p[0]!, 0) / ring.length,
-    lat = ring.reduce((a, p) => a + p[1]!, 0) / ring.length;
+  const [lon, lat] = pointOnFeature(loadFixture(MACKS).input.polygon).geometry.coordinates as [number, number];
   const xy = await page.evaluate(
-    ([lng, la]) =>
-      (
-        window as unknown as { __psMap: { project(ll: [number, number]): { x: number; y: number } } }
-      ).__psMap.project([lng, la]),
+    ([lng, la]) => {
+      const m = (
+        window as unknown as {
+          __psMap: {
+            jumpTo(o: { center: [number, number] }): void;
+            project(ll: [number, number]): { x: number; y: number };
+          };
+        }
+      ).__psMap;
+      m.jumpTo({ center: [lng, la] });
+      return m.project([lng, la]);
+    },
     [lon, lat] as [number, number],
   );
   const box = (await page.locator(".maplibregl-canvas").boundingBox())!;
@@ -161,6 +172,7 @@ test.describe("phone, 390 × 844", () => {
     )
       await surface.click();
     const mid = await parcelMiddle(page);
+    await settle(page);
     await page.touchscreen.tap(mid.x, mid.y);
     await page.waitForTimeout(6000);
     await record(page, "phone-shading-and-tip");
