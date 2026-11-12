@@ -107,7 +107,10 @@ async function coverage(page: Page): Promise<Coverage> {
  * first run's tap landed on the neighbour, 36-7, and switched to it.)
  */
 async function parcelMiddle(page: Page): Promise<{ x: number; y: number }> {
-  const [lon, lat] = pointOnFeature(loadFixture(MACKS).input.polygon).geometry.coordinates as [number, number];
+  const [lon, lat] = pointOnFeature(loadFixture(MACKS).input.polygon).geometry.coordinates as [
+    number,
+    number,
+  ];
   const xy = await page.evaluate(
     ([lng, la]) => {
       const m = (
