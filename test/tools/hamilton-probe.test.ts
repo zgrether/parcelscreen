@@ -214,6 +214,49 @@ describe.runIf(import.meta.env.MODE === "hamilton-probe")("Hamilton County's par
     }
     say("");
 
+    // 5. Round 3: the county's new Parcels layer, what the app needs from it.
+    say("## 5. gis.hamiltontn.gov/server Parcels/MapServer/0, for the app", "");
+    const NEW = "https://gis.hamiltontn.gov/server/rest/services/Parcels/MapServer/0";
+    const nj = json((await get(`${NEW}?f=json`)).text);
+    const nf = (nj?.fields as { name: string; type: string }[] | undefined) ?? [];
+    say(
+      `- maxRecordCount ${String(nj?.maxRecordCount)}; supportedQueryFormats ${String(nj?.supportedQueryFormats)}; capabilities ${String(nj?.capabilities)}`,
+      `- the fields the app reads, as named now: ${nf
+        .filter((f) =>
+          /^(OBJECTID|GISLINK|MAP|GROUP_|PARCEL|PARCEL_TYPE|OWNERNAME1|ADDRESS|TAX_MAP_NO|CALCACRES)$|record|link/i.test(
+            f.name,
+          ),
+        )
+        .map((f) => `${f.name} (${f.type})`)
+        .join(", ")}`,
+    );
+    const types = json(
+      (
+        await get(
+          `${NEW}/query?${new URLSearchParams({ where: "1=1", groupByFieldsForStatistics: "PARCEL_TYPE", outStatistics: JSON.stringify([{ statisticType: "count", onStatisticField: "OBJECTID", outStatisticFieldName: "n" }]), f: "json" })}`,
+        )
+      ).text,
+    );
+    say(
+      `- PARCEL_TYPE counts: ${clip(JSON.stringify((types?.features as { attributes: unknown }[] | undefined)?.map((f) => f.attributes) ?? types?.error), 600)}`,
+    );
+    const gj = await get(
+      `${NEW}/query?${new URLSearchParams({ geometry: `${PT.lon},${PT.lat}`, geometryType: "esriGeometryPoint", inSR: "4326", spatialRel: "esriSpatialRelIntersects", where: "PARCEL_TYPE=1", outFields: "OBJECTID,GISLINK,MAP,GROUP_,PARCEL", returnGeometry: "true", outSR: "4326", f: "geojson" })}`,
+    );
+    say(line("geojson at Three Gorges, PARCEL_TYPE=1", { ...gj, text: gj.text.slice(0, 260) }));
+    for (const origin of [
+      "https://parcelscreen-git-hamilton-probe-zgrether-1030s-projects.vercel.app",
+      "http://localhost:3000",
+    ]) {
+      const r = await live()(`${NEW}?f=json`, { headers: { "User-Agent": UA, Origin: origin } }).catch(
+        () => null,
+      );
+      say(
+        `- CORS for ${origin}: ${r ? `HTTP ${r.status}, acao ${r.headers.get("access-control-allow-origin") ?? "none"}` : "failed"}`,
+      );
+    }
+    say("");
+
     mkdirSync(join(process.cwd(), "test-results"), { recursive: true });
     writeFileSync(join(process.cwd(), "test-results", "hamilton-probe.md"), out.join("\n") + "\n");
     expect(out.length).toBeGreaterThan(2);
