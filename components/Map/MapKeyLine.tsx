@@ -4,8 +4,13 @@
  * draws, each beside a small copy of how it looks ("1 Best homesite · The app's driveway · Skyline rays"; polish 2 adds Stand here and the driveway's other lines), then "All map
  * marks", which opens Map layers at the full key (MapKey) with its Every pin toggle. Hidden while a tool is open, and on
  * a phone with the sheet raised, as the map's other notes are (B-7).
+ *
+ * Map room (plan §2): it folds to a small "Key" chip. A tap opens it as before, with a Hide; it folds again by itself when
+ * the person moves the map (a camera move with an `originalEvent`: the app's own moves don't count) or starts a tool.
+ * Each parcel opens with it folded; nothing is remembered. On a phone the shading's legend folds into it (under the
+ * overlays, as a short horizontal bar); a desktop keeps the legend in the right-hand column.
  */
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useExplore } from "@/components/Explore/useExploreController";
 import { useOpenGround } from "@/components/Ground/GroundContext";
 import { useScreenItContext } from "@/components/Results/ScreenItContext";
@@ -26,6 +31,8 @@ import { BOULDER_COLOR } from "./results/BouldersLayer";
 import { POWER_COLOR } from "./results/PowerLayer";
 import { WATER_COLOR } from "./results/WaterLayer";
 import { useOverlayPrefs } from "./results/useOverlayPrefs";
+import { SurfaceLegend } from "./results/SurfaceLegend";
+import { useMap } from "./MapView";
 
 const SWATCH: Record<KeyEntry, React.ReactNode> = {
   best: (
@@ -68,6 +75,10 @@ const OVERLAY_SWATCH: Record<OverlayKey, React.ReactNode> = {
   areas: chip({ borderColor: AREA_COLOR }, "mkl-chip outline"),
 };
 
+/** The folded key's chip, and the open key's control that folds it (map-room plan §8). */
+const KEY_CHIP = "Key";
+const HIDE = "Hide";
+
 /** The driveway's lesser lines: named on a desktop; a phone's line keeps to the main marks (All map marks has these). */
 const MINOR: ReadonlySet<KeyEntry> = new Set(["second", "direct"]);
 
@@ -93,8 +104,40 @@ export function MapKeyLine() {
   });
   const ground = useOpenGround();
   const tool = ctl.state.mode !== null || ctl.state.split !== null;
+  // Open for this parcel only: another parcel opens with it folded.
+  const parcel = ctl.state.store.open?.key ?? null;
+  const [openFor, setOpenFor] = useState<string | null>(null);
+  const [wasTool, setWasTool] = useState(tool);
+  if (tool !== wasTool) {
+    setWasTool(tool);
+    if (tool) setOpenFor(null);
+  }
+  const open = parcel !== null && openFor === parcel;
+  // The person's own camera moves fold it (pan, zoom, rotate, tilt); the app's flights don't.
+  const map = useMap();
+  useEffect(() => {
+    if (!map) return;
+    const fold = (e: { originalEvent?: unknown }) => {
+      if (e.originalEvent) setOpenFor(null);
+    };
+    map.on("movestart", fold);
+    return () => void map.off("movestart", fold);
+  }, [map]);
   const r = s && !s.stale && !tool ? s.display : null;
   if (!s || !r) return null;
+  if (!open)
+    return (
+      <div ref={box} className="map-key-line folded">
+        <button
+          className="mkl-key"
+          aria-expanded={false}
+          aria-label="Show the map's key"
+          onClick={() => setOpenFor(parcel)}
+        >
+          {KEY_CHIP}
+        </button>
+      </div>
+    );
   const h = r.house;
   const house = !!h && !("outside" in h);
   const d = r.driveway;
@@ -147,6 +190,11 @@ export function MapKeyLine() {
       >
         {ALL_MARKS}
       </button>
+      <button className="link-btn mkl-hide" aria-expanded={true} onClick={() => setOpenFor(null)}>
+        {HIDE}
+      </button>
+      {/* A phone's shading legend, folded in here (CSS shows it only on a phone; the column's is hidden there). */}
+      <SurfaceLegend where="key" />
     </div>
   );
 }

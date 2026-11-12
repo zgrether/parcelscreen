@@ -672,6 +672,89 @@ html:has(.explore) body {
   min-height: 32px;
   white-space: nowrap;
 }
+/* Map room (plan §2): the key folded to a "Key" chip at the map's bottom left, in the map buttons' style; 44 px on a
+   phone. Open, it has a Hide at its end, and on a phone the shading's legend under the overlays. */
+.map-key-line.folded {
+  left: calc(var(--float-l, 0px) + 12px);
+  right: auto;
+  margin: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+.mkl-key {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--tb-bg);
+  color: var(--tb-ink);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+  font: 600 14px/1 var(--font-sans);
+  cursor: pointer;
+}
+.mkl-hide {
+  min-height: 32px;
+  white-space: nowrap;
+}
+.map-key-line .surface-legend {
+  display: none;
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  .mkl-key,
+  .mkl-hide {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .map-key-line .surface-legend.in-key {
+    display: flex;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    position: static;
+    width: auto;
+    padding: 0;
+    background: none;
+    color: inherit;
+    box-shadow: none;
+  }
+}
+.surface-legend.in-key .sl-title {
+  font-weight: 600;
+}
+/* On the key's light panel, the column's light-on-dark ink is too faint: the panel's own ink and size. */
+.surface-legend.in-key .sl-title,
+.surface-legend.in-key .sl-solid,
+.surface-legend.in-key .sl-range,
+.surface-legend.in-key .sl-note {
+  color: var(--color-ink-2);
+  font-size: 12px;
+}
+.slk-ramp {
+  display: inline-block;
+  width: 96px;
+  height: 10px;
+  border-radius: 3px;
+}
+.slk-end {
+  color: var(--color-ink-2);
+  font-size: 12px;
+}
+.slk-row {
+  display: inline-flex;
+}
+.slk-band {
+  position: relative;
+  width: 30px;
+  height: 10px;
+}
+.slk-tick {
+  position: absolute;
+  top: 12px;
+  right: -10px;
+  font-size: 11px;
+}
 .mk-all-pins {
   margin: 6px 0 4px;
 }
@@ -1701,15 +1784,9 @@ html:has(.explore) body {
     flex-direction: row;
     align-items: flex-start;
   }
-  /* Owner, 2026-11-05: above the tab bar, the sheet and the key line (their heights: --tabs-h, --sheet-h, --kl-h; its
-     own, --lg-h), and never higher than just under "Your list". */
+  /* Map room (plan §2): a phone's shading legend is in the open Key, not over the map's left edge. */
   .map-col .surface-legend {
-    position: fixed;
-    left: 10px;
-    top: max(
-      112px,
-      calc(100dvh - var(--tabs-h, 0px) - var(--sheet-h, 0px) - 82px - var(--kl-h, 0px) - var(--lg-h, 190px))
-    );
+    display: none;
   }
 }
 .map-ctl-btn {
