@@ -1,0 +1,54 @@
+{
+  "phone-after-grading": {
+    "map": 80.3,
+    "covers": {
+      "explore-panel": 7.1,
+      "absolute": 6.1,
+      "app-nav": 6,
+      "maplibregl-control-container": 0.5
+    }
+  },
+  "phone-shading-and-tip": {
+    "map": 80.3,
+    "covers": {
+      "explore-panel": 7.1,
+      "absolute": 6.1,
+      "app-nav": 6,
+      "maplibregl-control-container": 0.5
+    }
+  },
+  "phone-full-map": {
+    "map": 90.8,
+    "covers": {
+      "explore-panel": 7.1,
+      "map-ctl-btn": 1.5,
+      "maplibregl-control-container": 0.6
+    }
+  },
+  "phone375-after-grading": {
+    "map": 79.2,
+    "covers": {
+      "explore-panel": 7.4,
+      "absolute": 6.6,
+      "app-nav": 6.2,
+      "maplibregl-control-container": 0.5
+    }
+  },
+  "phone375-shading-and-tip": {
+    "map": 79.2,
+    "covers": {
+      "explore-panel": 7.4,
+      "absolute": 6.6,
+      "app-nav": 6.2,
+      "maplibregl-control-container": 0.5
+    }
+  },
+  "phone375-full-map": {
+    "map": 90.5,
+    "covers": {
+      "explore-panel": 7.4,
+      "map-ctl-btn": 1.6,
+      "maplibregl-control-container": 0.5
+    }
+  }
+}
