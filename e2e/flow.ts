@@ -15,15 +15,18 @@ import type { Scenario } from "../test/support/scenarios";
 /**
  * An empty profile with the debug handles on (window.__psScreen, __psMap), opened at the parcel. `preProfile`:
  * localStorage keys from before profiles (`ps.parcels`, `ps.person`…), set before the first load, which drops them.
+ * `sheet`: where the phone's sheet rests (map-room plan §1, `ps.sheet`). The flows start at the peek, with the header
+ * and its buttons in reach; a fresh session's line is the default the sheet's own tests take (`"line"`).
  */
 export async function openExplorer(
   page: Page,
   slug: FixtureSlug,
   preProfile: Record<string, string> = {},
+  { sheet = "peek" }: { sheet?: "line" | "peek" | "mid" | "top" } = {},
 ): Promise<void> {
   const { point } = loadFixture(slug).input;
   await page.addInitScript(
-    ({ view, preProfile }) => {
+    ({ view, preProfile, sheet }) => {
       if (sessionStorage.getItem("e2e")) return; // a reload keeps what the test did
       sessionStorage.setItem("e2e", "1");
       localStorage.clear();
@@ -32,8 +35,9 @@ export async function openExplorer(
       localStorage.setItem("ps.roads", "0");
       localStorage.setItem("ps.view", JSON.stringify(view));
       for (const [k, v] of Object.entries(preProfile)) localStorage.setItem(k, v);
+      sessionStorage.setItem("ps.sheet", sheet);
     },
-    { view: { lat: point.lat, lon: point.lon, z: 15 }, preProfile },
+    { view: { lat: point.lat, lon: point.lon, z: 15 }, preProfile, sheet },
   );
   await page.goto("/explore");
 }
@@ -225,12 +229,16 @@ export const EVERY_PIN: Record<string, string> = { "ps.overlays": JSON.stringify
 
 /** A run going: the toolbar's "Grading…", or on a phone the sheet's progress bar in its place (UX part 2 PR 3b, Z-9). */
 export const gradingNow = (page: Page) =>
-  page.locator(".grade-btn", { hasText: /^Grading…$/ }).or(page.locator(".grade-progress"));
+  page
+    .locator(".grade-btn", { hasText: /^Grading…$/ })
+    .or(page.locator(".grade-progress"))
+    .or(page.locator(".sl-progress"));
 
 export async function screenIt(page: Page): Promise<Record<string, string>> {
   if (await page.locator(".menu-panel").count()) await page.keyboard.press("Escape");
   // Wait for this run to start, then to finish.
-  await page.locator(".grade-btn:enabled, .grade-again-link:enabled").first().click();
+  // On a phone the sheet's line has its own Grade (map-room plan §1), with the header's hidden under it.
+  await page.locator(".grade-btn:enabled:visible, .sl-grade:enabled:visible, .grade-again-link:enabled").first().click();
   const grading = gradingNow(page);
   await expect(grading.first()).toBeVisible();
   await expect(grading).toHaveCount(0, { timeout: 200_000 });

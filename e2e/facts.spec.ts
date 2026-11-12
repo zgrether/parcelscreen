@@ -64,8 +64,8 @@ test("a survey's acres, entered in Details: the header says them, surveyed; clea
     await listing.locator(".ip-listing-summary").click();
   await survey.getByLabel("Surveyed acres").fill("44.2 ac");
   await survey.getByLabel("Surveyed acres").press("Enter");
-  await expect(page.locator(".sh-acres").first()).toHaveText(/^44\.2 ac, surveyed · /);
+  await expect(page.locator(".sh-acres").first()).toHaveText(/^44\.2 surveyed ac · /);
   await survey.getByLabel("Surveyed acres").fill("");
   await survey.getByLabel("Surveyed acres").press("Enter");
-  await expect(page.locator(".sh-acres").first()).toHaveText(/^43\.88 ac · /);
+  await expect(page.locator(".sh-acres").first()).toHaveText(/^43\.88 boundary ac · /);
 });

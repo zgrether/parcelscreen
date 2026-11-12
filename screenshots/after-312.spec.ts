@@ -91,7 +91,7 @@ for (const phone of [false, true]) {
       await openExplorer(page, MUD);
       await gradedHere(page, MUD);
       // The place line follows the acres since UX part 2 PR 3a.
-      await expect(page.locator(".sh-acres").first()).toHaveText(/^30\.15 ac · /);
+      await expect(page.locator(".sh-acres").first()).toHaveText(/^30\.15 boundary ac · /);
 
       // Uses: Garden's water named, Hunt from the boundary.
       // On a phone the sheet raised first: at its peek, the header and its actions row (UX part 2 PR 3a) fill it.

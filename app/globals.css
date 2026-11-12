@@ -167,6 +167,79 @@ html:has(.explore) body {
   .explore-panel.bare .explore-scroll {
     display: none;
   }
+  /* Map room (Zach, #427 Q3): the handle is a real button with a 44 px target, from the sheet's top edge down over
+     the strip under the bar, so it never reaches over the map. */
+  .sheet-handle {
+    position: relative;
+    cursor: pointer;
+  }
+  .sheet-handle::after {
+    content: "";
+    position: absolute;
+    inset: -8px -44px -30px;
+  }
+  .sheet-handle:focus-visible {
+    outline: 2px solid var(--color-water);
+    outline-offset: 4px;
+  }
+  /* Map room §1: collapsed to the line. Everything else stays mounted, hidden, so collapsing clears nothing. */
+  .explore-panel.at-line > :not(.sheet-handle, .sheet-line) {
+    display: none;
+  }
+  .explore-panel.at-line .sheet-handle {
+    margin-bottom: 1px;
+  }
+  .sheet-line {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 4px 0 14px;
+    touch-action: none;
+    cursor: pointer;
+  }
+  .sl-name {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 600 16px/1.2 var(--font-cond);
+  }
+  .sheet-line .sh-card,
+  .sl-acres {
+    flex: none;
+    white-space: nowrap;
+  }
+  .sl-acres {
+    color: var(--color-ink-2);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .sl-progress {
+    flex: 1 1 0;
+    display: flex;
+    gap: 6px;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 13.5px;
+  }
+  .sl-grade {
+    flex: none;
+    min-height: 40px;
+    padding: 0 14px;
+    border-color: transparent;
+    background: var(--tb-amber);
+    color: #1c2620;
+    font-weight: 600;
+  }
+  .sheet-line .sh-x {
+    flex: none;
+    width: 44px;
+    height: 44px;
+  }
 }
 
 /* ---------- Panel components (proto L44–70, L89–90) ---------- */
