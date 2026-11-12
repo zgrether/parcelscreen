@@ -51,7 +51,7 @@ describe.runIf(import.meta.env.MODE === "places-bake")("bake the places, live", 
         userAgent: "parcelscreen-data/1 (places bake; https://github.com/zgrether/parcelscreen)",
       });
       const prev = previous();
-      const { index, cells, kept, trailLots, trailLotCells } = await bakePlaces({
+      const { index, cells, kept, trailLots, trailLotCells, trailLotDrops } = await bakePlaces({
         http,
         today: today(),
         ...(prev ? { previous: prev } : {}),
@@ -72,7 +72,7 @@ describe.runIf(import.meta.env.MODE === "places-bake")("bake the places, live", 
       mkdirSync(join(process.cwd(), "test-results"), { recursive: true });
       writeFileSync(
         join(process.cwd(), "test-results", "places-trail-lots.md"),
-        trailLotReport(trailLots, index.towns ?? [], trailLotCells),
+        trailLotReport(trailLots, index.towns ?? [], trailLotCells, trailLotDrops),
       );
       const bytes = cells.reduce((t, c) => t + JSON.stringify(c).length, 0);
       console.log(

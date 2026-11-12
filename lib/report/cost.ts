@@ -54,6 +54,11 @@ export interface CostInput {
   septic?: SepticClass;
   /** The existing drive priced as a new gravel driveway instead of upgraded: the price block's other toggle. */
   existingAsNew?: boolean;
+  /**
+   * "House already here" (existing-house plan §1c; Zach, #425): the drive in isn't priced. Ready to camp says to walk it
+   * instead, with the drawn existing drive's length and steepest grade when there is one.
+   */
+  existingHouse?: { drive: { lengthFt: number; maxGradePct: number } | null };
 }
 
 /** What the price block's toggles read (Z-4): the choices behind the two costs, as priced. */
@@ -82,6 +87,8 @@ export interface CostPart {
 
 export interface CostItem {
   label: string;
+  /** Listed but not priced (the existing house's drive): the breakdown says so instead of "$0". */
+  unpriced?: true;
   /** Empty for the land, which is the asking price. */
   parts: CostPart[];
   total: Range;
@@ -130,6 +137,8 @@ export const COST_ITEMS = {
   campClearing: `Clearing a campsite (${A.campsiteAc} ac)`,
   driveway: "Finished driveway (the track upgraded)",
   newDriveway: "Gravel driveway, new",
+  // Zach, #425: with "House already here" the drive in isn't priced.
+  existingHouseDrive: "Existing drive — walk it and check its condition",
   // The existing-drive follow-up (owner, 10/21): "Upgrade the existing drive, 870 ft (pioneer)".
   existingDrive: (ft: number, condition: string) =>
     `Upgrade the existing drive, ${Math.round(ft).toLocaleString("en-US")} ft (${condition})`,
@@ -157,6 +166,9 @@ export const COST_NOTES = {
   steepGravel: "steep gravel needs more upkeep",
   // The existing-drive follow-up (owner, 10/21): a screen saved before the drive's profile was kept.
   driveNotGraded: "Grade again to price paving on the existing drive",
+  // Zach, #425: the drawn existing drive with a house already here, measured and not priced.
+  existingHouseDrive: (ft: number, pct: number) =>
+    `your drawn drive: ${Math.round(ft).toLocaleString("en-US")} ft, ${Math.round(pct)}% at its steepest; not priced`,
 } as const;
 
 export const LOWER_IT = {
@@ -315,14 +327,26 @@ export function costToEnjoy(input: CostInput): CostToEnjoy | null {
     part(rates, "track.pioneer", trackFt, "ft"),
     part(rates, "track.pioneer", campAt.offFt, "ft"),
   ]);
-  camp.push(
-    item(
-      COST_ITEMS.track,
-      trackParts,
-      campAt.offFt > 0 ? [COST_NOTES.offRoute] : [],
-      trackFt > 0 ? LOWER_IT.track : null,
-    ),
-  );
+  const eh = input.existingHouse;
+  if (eh)
+    // A house already here has a way in: listed to walk, never priced (Zach, #425).
+    camp.push({
+      ...item(
+        COST_ITEMS.existingHouseDrive,
+        [],
+        eh.drive ? [COST_NOTES.existingHouseDrive(eh.drive.lengthFt, eh.drive.maxGradePct)] : [],
+      ),
+      unpriced: true,
+    });
+  else
+    camp.push(
+      item(
+        COST_ITEMS.track,
+        trackParts,
+        campAt.offFt > 0 ? [COST_NOTES.offRoute] : [],
+        trackFt > 0 ? LOWER_IT.track : null,
+      ),
+    );
   const campCleared = inClearing(marks, campAt.ll);
   camp.push(
     item(

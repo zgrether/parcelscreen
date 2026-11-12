@@ -122,17 +122,40 @@ in the hand-back's PR 6; these are what it left, outside the step or for you to 
 
 - **Pruning trail lots OSM has dropped** (owner, #420 decision): the trail-lot pass merges each quarter cell with the
   lots already shipped, one per OSM id, so a lot deleted from OSM lingers. Prune a lot missing from N bakes in a row.
-- **Bake 5 came back short of the trail-lot bar** (owner, #420: ship it with the merge and the override): 547 lots
-  after the merge against bake 2's 1,140, and 430 kept against 594. 34 quarter cells came back below the shipped
-  baseline (among them 35_-84/ne, 37_-76/nw and 38_-80's se, nw and ne), most likely Overpass answering empty
-  without a remark. A later bake merges on top, so a good run fills them in.
-- **Town lots counted as trailheads** (#420's report): a store or greenway lot within reach of a trail path, such as
-  "Skymart (parking)" in Morristown, 113 m from a town greenway, counts as a trailhead. Zach's call whether to skip
-  lots inside a town, or lots whose only trail is a short urban greenway.
+- **Bake 5 came back short of the trail-lot bar** (owner, #420: ship it with the merge and the override; the numbers on
+  Zach's ask, #425). The bar is the larger of main's baseline and bake 2's: main had no trail lots (the pass is new), so
+  bake 2's, 1,140 found and 594 kept.
+  - Bake 5: 547 after merging with the shipped, **593 short** of 1,140; 430 kept after merging with the other
+    trailheads, **164 short** of 594; plus the Hayters Gap override.
+  - The merge baseline was the branch's committed places: main's plus bake 4's (its 122 trail lots, 185 trailheads
+    beyond main). Bakes 2 and 3 couldn't be recovered: their lots were overwritten in the committed files, and the
+    workflow keeps no artifacts.
+  - 34 quarters answered with none where the shipped had some, 165 lots in all, every one kept by the merge (none failed
+    or retried, so most likely Overpass answering empty without a remark): 34_-87/nw 9, 34_-87/ne 2, 34_-86/ne 16,
+    34_-85/nw 4, 34_-85/ne 11, 34_-84/nw 5, 34_-84/ne 11, 34_-83/nw 8, 34_-83/ne 8, 34_-82/nw 10, 34_-82/ne 1,
+    34_-80/se 1, 34_-79/sw 1, 34_-79/se 1, 34_-79/nw 1, 34_-78/sw 5, 34_-78/se 3, 34_-78/nw 1, 34_-77/nw 3,
+    35_-87/ne 1, 35_-86/sw 5, 35_-86/se 12, 35_-86/ne 1, 35_-85/se 3, 35_-85/nw 3, 35_-85/ne 2, 35_-84/sw 10,
+    35_-84/se 8, 35_-84/nw 1, 35_-84/ne 6, 37_-76/nw 1, 38_-80/se 9, 38_-80/nw 1, 38_-80/ne 1.
+  - A later bake merges on top, so a good run fills them in. The trail-lot rule (#425) then drops the town lots, so
+    the bar, set before the rule, overstates what a full bake should keep.
+- **Town lots counted as trailheads**: decided (Zach, #425). A lot counts only on a hiking route of 2 mi or more, or
+  within 400 m of public land of 100 ac or more (lib/places/qualify.ts), applied to the shipped places by the places
+  workflow's `qualify` job; its report is docs/places/trail-lots-qualified.md.
+- **Legal road access reads the app's drive, not the parcel's frontage** (Zach's check, #425; probe round 10). On
+  010-A-10, step 14's frontage walk finds 3,151 ft of frontage on State Rte 80 (Hayters Gap Rd, TIGER S1200) along the
+  south boundary, but the gate reads only the driveway's first entrance, and all three of the app's entrances are on
+  unnamed TIGER local roads (S1400) that OSM maps as tracks and a private driveway. So it says "Frontage on an unnamed
+  road; the road in is a track", a warn that holds the verdict. Not a name or class matching gap: the gate never looks
+  at the frontage walk. The fix (tried): pass on the longest named public-road frontage of 30 ft or more, and say the
+  drive's road in without warning. It moves two fixtures, so it's Zach's call before it ships:
+  - Macks: "Frontage on State Rte 611", the gate a pass; the verdict Maybe → Contender.
+  - Ferney: "Frontage on Ferney Creek Rd NW" in place of "an unnamed road"; still a warn (its road in is marked
+    private); the verdict unchanged.
+  The easement item stays a verify line either way.
 - **From the fresh-eyes review** (the hand-back's screenshots of 010-A-10, house marked):
-  - **Ready to camp prices a new driveway to the marked house** (Zach's call): with "House already here" the cost is
-    measured to the house, so 010-A-10's goes from $10–35k (site #1) to $23–82k (3,901 ft at 16%, with an easement).
-    A house that's already there has a way in; skip the driveway unless one is drawn, or say why it's priced.
+  - **Ready to camp priced a new driveway to the marked house**: done (Zach, #425). With "House already here" the drive
+    in isn't priced: Ready to camp lists "Existing drive — walk it and check its condition", with a drawn existing
+    drive's length and steepest grade.
   - **The house mark reads "Stand here"** on the map: the bulls-eye carries the view's label and nothing says it's the
     house. A "House" label, or the key's row, would say so.
   - **The set-aside rows' check-instead line** follows "set aside: a house is already here" with no lead-in, so Septic's

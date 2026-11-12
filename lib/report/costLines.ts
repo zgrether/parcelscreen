@@ -101,6 +101,9 @@ export const sourceText = (p: CostPart): string =>
     .sources.map((s) => `${s.name}, ${s.date}`)
     .join("; ");
 
+/** An item listed but not priced (the existing house's drive, Zach #425). */
+export const NOT_PRICED = "not priced";
+
 /** One item of the breakdown, in words. */
 export interface BreakdownRow {
   label: string;
@@ -114,7 +117,7 @@ export interface BreakdownRow {
 const itemRows = (items: readonly CostItem[]): BreakdownRow[] =>
   items.map((i) => ({
     label: i.label,
-    total: itemRange(i.total),
+    total: i.unpriced ? NOT_PRICED : itemRange(i.total),
     parts: i.parts.map((p) => ({
       text: partText(p),
       source: sourceText(p),

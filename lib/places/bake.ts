@@ -34,6 +34,7 @@ import cragsJson from "../screen/data/crags.json";
 import { cragPlace, lastChecked, parseCrags } from "./crags";
 import { flatwaterByName } from "./flatwater";
 import { RIDB_EXPORT, RIDB_LAUNCHES } from "./ridb";
+import { qualifyTrailLots } from "./qualify";
 import { trailheadOverrides } from "./trailheadOverrides";
 
 /** The baked area: within this of VA, NC or TN (the brief: "plus 60 km"). */
@@ -68,6 +69,8 @@ export interface Bake {
   trailLots: BakedTrailhead[];
   /** Each quarter's trail lots this bake, for the report (Zach, 11/12): found, the shipped baseline, kept after merging. */
   trailLotCells: TrailLotCell[];
+  /** The trail lots dropped as no trailhead (Zach, #425: no long enough route, no large enough public land), and why. */
+  trailLotDrops: { name: string; ll: LatLon; why: string }[];
 }
 
 /** One quarter's trail-lot pass. */
@@ -203,7 +206,7 @@ export async function overpass(ql: string, deps: Pick<BakeDeps, "http" | "overpa
 const OVERPASS_RETRY_MS = [30_000, 90_000];
 
 /** `overpass`, every mirror again after each of OVERPASS_RETRY_MS. */
-async function overpassRetried(
+export async function overpassRetried(
   ql: string,
   deps: Pick<BakeDeps, "http" | "overpass" | "sleep" | "log">,
   what: string,
@@ -900,6 +903,7 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
   // quarter that won't answer keeps its shipped lots. A lot gone from OSM lingers (pruning is in polish.md).
   const lots: TrailLot[] = [];
   const lotCells: TrailLotCell[] = [];
+  const lotDrops: Bake["trailLotDrops"] = [];
   if (osmOk) {
     const tagged = new Set((got.get("osm") ?? []).map((p) => p.id));
     // The shipped lots: OSM trailheads the previous bake had that this bake's tagged ones don't.
@@ -937,6 +941,17 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
           `trail lots: ${q}: ${found === null ? "failed" : `${found.length} found`}, ${base.length} shipped, ${byId.size} kept${retried ? " (retried)" : ""}`,
         );
     }
+    // Zach, #425: a lot counts only on a long enough hiking route or near large enough public land (lib/places/qualify.ts),
+    // the shipped ones too.
+    const verdicts = await qualifyTrailLots(lots, {
+      http: deps.http,
+      ask: (ql, what) => overpassRetried(ql, deps, what),
+      log,
+    });
+    lots.splice(0, lots.length, ...verdicts.filter((v) => v.keep).map((v) => v.lot));
+    lotDrops.push(
+      ...verdicts.filter((v) => !v.keep).map((v) => ({ name: v.lot.name, ll: v.lot.ll, why: v.why })),
+    );
     const missed = lotCells.filter((c) => c.found === null).map((c) => c.cell);
     if (missed.length)
       failed.push(
@@ -1072,7 +1087,14 @@ export async function bakePlaces(deps: BakeDeps): Promise<Bake> {
     ) as PlacesIndex["cells"],
   };
   if (failed.length) log(`kept the previous bake's: ${failed.join(", ")}`);
-  return { index, cells: cellFiles, kept: failed, trailLots: keptLots, trailLotCells: lotCells };
+  return {
+    index,
+    cells: cellFiles,
+    kept: failed,
+    trailLots: keptLots,
+    trailLotCells: lotCells,
+    trailLotDrops: lotDrops,
+  };
 }
 
 /** OSM's named towns and cities over the baked box. */
@@ -1106,6 +1128,7 @@ export function trailLotReport(
   lots: readonly BakedTrailhead[],
   towns: readonly { name: string; ll: LatLon }[],
   quarters: readonly TrailLotCell[] = [],
+  drops: Bake["trailLotDrops"] = [],
 ): string {
   const per = new Map<string, number>();
   for (const l of lots) {
@@ -1134,8 +1157,24 @@ export function trailLotReport(
         `| ${l.name} | ${l.ll[0].toFixed(4)}, ${l.ll[1].toFixed(4)} | ${t!.x.name} | ${Math.round(t!.m)} m |`,
     ),
     "",
+    ...dropReport(drops),
     ...quarterReport(quarters, lots.length),
   ].join("\n");
+}
+
+/** The lots dropped as no trailhead (Zach, #425), with why: every one, by name. */
+export function dropReport(drops: Bake["trailLotDrops"]): string[] {
+  if (!drops.length) return [];
+  return [
+    `## Dropped: no hiking route of ${SCREEN_CONSTANTS.near.trailLotRouteMi} mi, no public land of ${SCREEN_CONSTANTS.near.trailLotPublicAc} ac within ${SCREEN_CONSTANTS.near.trailLotPublicM} m (${drops.length})`,
+    "",
+    "| Lot | Where | Why |",
+    "|---|---|---|",
+    ...[...drops]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((d) => `| ${d.name} | ${d.ll[0].toFixed(4)}, ${d.ll[1].toFixed(4)} | ${d.why} |`),
+    "",
+  ];
 }
 
 /**

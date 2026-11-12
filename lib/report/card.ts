@@ -1233,7 +1233,15 @@ export function costInputOf(r: Result, at: number, drawn?: Drawn): CostInput | n
     rates: drawn.cost.rates,
     ...(drawn.cost.paving ? { paving: drawn.cost.paving } : {}),
     ...(drawn.facts?.service?.power ? { powerConfirmed: true } : {}),
+    ...(isExistingHouse(r, drawn) ? { existingHouse: { drive: existingDrive(r, drawn) } } : {}),
   };
+}
+
+/** The drawn existing drive a house already here has (plan §1b): its length and steepest grade, when measured. */
+function existingDrive(r: Result, drawn: Drawn): { lengthFt: number; maxGradePct: number } | null {
+  const drives = new Set(drawn.facts?.existingHouse?.drives ?? []);
+  const l = (r.lines ?? []).find((x) => drives.has(x.id) && x.maxGradePct != null);
+  return l ? { lengthFt: l.lengthFt, maxGradePct: l.maxGradePct! } : null;
 }
 
 /**

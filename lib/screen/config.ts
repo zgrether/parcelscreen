@@ -328,6 +328,12 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // parking). Such lots are one with any other trailhead, or each other, within trailLotMergeM, whatever the names.
     trailLotM: 60,
     trailLotMergeM: 150,
+    // Zach, #425: a trail lot is a trailhead only on a hiking route at least trailLotRouteMi long, or within
+    // trailLotPublicM of public land (PAD-US, not closed) of at least trailLotPublicAc: a town greenway's lot or a
+    // shopping centre's drops out. Tagged trailheads aren't asked.
+    trailLotRouteMi: 2,
+    trailLotPublicM: 400,
+    trailLotPublicAc: 100,
     // TREC trails asked per page, and pages at most (the layer's maxRecordCount is 2,000).
     trecPageSize: 1000,
     trecMaxPages: 3,
