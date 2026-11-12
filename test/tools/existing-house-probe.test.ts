@@ -395,6 +395,169 @@ describe.runIf(import.meta.env.MODE === "existing-house-probe")("the existing-ho
 
   // Round 8 (Zach, 11/12): the Virginia Department of Forestry's page for the Brumley Mountain Trail, to cite in the
   // trailhead overrides: its URL, and what it says about the trailhead at Hayters Gap.
+  it("round 10: trail-lot evidence (routes, public land) and 010-A-10's road frontage", async () => {
+    say("## Round 10: trail-lot evidence and 010-A-10's frontage", "");
+    const LOTS: [string, string, number][] = [
+      ["Brumley Mountain Trail (parking)", "way", 808088841],
+      ["Skymart (parking)", "way", 896001424],
+    ];
+    const TRAIL = "^(path|footway|track|bridleway|service)$";
+    for (const [name, type, id] of LOTS) {
+      // Overpass: the routes on the trails within 60 m, with their lengths (length() on a relation: its members' sum).
+      const q =
+        `[out:json][timeout:120];${type}(${id})->.x;.x out center tags;` +
+        `way(around.x:60)["highway"~"${TRAIL}"]->.n;` +
+        `rel(bw.n)["route"~"^(hiking|foot)$"]->.r;.r out tags;` +
+        `.r convert route ::id=id(),name=t["name"],len=length();out;`;
+      const j = await overpass(q);
+      const els = (j?.elements as { type: string; id: number; tags?: Record<string, string>; center?: { lat: number; lon: number } }[] | undefined) ?? [];
+      const lot = els.find((e) => e.type === type);
+      const ll = lot?.center ? [lot.center.lat, lot.center.lon] : null;
+      say(
+        `### ${name} (${type}/${id})`,
+        "",
+        `- Remark: ${clip(j?.remark ?? "none", 200)}; centre ${ll ? ll.map((v) => v.toFixed(5)).join(", ") : "?"}`,
+        `- Routes: ${
+          els
+            .filter((e) => e.type === "route")
+            .map((e) => `${e.tags?.name ?? "?"} (rel ${e.id}): ${e.tags?.len ? (Number(e.tags.len) / 1609.344).toFixed(1) + " mi" : "no length"}`)
+            .join("; ") || "none"
+        }`,
+      );
+      if (ll) {
+        const pr = await get(
+          `${DEFAULT_ENDPOINTS.padus[0]}/query?${new URLSearchParams({
+            f: "json",
+            geometry: `${ll[1]},${ll[0]}`,
+            geometryType: "esriGeometryPoint",
+            inSR: "4326",
+            spatialRel: "esriSpatialRelIntersects",
+            distance: "400",
+            units: "esriSRUnit_Meter",
+            outFields: "*",
+            returnGeometry: "false",
+          })}`,
+        );
+        const pj = json(pr.text) as { features?: { attributes: Record<string, unknown> }[]; error?: unknown } | null;
+        const fs = pj?.features ?? [];
+        say(
+          `- PAD-US within 400 m: HTTP ${pr.status}, ${fs.length} unit(s)${pj?.error ? `, error ${clip(JSON.stringify(pj.error))}` : ""}`,
+          ...(fs[0] ? [`  - fields: ${Object.keys(fs[0].attributes).join(", ")}`] : []),
+          ...fs.map(
+            (f) =>
+              `  - ${String(f.attributes.Unit_Nm)} (${String(f.attributes.Mang_Name)}, ${String(f.attributes.Pub_Access)}): ${String(f.attributes.GIS_Acres ?? f.attributes.GIS_AcrsDb ?? "?")} ac`,
+          ),
+        );
+      }
+      say("");
+    }
+    write();
+
+    // ---------- 010-A-10: the entrances, the frontage walk, and the TIGER roads by the boundary ----------
+    const ids = (
+      (json(
+        (
+          await get(
+            `${VA_PARCELS}/query?${new URLSearchParams({
+              f: "json",
+              where: "1=1",
+              geometry: "-81.97,36.80,-81.90,36.87",
+              geometryType: "esriGeometryEnvelope",
+              inSR: "4326",
+              spatialRel: "esriSpatialRelIntersects",
+              outFields: "PTM_ID,LOCALITY",
+              returnGeometry: "false",
+              resultRecordCount: "60",
+            })}`,
+          )
+        ).text,
+      )?.features as { attributes: Record<string, unknown> }[] | undefined) ?? []
+    ).map((f) => f.attributes);
+    const norm = (v: unknown) =>
+      String(v ?? "")
+        .replace(/[^0-9A-Z]/gi, "")
+        .toUpperCase();
+    const hit = ids.find((a) => norm(a.PTM_ID) === "010A10" || norm(a.PTM_ID) === "10A10");
+    if (!hit) {
+      say("- 010-A-10 not found.", "");
+      write();
+      return;
+    }
+    const fc = json(
+      (
+        await get(
+          `${VA_PARCELS}/query?${new URLSearchParams({
+            f: "geojson",
+            where: `PTM_ID='${String(hit.PTM_ID)}' AND LOCALITY='${String(hit.LOCALITY)}'`,
+            outFields: PARCEL_FIELDS,
+            returnGeometry: "true",
+            outSR: "4326",
+          })}`,
+        )
+      ).text,
+    ) as { features?: Feature<Polygon>[] } | null;
+    const parcel = fc?.features?.[0];
+    if (!parcel?.geometry) {
+      say("- No outline.", "");
+      write();
+      return;
+    }
+    const ring = parcel.geometry.coordinates[0]!;
+    const xs = ring.map((p) => p[0]!),
+      ys = ring.map((p) => p[1]!);
+    const [w, s2, e, n] = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+    say("### 010-A-10's TIGER roads within the outline's box plus about 150 m", "");
+    for (const lyr of [8, 6, 2]) {
+      const tr = await get(
+        `https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer/${lyr}/query?${new URLSearchParams({
+          f: "json",
+          geometry: `${w - 0.002},${s2 - 0.0015},${e + 0.002},${n + 0.0015}`,
+          geometryType: "esriGeometryEnvelope",
+          inSR: "4326",
+          spatialRel: "esriSpatialRelIntersects",
+          outFields: "NAME,MTFCC",
+          returnGeometry: "false",
+        })}`,
+      );
+      const tj = json(tr.text) as { features?: { attributes: Record<string, unknown> }[]; error?: unknown } | null;
+      say(
+        `- Layer ${lyr}: HTTP ${tr.status}; ${
+          (tj?.features ?? []).map((f) => `${String(f.attributes.NAME || "(no name)")} ${String(f.attributes.MTFCC)}`).join("; ") ||
+          (tj?.error ? clip(JSON.stringify(tj.error)) : "none")
+        }`,
+      );
+    }
+    const { result } = await screen(
+      { polygon: parcel.geometry, config: DEFAULT_USER_CONFIG },
+      () => undefined,
+      {
+        http: createHttpClient({
+          env: "node",
+          fetchImpl: live(),
+          userAgent: "ParcelScreen/1.0 (existing-house probe)",
+        }),
+        places: placesFromDir(BAKE_DIR),
+      } as Parameters<typeof screen>[2],
+    );
+    const d = result.driveway;
+    const card = reportCard(result, defaultNamedRubric());
+    say(
+      "",
+      "### 010-A-10 graded",
+      "",
+      `- Box: ${s2.toFixed(5)}, ${w.toFixed(5)} to ${n.toFixed(5)}, ${e.toFixed(5)}`,
+      `- Frontage: ${JSON.stringify(result.frontage ?? null)}`,
+      `- Entrances: ${(d?.entrances ?? [])
+        .map((x) => `${x.name} [${x.source}${x.fallback ? ", fallback" : ""}${x.gapFt !== undefined ? `, gap ${Math.round(x.gapFt)} ft` : ""}, class ${JSON.stringify(x.roadClass)}] at ${x.ll[0].toFixed(5)}, ${x.ll[1].toFixed(5)}`)
+        .join("; ")}`,
+      `- Chosen entrance: ${String((d as { entrance?: number } | null)?.entrance ?? "?")}; note: ${clip(d?.note ?? "", 200)}`,
+      ...card.gates.map((g) => `- Must ${g.label}: ${g.status}: ${clip(g.reason, 250)}`),
+      "",
+    );
+    write();
+    expect(card.gates.length).toBeGreaterThan(0);
+  }, 900_000);
+
   it("round 9: 010-A-10 graded live on the step's code: Trails and Paddling's other lakes", async () => {
     const ids = (
       (json(
