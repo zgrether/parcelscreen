@@ -883,10 +883,13 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       hint("");
       setToast(null);
       switch (TOOL[c]) {
-        case "house":
-          if (at) dispatch({ type: "house", ll: at, stamp: stamp() });
-          else dispatch({ type: "mode", mode: "house" });
+        case "house": {
+          // One house point: "House already here" flags it as built, "House site" as planned (existing-house §1a).
+          const existing = c === "houseHere";
+          if (at) dispatch({ type: "house", ll: at, stamp: stamp(), existing });
+          else dispatch({ type: "mode", mode: "house", houseNext: existing });
           return;
+        }
         case "line":
           dispatch({ type: "startLine", kind: c as LineKind });
           if (at) dispatch({ type: "draftAdd", ll: at });

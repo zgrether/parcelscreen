@@ -11,7 +11,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode }
 import { getPref, setPref } from "@/lib/client/prefs";
 import { adjustFor, useHousehold } from "@/lib/client/householdDoc";
 import { parcelName } from "@/lib/client/historyRows";
-import { recipeOf, type WorkingParcel } from "@/lib/client/parcelStore";
+import { recipeOf, type WorkingParcel, cardFactsOf } from "@/lib/client/parcelStore";
 import { currentProfile } from "@/lib/client/profiles";
 import { memberName } from "@/lib/client/household";
 import { profileRubrics, viewedRubric } from "@/lib/client/rubrics";
@@ -178,7 +178,7 @@ function Report({
         parcel.drivewayLine,
         { askingPrice: parcel.askingPrice, ...costs },
         adjustFor(parcel.key, household),
-        parcel.facts,
+        cardFactsOf(parcel),
       ),
       rubrics,
       viewer: viewedRubric(rubrics),

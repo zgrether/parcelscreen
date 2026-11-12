@@ -2,6 +2,7 @@
  * Water on the land in Uses (docs/plans/water.md §2): the summary line and its detail, from the result's `water`.
  * Outside the grade: no chip and no tally. Null for a grade from before the measurement.
  */
+import { elevationOf, relabel, type Elevation } from "../report/elevation";
 import { booleanPointInPolygon } from "@turf/turf";
 import type { LatLon } from "../geo/types";
 import { soilUnder } from "../report/derived";
@@ -78,7 +79,8 @@ function coverParts(cover: NonNullable<W["watershed"]>["cover"]): { name: string
     .map(([k, pct]) => ({ name: WATER.coverName[k] ?? k, pct }));
 }
 
-export function waterView(w: ScreenResult["water"]): WaterView | null {
+/** `e`: the elevation the grade used (existing-house plan §3); its words replace "lidar" when 3DEP fell back. */
+export function waterView(w: ScreenResult["water"], e: Elevation = elevationOf({})): WaterView | null {
   if (!w) return null;
   const shed = w.watershed,
     flow = w.flow;
@@ -141,5 +143,10 @@ export function waterView(w: ScreenResult["water"]): WaterView | null {
         ...(s.omPct !== null ? [WATER.om(s.omPct)] : []),
       ].join("; "),
     }));
-  return { line, sections, soils };
+  // Existing-house plan §3: "lidar" named for the elevation actually used (unchanged with 3DEP).
+  return {
+    line: relabel(line, e),
+    sections: sections.map((x) => ({ ...x, lines: x.lines.map((l) => relabel(l, e)) })),
+    soils,
+  };
 }

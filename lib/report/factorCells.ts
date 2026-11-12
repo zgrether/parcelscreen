@@ -7,7 +7,7 @@ import type { Factor, Letter } from "../rubric/types";
 import { EDITOR_TITLES, SHORT_TITLES } from "../rubric/words";
 import type { Card, GateStatus } from "./card";
 import { GATE_MARK, MUST_STATUS_WORD, mustLines, mustText, shownRankedRows } from "./cardLines";
-import { SET_ASIDE_READING } from "./adjustWords";
+import { asideReading } from "./adjustWords";
 import { shownLetter } from "./adjust";
 
 export interface FactorCell {
@@ -80,7 +80,7 @@ export function factorCells(card: Card): FactorCell[] {
     title: EDITOR_TITLES[x.key],
     kind: x.must ? "must" : "grade",
     text: "–",
-    detail: SET_ASIDE_READING(x.reason),
+    detail: asideReading(x),
     score: null,
     adjusted: true,
     setAside: true,

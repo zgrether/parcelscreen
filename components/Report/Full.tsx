@@ -6,6 +6,7 @@
  * Ways to raise the viewer's grade (step 12) follow the cost to enjoy, when there are any. The cost to enjoy (step 10) follows
  * Access and driveway.
  */
+import { elevationOf } from "@/lib/report/elevation";
 import { useEffect, useRef, type ReactNode } from "react";
 import { RAISE_WORDS } from "@/lib/report/raise";
 import { ADJUSTMENTS_TITLE } from "@/lib/report/adjustWords";
@@ -92,7 +93,10 @@ export const FULL_WORDS = {
 function sources(r: ScreenResult): { text: string; step: Step; dated?: true }[] {
   return [
     {
-      text: `USGS 3DEP lidar (${r.demSource ?? "3DEP"}${r.demResM !== undefined ? `, ${fmt(r.demResM)} m` : ""})`,
+      // Existing-house plan §3: the elevation actually used; with 3DEP, as it was.
+      text: elevationOf(r).lidar
+        ? `USGS 3DEP lidar (${r.demSource ?? "3DEP"}${r.demResM !== undefined ? `, ${fmt(r.demResM)} m` : ""})`
+        : `${elevationOf(r).name}${r.demResM !== undefined ? ` (${fmt(r.demResM)} m)` : ""}: USGS 3DEP was unavailable`,
       step: "dem",
     },
     { text: "NRCS soils (Soil Data Access)", step: "soils" },
@@ -194,6 +198,7 @@ export function Full({
     lineNames: lineNamesOf(parcel.markup),
     drivewayLine: parcel.drivewayLine,
     ...(card.paving ? { paving: card.paving } : {}),
+    ...(card.existingHouse ? { existingHouse: true } : {}),
   };
   /** A report block with its own heading, or nothing when it has nothing to say. */
   const block = (B: (p: BlockProps) => ReactNode) => {
@@ -303,7 +308,7 @@ export function Full({
       {/* Only when the card was priced (graded with the parcel's price and the rates). */}
       {card.cost !== undefined && (
         <Section title={FULL_WORDS.cost}>
-          <CostBreakdown cost={card.cost} print />
+          <CostBreakdown cost={card.cost} print existingHouse={!!card.existingHouse} />
         </Section>
       )}
       {raise.length > 0 && (

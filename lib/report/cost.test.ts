@@ -264,6 +264,29 @@ describe("the cost to enjoy (step 10 plan §2)", () => {
   });
 });
 
+describe("House already here: the drive in isn't priced (Zach, #425)", () => {
+  it("Ready to camp lists the drive to walk, unpriced, in the pioneer track's place", () => {
+    const plain = run();
+    const c = run({ existingHouse: { drive: null } });
+    expect(itemOf(c.camp.items, COST_ITEMS.track)).toBeUndefined();
+    const drive = itemOf(c.camp.items, COST_ITEMS.existingHouseDrive)!;
+    expect(drive).toMatchObject({ unpriced: true, parts: [], notes: [], total: { low: 0, high: 0 } });
+    const track = itemOf(plain.camp.items, COST_ITEMS.track)!;
+    expect(track.total.high).toBeGreaterThan(0);
+    // The camp's total is the plain one less the track: nothing else moves.
+    const rest = (items: readonly CostItem[]) =>
+      items.filter((i) => i.label !== COST_ITEMS.track && i.label !== COST_ITEMS.existingHouseDrive);
+    expect(rest(c.camp.items)).toEqual(rest(plain.camp.items));
+  });
+
+  it("a drawn existing drive is measured, not priced", () => {
+    const c = run({ existingHouse: { drive: { lengthFt: 870.4, maxGradePct: 14.2 } } });
+    const drive = itemOf(c.camp.items, COST_ITEMS.existingHouseDrive)!;
+    expect(drive.notes).toEqual(["your drawn drive: 870 ft, 14% at its steepest; not priced"]);
+    expect(drive.total).toEqual({ low: 0, high: 0 });
+  });
+});
+
 describe("the cost's helpers", () => {
   it("rounds to $1k under $100k and to $5k from there", () => {
     expect(roundCost(12_400)).toBe(12_000);

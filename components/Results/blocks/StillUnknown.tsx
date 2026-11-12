@@ -5,8 +5,12 @@
 import { unknownView } from "@/lib/report/unknown";
 import type { BlockProps } from "./types";
 
-export function StillUnknown({ result, checked }: BlockProps & { checked?: readonly boolean[] }) {
-  const items = unknownView(result);
+export function StillUnknown({
+  result,
+  checked,
+  existingHouse,
+}: BlockProps & { checked?: readonly boolean[] }) {
+  const items = unknownView(result, existingHouse);
   if (!items) return null;
   return (
     <ul className="check">

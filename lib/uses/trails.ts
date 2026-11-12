@@ -2,6 +2,7 @@
  * Trails and walking woods (step 14 §3.1, §2.2): how much walking trail the gentle ground could hold, at one path every
  * uses.trailSpacingFt. Yes from uses.trailYesMi, Maybe from uses.trailMaybeMi, No under it. Pure.
  */
+import { elevationOf, relabel } from "../report/elevation";
 import { SCREEN_CONSTANTS } from "../screen/config";
 import type { UseAnswer, UsesInput } from "./types";
 import { MISSING, SOURCE, TRAILS } from "./words";
@@ -10,15 +11,18 @@ const K = SCREEN_CONSTANTS.uses;
 
 export function trails({ result: r }: UsesInput): UseAnswer {
   const t = r.trails;
+  // Existing-house plan §3: the elevation actually used (unchanged with 3DEP).
+  const e = elevationOf(r);
+  const lidar = relabel(SOURCE.lidar, e);
   const how = {
     label: TRAILS.howLabel,
-    value: TRAILS.how(K.trailMaxGradePct, K.trailMinPatchAc, K.trailSpacingFt),
-    source: SOURCE.lidar,
+    value: relabel(TRAILS.how(K.trailMaxGradePct, K.trailMinPatchAc, K.trailSpacingFt), e),
+    source: lidar,
   };
   if (!t) return { answer: "maybe", reason: MISSING.trails, decides: [how] };
   const decides = [
-    { label: TRAILS.gentleLabel(K.trailMaxGradePct), value: TRAILS.acres(t.gentleAc), source: SOURCE.lidar },
-    { label: TRAILS.milesLabel, value: TRAILS.miles(t.miles), source: SOURCE.lidar },
+    { label: TRAILS.gentleLabel(K.trailMaxGradePct), value: TRAILS.acres(t.gentleAc), source: lidar },
+    { label: TRAILS.milesLabel, value: TRAILS.miles(t.miles), source: lidar },
     how,
   ];
   const estimate = TRAILS.estimate(t.miles, t.gentleAc, K.trailSpacingFt);

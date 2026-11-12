@@ -323,6 +323,17 @@ export const SCREEN_CONSTANTS = deepFreeze({
     // Step 2 (owner, 2026-10-17): a TREC point names a trail, not a trailhead, so it joins any trailhead (or another TREC
     // point) within this, whatever the names; the trailhead then lists the trails it serves.
     trecMergeM: 150,
+    // The existing-house step (docs/plans/existing-house.md §2, owner #416): a parking lot within this of a hiking or
+    // foot route's trail, or of a named path an agency runs, is a trailhead (OSM tags most state forest lots as plain
+    // parking). Such lots are one with any other trailhead, or each other, within trailLotMergeM, whatever the names.
+    trailLotM: 60,
+    trailLotMergeM: 150,
+    // Zach, #425: a trail lot is a trailhead only on a hiking route at least trailLotRouteMi long, or within
+    // trailLotPublicM of public land (PAD-US, not closed) of at least trailLotPublicAc: a town greenway's lot or a
+    // shopping centre's drops out. Tagged trailheads aren't asked.
+    trailLotRouteMi: 2,
+    trailLotPublicM: 400,
+    trailLotPublicAc: 100,
     // TREC trails asked per page, and pages at most (the layer's maxRecordCount is 2,000).
     trecPageSize: 1000,
     trecMaxPages: 3,
@@ -380,6 +391,7 @@ export const SCREEN_CONSTANTS = deepFreeze({
     riverWithinM: 100, // the river a launch is on: the nearest named NHD flowline this close
     maxKm: 100, // flatwater launches timed: within this, in a straight line
     points: 6, // at most this many, nearest first
+    otherLakes: 3, // the other lakes those reach, listed by their quickest drive (existing-house plan §2b)
     riverKm: 40, // river put-ins listed in the detail: within this
     rivers: 3, // at most this many
     sameWithinM: 150, // two launches this close are one put-in (OSM often maps a ramp and its access point both)

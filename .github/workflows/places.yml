@@ -13,6 +13,9 @@ name: Places
 #   recording moves.
 # - crags: `pnpm data:crags-check` (step 17), OSM's lots and climbing features near each curated climbing area, into
 #   the job summary; nothing pushed but places-done.json.
+# - qualify: `pnpm data:qualify` (Zach, #425), the trail-lot rule on the shipped places without a bake: a lot on no
+#   hiking route of 2 mi and near no public land of 100 ac is dropped from public/places/v1/osm; the report into the
+#   job summary.
 # Each finished request is recorded in .github/places-done.json and pushed with the job's output to the PR's branch,
 # so a later push to the PR doesn't run it again. A push made with GITHUB_TOKEN starts no workflow, so the job then
 # dispatches ci.yml on the branch (as areas-refresh.yml does); its checks land on the commit, so the PR shows them.
@@ -41,6 +44,7 @@ jobs:
       timing: ${{ steps.read.outputs.timing }}
       areas: ${{ steps.read.outputs.areas }}
       crags: ${{ steps.read.outputs.crags }}
+      qualify: ${{ steps.read.outputs.qualify }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -50,7 +54,7 @@ jobs:
           request=$(node -p "require('./.github/places-run.json').request")
           done=$(node -p "try { require('./.github/places-done.json').request } catch { '' }")
           echo "request=$request" >> "$GITHUB_OUTPUT"
-          for job in bake record timing areas crags; do
+          for job in bake record timing areas crags qualify; do
             if [ "$request" = "$done" ]; then
               echo "$job=false" >> "$GITHUB_OUTPUT"
             else
@@ -75,6 +79,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm data:places
+      - name: The trail lots, into the job summary
+        if: always()
+        run: cat test-results/places-trail-lots.md >> "$GITHUB_STEP_SUMMARY" || true
       - name: Push the bake to the PR's branch
         env:
           GH_TOKEN: ${{ github.token }}
@@ -86,6 +93,41 @@ jobs:
           git add public/places .github/places-done.json
           git commit -m "Places bake ($REQUEST)" -m "$(node -p "const i = require('./public/places/v1/index.json'); i.sources.map(s => s.id + ': ' + s.count + ' (fetched ' + s.fetched + ')').join('\n')")"
           # The branch may have moved during the bake's hour or two.
+          git pull --rebase origin "${{ github.head_ref }}"
+          git push origin "HEAD:${{ github.head_ref }}"
+          gh workflow run ci.yml --ref "${{ github.head_ref }}"
+
+  qualify:
+    needs: ask
+    if: needs.ask.outputs.qualify == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm data:qualify
+      - name: The report, into the job summary
+        if: always()
+        run: cat test-results/places-qualify.md >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Push the places to the PR's branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUEST: ${{ needs.ask.outputs.request }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          node -e "require('fs').writeFileSync('.github/places-done.json', JSON.stringify({ request: process.env.REQUEST, ran: new Date().toISOString() }, null, 2) + '\n')"
+          mkdir -p docs/places
+          cp test-results/places-qualify.md docs/places/trail-lots-qualified.md
+          git add public/places .github/places-done.json docs/places/trail-lots-qualified.md
+          git commit -m "The trail-lot rule on the shipped places ($REQUEST)" || exit 0
           git pull --rebase origin "${{ github.head_ref }}"
           git push origin "HEAD:${{ github.head_ref }}"
           gh workflow run ci.yml --ref "${{ github.head_ref }}"

@@ -3,8 +3,8 @@ import { TERRAIN_LEGEND, terrainView } from "@/lib/report/terrain";
 import { Facts, Note } from "./shared";
 import { showsMap, type BlockProps } from "./types";
 
-export function Terrain({ result, variant }: BlockProps) {
-  const v = terrainView(result);
+export function Terrain({ result, variant, existingHouse }: BlockProps) {
+  const v = terrainView(result, existingHouse);
   if (!v) return null;
   return (
     <>

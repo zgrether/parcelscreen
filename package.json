@@ -35,6 +35,7 @@
     "data:er": "node scripts/data-er.mts",
     "data:airports": "node scripts/data-airports.mts",
     "data:places": "vitest run test/tools/places-bake.test.ts --mode places-bake",
+    "data:qualify": "vitest run test/tools/places-qualify.test.ts --mode places-qualify",
     "places:freeze": "vitest run test/tools/freeze-places.test.ts --mode places-freeze",
     "data:crags": "vitest run test/tools/crags-bake.test.ts --mode crags-bake",
     "data:crags-check": "vitest run test/tools/crags-check.test.ts --mode crags-check",

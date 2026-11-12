@@ -1366,3 +1366,31 @@ describe("split scenarios (step 14, plan §5)", () => {
     expect(graded.gradeOnOpen).toBeNull();
   });
 });
+
+describe("House already here (existing-house plan §1a)", () => {
+  it("one house point: placing either kind replaces the other, a move keeps its own, removing it clears the flag", () => {
+    const here = run([selectA(), { type: "house", ll: [36.629, -81.354], stamp: at(), existing: true }]);
+    expect(here.store.open!.houseExisting).toBe(true);
+    // A drag or "Move it" (no `existing`) keeps it a house already here.
+    const moved = run([house([36.6291, -81.3541])], here);
+    expect(moved.store.open!.houseExisting).toBe(true);
+    // "House site" picked: the same point, planned; false is stored as absent.
+    const planned = run([{ type: "house", ll: [36.6292, -81.3542], stamp: at(), existing: false }], moved);
+    expect(planned.store.open!).not.toHaveProperty("houseExisting");
+    // The House tool picked from the Mark picker, then a tap.
+    const tapped = run(
+      [{ type: "mode", mode: "house", houseNext: true }, house([36.6293, -81.3543])],
+      planned,
+    );
+    expect(tapped.store.open!.houseExisting).toBe(true);
+    expect(tapped.houseNext).toBeNull();
+    const removed = run([house(null)], tapped);
+    expect(removed.store.open!.house).toBeNull();
+    expect(removed.store.open!).not.toHaveProperty("houseExisting");
+  });
+
+  it("a parcel with a planned site, or none, reads as before", () => {
+    const s = run([selectA(), house()]);
+    expect(s.store.open!).not.toHaveProperty("houseExisting");
+  });
+});

@@ -28,5 +28,8 @@ export const STILL_UNKNOWN = [
 ] as const;
 
 /** Null while the run is going (the prototype shows the checklist only on a finished run). */
-export const unknownView = (r: PartialScreenResult): readonly string[] | null =>
-  isPartial(r) ? null : STILL_UNKNOWN;
+/** The raw-land items a house already here leaves out (existing-house plan §1d): the bench's septic, the build's occupancy. */
+const RAW_LAND_ONLY = new Set<string>([STILL_UNKNOWN[5], STILL_UNKNOWN[6]]);
+
+export const unknownView = (r: PartialScreenResult, existingHouse = false): readonly string[] | null =>
+  isPartial(r) ? null : existingHouse ? STILL_UNKNOWN.filter((x) => !RAW_LAND_ONLY.has(x)) : STILL_UNKNOWN;
