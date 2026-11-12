@@ -120,3 +120,12 @@ in the hand-back's PR 6; these are what it left, outside the step or for you to 
 - **The area catalog's sample parcels have no other lakes** (§9.81): they're engine 37, and
   `SAMPLES_RESCREEN=1 pnpm areas:samples` (a full screen each, by hand) would add them.
 
+- **Pruning trail lots OSM has dropped** (owner, #420 decision): the trail-lot pass merges each quarter cell with the
+  lots already shipped, one per OSM id, so a lot deleted from OSM lingers. Prune a lot missing from N bakes in a row.
+- **Bake 5 came back short of the trail-lot bar** (owner, #420: ship it with the merge and the override): 547 lots
+  after the merge against bake 2's 1,140, and 430 kept against 594. 34 quarter cells came back below the shipped
+  baseline (among them 35_-84/ne, 37_-76/nw and 38_-80's se, nw and ne), most likely Overpass answering empty
+  without a remark. A later bake merges on top, so a good run fills them in.
+- **Town lots counted as trailheads** (#420's report): a store or greenway lot within reach of a trail path, such as
+  "Skymart (parking)" in Morristown, 113 m from a town greenway, counts as a trailhead. Zach's call whether to skip
+  lots inside a town, or lots whose only trail is a short urban greenway.
