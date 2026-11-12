@@ -143,7 +143,8 @@ const record = async (page: Page, name: string) => {
 async function gradeMacks(page: Page): Promise<void> {
   await replayHar(page.context(), [MACKS]);
   await liveImagery(page);
-  await openExplorer(page, MACKS);
+  // A fresh session's sheet: the line (map-room plan §1).
+  await openExplorer(page, MACKS, {}, { sheet: "line" });
   await importParcels(page, [MACKS]);
   await seedScreens(page, [MACKS], { current: true });
   await settled(page);
