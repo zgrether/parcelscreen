@@ -527,7 +527,7 @@ describe("the rows", () => {
     // The quickest is graded, not the nearest by straight line: Grayson's Scales Trailhead is 7.2 mi away and 118 min.
     const g = expectedOf("grayson-mud-creek-6273", "run");
     expect(rowOf(g, "trails").detail).toBe(
-      "a trailhead 17 min (6.7 mi) by road, 5.0 mi straight (Grayson Highlands State Park)",
+      "a trailhead 17 min (5.6 mi) by road, 4.3 mi straight (Appalachian Trail (parking))",
     );
   });
 
@@ -583,7 +583,7 @@ describe("the rows", () => {
     expect(rowOf(r, "hospital").detail).toBe("a 38-minute drive to an ER");
     expect(rowOf(r, "trails")).toMatchObject({
       grade: "B",
-      detail: "a trailhead 4.9 mi away in a straight line (Grayson Highlands State Park)",
+      detail: "a trailhead 3.8 mi away in a straight line (Appalachian Trail (parking))",
     });
     expect(rowOf(r, "trails").missing).toBeUndefined();
     expect(reportCard(r, ZACH).verdict).toBe("Contender");
