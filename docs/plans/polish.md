@@ -129,3 +129,14 @@ in the hand-back's PR 6; these are what it left, outside the step or for you to 
 - **Town lots counted as trailheads** (#420's report): a store or greenway lot within reach of a trail path, such as
   "Skymart (parking)" in Morristown, 113 m from a town greenway, counts as a trailhead. Zach's call whether to skip
   lots inside a town, or lots whose only trail is a short urban greenway.
+- **From the fresh-eyes review** (the hand-back's screenshots of 010-A-10, house marked):
+  - **Ready to camp prices a new driveway to the marked house** (Zach's call): with "House already here" the cost is
+    measured to the house, so 010-A-10's goes from $10–35k (site #1) to $23–82k (3,901 ft at 16%, with an easement).
+    A house that's already there has a way in; skip the driveway unless one is drawn, or say why it's priced.
+  - **The house mark reads "Stand here"** on the map: the bulls-eye carries the view's label and nothing says it's the
+    house. A "House" label, or the key's row, would say so.
+  - **The set-aside rows' check-instead line** follows "set aside: a house is already here" with no lead-in, so Septic's
+    "Get the health department's permit…" reads like a check still to do. "Instead, check:" would separate them.
+  - **"2 set aside" doesn't name them**: the answer line could say which ("Septic and Room to build").
+  - **Build-site words on the house's rows**: "Elevation at the build site … at the marked house", "Best homesite … the
+    house" (with the "The existing house" title above).
