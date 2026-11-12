@@ -227,6 +227,20 @@ export async function openFromRecent(page: Page, name: string): Promise<void> {
  */
 export const EVERY_PIN: Record<string, string> = { "ps.overlays": JSON.stringify({ allPins: true }) };
 
+/**
+ * Drags the phone sheet's handle by `dy` px (up is negative) and lets go: the sheet settles on the nearest snap
+ * (map-room plan §1: a tap on the handle collapses it to the line instead).
+ */
+export async function dragSheet(page: Page, dy: number): Promise<void> {
+  const h = (await page.locator(".sheet-handle").boundingBox())!;
+  const x = h.x + h.width / 2,
+    y = h.y + h.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, y + dy, { steps: 8 });
+  await page.mouse.up();
+}
+
 /** A run going: the toolbar's "Grading…", or on a phone the sheet's progress bar in its place (UX part 2 PR 3b, Z-9). */
 export const gradingNow = (page: Page) =>
   page
@@ -238,7 +252,10 @@ export async function screenIt(page: Page): Promise<Record<string, string>> {
   if (await page.locator(".menu-panel").count()) await page.keyboard.press("Escape");
   // Wait for this run to start, then to finish.
   // On a phone the sheet's line has its own Grade (map-room plan §1), with the header's hidden under it.
-  await page.locator(".grade-btn:enabled:visible, .sl-grade:enabled:visible, .grade-again-link:enabled").first().click();
+  await page
+    .locator(".grade-btn:enabled:visible, .sl-grade:enabled:visible, .grade-again-link:enabled")
+    .first()
+    .click();
   const grading = gradingNow(page);
   await expect(grading.first()).toBeVisible();
   await expect(grading).toHaveCount(0, { timeout: 200_000 });

@@ -68,7 +68,12 @@ export function SheetLine({ s, grip }: { s: ScreenIt; grip: Grip }) {
           )}
         </>
       )}
-      <button className="sh-x" aria-label="Close this parcel" title="Close this parcel" onClick={() => s.ctl.dismiss()}>
+      <button
+        className="sh-x"
+        aria-label="Close this parcel"
+        title="Close this parcel"
+        onClick={() => s.ctl.dismiss()}
+      >
         ×
       </button>
     </div>
