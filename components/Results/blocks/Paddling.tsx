@@ -3,6 +3,8 @@ import { NOT_MEASURED } from "@/lib/report/climate";
 import {
   flatLine,
   NO_FLATWATER,
+  OTHER_LAKES,
+  otherLakesLine,
   PADDLE_REACH,
   PADDLE_SOURCES,
   pondLine,
@@ -35,6 +37,11 @@ export function Paddling({ result }: BlockProps) {
       </table>
       {p.rivers.length > 0 && <p className="tiny">{riversLine(p.rivers)}</p>}
       {p.pond && <p className="tiny">{pondLine(p.pond)}</p>}
+      {p.others && p.others.length > 0 && (
+        <p className="tiny">
+          {OTHER_LAKES.charAt(0).toUpperCase() + OTHER_LAKES.slice(1)} {otherLakesLine(p.others)}
+        </p>
+      )}
       <p className="tiny muted">{PADDLE_REACH}</p>
       <p className="tiny muted">Sources: {PADDLE_SOURCES}</p>
     </>

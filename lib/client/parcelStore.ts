@@ -167,6 +167,11 @@ export interface WorkingParcel {
   /** A cut through the combined boundary, and the side kept. */
   split: SplitCut | null;
   house: LatLon | null;
+  /**
+   * The house point is a house already built ("House already here", docs/plans/existing-house.md §1a), not a planned
+   * site ("House site"). Optional: absent is false, today's behaviour; so `v` stays 2.
+   */
+  houseExisting?: boolean;
   notes: string;
   notesAt: string | null;
   /**
@@ -616,6 +621,8 @@ const WorkingSchema = z.object({
   pieces: z.array(RecordSchema).min(1),
   split: SplitSchema.nullable(),
   house: LatLonSchema.nullable(),
+  // Added with the existing-house step: a parcel kept before has a planned site, if any.
+  houseExisting: z.boolean().optional(),
   notes: z.string(),
   notesAt: z.string().nullable(),
   // Added after the store's v2 (B2a): a parcel kept before has no price.
@@ -710,3 +717,15 @@ export function readParcelStore(raw: string): ParcelStore | null {
 }
 
 export const writeParcelStore = (s: ParcelStore): string => JSON.stringify(s);
+
+/**
+ * The facts the card reads for a parcel (marks.ts Facts): its own (J-5), and "House already here" with its drawn
+ * existing drives when its house point carries the flag (docs/plans/existing-house.md §1a).
+ */
+export function cardFactsOf(
+  p: Pick<WorkingParcel, "facts" | "house" | "houseExisting" | "markup">,
+): Facts | undefined {
+  if (!p.house || !p.houseExisting) return p.facts;
+  const drives = linesOf(p.markup).flatMap((m) => (m.kind === "drive" ? [m.id] : []));
+  return { ...p.facts, existingHouse: { drives } };
+}

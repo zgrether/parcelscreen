@@ -1,4 +1,5 @@
 /** The December sun section and its horizon chart (proto L1474–1490). */
+import { elevationOf, relabel } from "./elevation";
 import { compass, fmt } from "../format";
 import type { PartialScreenResult } from "../screen/types";
 import type { FactRow } from "./facts";
@@ -103,7 +104,7 @@ export function sunView(r: PartialScreenResult, p: EvaluationPoint | null): SunV
       { label: "Direct sun, Jun 21", value: `${fmt(s.junDirectH, 1)} of ${fmt(s.junDaylightH, 1)} h` },
     ],
     caveat: [
-      said("Grey is bare-earth terrain from lidar; trees add to it."),
+      said(relabel("Grey is bare-earth terrain from lidar; trees add to it.", elevationOf(r))),
       onMap(
         " On the map, each ray runs from the bench to the skyline in that direction — red where that ridge blocks the December sun at the hour it's there, white where the sun clears it. Hover a ray for the numbers.",
       ),

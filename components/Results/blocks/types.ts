@@ -33,6 +33,8 @@ export interface BlockProps {
   drivewayLine?: string | null;
   /** Settings' paving choice and the parcel's lines (step 10): the Driveway section's Paving row follows them. */
   paving?: PavingContext;
+  /** "House already here" (existing-house plan §1b): no house sites searched for, no raw-land checklist items. */
+  existingHouse?: boolean;
 }
 
 export interface BlockActions {

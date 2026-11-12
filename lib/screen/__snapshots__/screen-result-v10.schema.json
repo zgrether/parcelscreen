@@ -4,7 +4,7 @@
   "properties": {
     "schemaVersion": {
       "type": "number",
-      "const": 9
+      "const": 10
     },
     "engine": {
       "type": "integer",
@@ -1403,6 +1403,36 @@
               "type": "null"
             }
           ]
+        },
+        "others": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "water": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "min": {
+                "type": "number"
+              },
+              "mi": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "name",
+              "water",
+              "min",
+              "mi"
+            ],
+            "additionalProperties": false
+          }
         },
         "rivers": {
           "type": "array",

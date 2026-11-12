@@ -6,6 +6,7 @@
  * config and the Settings. The rubric switch is the sheet's (ps.rubricView). Reached from the menu's Help, from What
  * matters to you, and from each report panel's "How it's scored" (its section, #rule-<panel>).
  */
+import { cardFactsOf } from "@/lib/client/parcelStore";
 import Link from "next/link";
 import { useCostSettings } from "@/lib/client/costRates";
 import { useEffect, useMemo, useState } from "react";
@@ -68,7 +69,7 @@ export function Rulebook() {
             parcel.drivewayLine,
             { askingPrice: parcel.askingPrice, ...costs },
             adjustFor(parcel.key),
-            parcel.facts,
+            cardFactsOf(parcel),
           ),
       )
     : null;

@@ -20,7 +20,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useScreen } from "@/lib/client/useScreen";
 import { freshness, runKeys, type RunKeys } from "@/lib/client/screenKeys";
-import { drawnInput, linesOf, type WorkingParcel } from "@/lib/client/parcelStore";
+import { drawnInput, linesOf, type WorkingParcel, cardFactsOf } from "@/lib/client/parcelStore";
 import {
   addScreen,
   needsRescreen,
@@ -526,20 +526,20 @@ export function useScreenIt(
                   drivewayLine,
                   { askingPrice, ...costs },
                   adjustFor(open.key, household),
-                  open.facts,
+                  cardFactsOf(open),
                 )
               : undefined,
           )
         : null,
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the open parcel's markup, line, price, adjustments and facts are what matter
-    [display, rubric, markup, drivewayLine, askingPrice, costs, household, open?.facts],
+    [display, rubric, markup, drivewayLine, askingPrice, costs, household, open?.facts, open?.houseExisting],
   );
   // Step 14: what the land can do, at the card's site, once the run is done (Uses and Grade's shortcut line read it).
   const deedRestrictions = open?.deedRestrictions ?? "";
   const hoa = open?.hoa ?? "unknown";
   const listingAcres = open?.listingAcres ?? null;
   const fromOriginal = open?.fromOriginal;
-  const facts = open?.facts;
+  const facts = open ? cardFactsOf(open) : undefined;
   const usesIn = useMemo(
     () =>
       display && card && !runningHere
@@ -606,7 +606,7 @@ export function useScreenIt(
               drivewayLine,
               { askingPrice, ...costs },
               adjustFor(open.key, household),
-              open.facts,
+              cardFactsOf(open),
             ),
           )
         : null,
@@ -729,7 +729,7 @@ const drawnFor = (s: ScreenIt): Drawn | undefined => {
         open.drivewayLine,
         { askingPrice: open.askingPrice, ...currentCostSettings() },
         adjustFor(open.key),
-        open.facts,
+        cardFactsOf(open),
       )
     : undefined;
 };
@@ -1049,6 +1049,7 @@ export function ScreenBody({ s }: { s: ScreenIt }) {
             lineNames={namesOf(s)}
             drivewayLine={s.ctl.state.store.open?.drivewayLine ?? null}
             paving={s.card?.paving}
+            existingHouse={!!s.card?.existingHouse}
             noteFor={(slug) =>
               s.evaluated &&
               EVALUATED_SECTIONS.has(slug) && (

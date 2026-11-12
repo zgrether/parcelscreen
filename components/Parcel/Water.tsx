@@ -4,15 +4,16 @@
  * it does on the parcel and what the soils hold, then the estimate's honesty line. Outside the grade: no chip, and the
  * Grade tab's tally doesn't count it. A grade from before the measurement shows nothing.
  */
+import type { Elevation } from "@/lib/report/elevation";
 import { useId, useState } from "react";
 import { waterView } from "@/lib/uses/water";
 import { WATER } from "@/lib/uses/words";
 import type { ScreenResult } from "@/lib/screen/types";
 
-export function Water({ water }: { water: ScreenResult["water"] }) {
+export function Water({ water, elevation }: { water: ScreenResult["water"]; elevation?: Elevation }) {
   const [open, setOpen] = useState(false);
   const id = useId();
-  const v = waterView(water);
+  const v = waterView(water, elevation);
   if (!v) return null;
   return (
     <>

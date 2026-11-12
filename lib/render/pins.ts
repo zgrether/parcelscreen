@@ -37,6 +37,8 @@ const TAP_ANYWAY = "Tap to evaluate here anyway.";
 export function pinSpecs(
   r: PartialScreenResult,
   ranks: { best: number | null; alternatives: readonly number[] } = { best: 1, alternatives: [] },
+  /** A house already here (existing-house plan §1b): no new house sites; shelves and gardens stay. */
+  existingHouse = false,
 ): PinSpec[] {
   const pins: PinSpec[] = [];
   (r.shelves ?? []).forEach((sh, i) =>
@@ -75,7 +77,7 @@ export function pinSpecs(
       evalLabel: "the excluded bench",
     }),
   );
-  (derivedSites(r) ?? []).forEach((s) =>
+  (existingHouse ? [] : (derivedSites(r) ?? [])).forEach((s) =>
     pins.push({
       key: `site-${s.rank}`,
       kind: "site",

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { ParcelRecord } from "@/lib/geo/parcels";
 import { drawnPart } from "@/lib/geo/recipe";
 import {
+  cardFactsOf,
   closeOpen,
   commitOpen,
   DEFAULT_CONDITION,
@@ -22,6 +23,7 @@ import {
   readParcelStore,
   removeBuilt,
   writeParcelStore,
+  type Markup,
   type WorkingParcel,
 } from "./parcelStore";
 import { getPref, setPref, type KeyValueStore } from "./prefs";
@@ -555,5 +557,50 @@ describe("step 14's parcel fields (plan §3.2)", () => {
         }),
       ),
     ).toBeNull();
+  });
+});
+
+describe("cardFactsOf (existing-house plan §1a)", () => {
+  const p = (over: Partial<WorkingParcel>): WorkingParcel => ({
+    ...plainParcel(
+      {
+        source: "drawn",
+        geo: {
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 0],
+              ],
+            ],
+          },
+        },
+        props: {},
+      } as unknown as ParcelRecord,
+      "2026-11-11T00:00:00.000Z",
+    ),
+    ...over,
+  });
+  it("passes the parcel's own facts when its house point isn't flagged", () => {
+    expect(cardFactsOf(p({ house: [36.6, -81.3] }))).toBeUndefined();
+    expect(cardFactsOf(p({ houseExisting: true }))).toBeUndefined(); // no point, no house
+  });
+  it("adds the existing house and its drawn existing drives when it is", () => {
+    const drive = {
+      id: "d1",
+      name: "Existing drive 1",
+      shape: "line",
+      kind: "drive",
+      line: [],
+    } as unknown as Markup;
+    const track = { id: "t1", name: "Track 1", shape: "line", kind: "track", line: [] } as unknown as Markup;
+    expect(cardFactsOf(p({ house: [36.6, -81.3], houseExisting: true, markup: [drive, track] }))).toEqual({
+      existingHouse: { drives: ["d1"] },
+    });
   });
 });

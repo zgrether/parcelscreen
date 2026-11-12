@@ -6072,6 +6072,14 @@
     "min": 28,
     "mi": 17.7
    },
+   "others": [
+    {
+     "name": "Price Lake access",
+     "water": "Price Lake",
+     "min": 56,
+     "mi": 30.7
+    }
+   ],
    "rivers": [
     {
      "name": "Watauga River access",
@@ -6163,8 +6171,8 @@
     }
    ]
   },
-  "schemaVersion": 9,
-  "engine": 37,
+  "schemaVersion": 10,
+  "engine": 38,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false
@@ -11935,6 +11943,14 @@
     "min": 28,
     "mi": 17.7
    },
+   "others": [
+    {
+     "name": "Price Lake access",
+     "water": "Price Lake",
+     "min": 56,
+     "mi": 30.7
+    }
+   ],
    "rivers": [
     {
      "name": "Watauga River access",
@@ -12026,8 +12042,8 @@
     }
    ]
   },
-  "schemaVersion": 9,
-  "engine": 37,
+  "schemaVersion": 10,
+  "engine": 38,
   "runAt": "(not compared)",
   "failed": [],
   "cancelled": false

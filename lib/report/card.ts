@@ -16,7 +16,7 @@ import {
   TRAILHEAD_PARKING,
   type DriveEntry,
 } from "../screen/driveList";
-import { derivedSites } from "../screen/derive";
+import { derivedHouse, derivedSites } from "../screen/derive";
 import { lpZone } from "../screen/sky";
 import { NO_PRACTICAL_ROUTE, existingSteepLine } from "../screen/score";
 import { servesLine, trailheadSourceLabel } from "../screen/trailheads";
@@ -72,7 +72,15 @@ import { LONG_TRAIL_DRIVES } from "../screen/longTrail";
 import { CLIMB_DRIVES } from "../screen/climbing";
 import { PADDLE_DRIVES } from "../screen/paddling";
 import { climbingNote, NO_ROPE, ropeLine } from "./climbing";
-import { flatLine, NO_FLATWATER, pondLine, RIVERS_NOT_GRADED, riversLine } from "./paddling";
+import {
+  flatLine,
+  NO_FLATWATER,
+  OTHER_LAKES,
+  otherLakesLine,
+  pondLine,
+  RIVERS_NOT_GRADED,
+  riversLine,
+} from "./paddling";
 import { openPct, viewLine, viewShort } from "./view";
 import { atLeast, atMost, gradedRows, parcelGrade, verdictLines } from "../rubric/grade";
 import { EDITOR_TITLES, FACTOR_LABELS } from "../rubric/words";
@@ -90,6 +98,7 @@ import {
   letterText,
   shownLetter,
 } from "./adjust";
+import { HOUSE_HERE, isExistingHouse, THE_EXISTING_DRIVE, THE_HOUSE, VERIFY } from "./existingHouse";
 
 export type { GateKey, Letter, NamedRubric, RowKey } from "../rubric/types";
 export { atLeast, atMost } from "../rubric/grade";
@@ -175,6 +184,8 @@ export interface CardFacts {
   paving?: PavingContext;
   /** What the person set aside on this parcel (step 12): off the grade, still listed in its tier. */
   setAside?: SetAside[];
+  /** "House already here" (docs/plans/existing-house.md §1): graded at the house, the build rows set aside. */
+  existingHouse?: true;
 }
 
 export interface Card extends CardFacts {
@@ -927,6 +938,8 @@ function paddling(r: Result, K: CardConfig): Row {
   const extra = [
     ...(p.rivers.length ? [`${RIVERS_NOT_GRADED} ${riversLine(p.rivers)}`] : []),
     ...(p.pond ? [pondLine(p.pond)] : []),
+    // Existing-house plan §2b (Zach, 11/11): last, so the panel's text before it is as it was.
+    ...(p.others?.length ? [`${OTHER_LAKES} ${otherLakesLine(p.others)}`] : []),
   ];
   const panel = extra.length ? { panelNote: extra.join(". ") } : {};
   if (!p.flat) return { ...g("F", NO_FLATWATER), short: "none near", ...panel };
@@ -1435,15 +1448,104 @@ export const reportCard = (
   const adjust = drawn?.adjust?.get(nr.id) ?? [];
   const aside = asideOf(adjust);
   const rankBy = withoutFactors(nr.rubric, aside);
-  const sites = r.sites
-    ? rankSites(r.sites, (i) => siteRows(r, KR, build, i, derived).filter((x) => !aside.has(x.key)), rankBy)
-    : [];
+  // "House already here" (existing-house plan §1b): no new house sites; the house is site #1.
+  const existing = isExistingHouse(r, drawn);
+  const sites =
+    r.sites && !existing
+      ? rankSites(r.sites, (i) => siteRows(r, KR, build, i, derived).filter((x) => !aside.has(x.key)), rankBy)
+      : [];
   // A marked house grades as before (§11 Q6): its own elevation and driveway, site #1's quality and room.
   const house = !!r.house && !("outside" in r.house);
   const at = opts.at ?? (house ? 0 : (sites[0]?.index ?? 0));
-  const facts = withAdjustments(cardFacts(r, KR, build, drawn, at, nr.rubric.budgets), adjust, nr.rubric);
-  return { ...cardFor(facts, nr), sites };
+  // With a house already here, Within budget reads Ready to camp alone (plan §1c).
+  const budgets = existing && nr.rubric.budgets ? { ...nr.rubric.budgets, build: null } : nr.rubric.budgets;
+  const facts = withAdjustments(cardFacts(r, KR, build, drawn, at, budgets), adjust, nr.rubric);
+  return { ...cardFor(existing ? withExistingHouse(facts, r, drawn, KR, nr.rubric) : facts, nr), sites };
 };
+
+/**
+ * "House already here" (docs/plans/existing-house.md §1b), after the person's adjustments: Best homesite reads the house
+ * itself; Room to build, the Septic Must, Within budget's build-only budget and the Driveway row (unless an existing drive
+ * is drawn, which it then grades) are set aside by the app with the reason HOUSE_HERE and a line to check instead. A
+ * factor the person set aside already stays theirs.
+ */
+export function withExistingHouse(
+  facts: CardFacts,
+  r: Result,
+  drawn: Drawn | undefined,
+  K: CardConfig,
+  R: Rubric,
+): CardFacts {
+  const theirs = new Set((facts.setAside ?? []).map((x) => x.key));
+  const drives = new Set(drawn?.facts?.existingHouse?.drives ?? []);
+  const drive = (r.lines ?? []).find((l) => drives.has(l.id) && l.maxGradePct != null);
+  const asideKeys: Factor[] = ["septic", "room", ...(drive ? [] : (["driveway"] as const))];
+  // Only a build budget given: Within budget has nothing left to grade (reportCard dropped the build budget).
+  if (R.budgets?.build != null && R.budgets.camp == null) asideKeys.push("budget");
+  const label = (f: Factor) =>
+    asideLabel(f, facts.rows.find((x) => x.key === f)?.label ?? facts.gates.find((g) => g.key === f)?.label);
+  // Within budget is on the card with its budgets (step 10), not on the ranked list.
+  const onCard = (f: Factor) =>
+    f === "budget"
+      ? R.budgets?.build != null || R.budgets?.camp != null
+      : R.musts.some((m) => m.factor === f) || R.ranked.some((c) => c.factor === f);
+  const auto = asideKeys
+    .filter((f) => !theirs.has(f) && onCard(f))
+    .map((f): SetAside => ({
+      key: f,
+      label: label(f),
+      reason: HOUSE_HERE,
+      must: isMustOf(R, f),
+      at: "",
+      auto: { verify: VERIFY[f]! },
+    }));
+  const out = new Set<Factor>(asideKeys);
+  const rows = facts.rows.flatMap((x): Row[] => {
+    if (out.has(x.key)) return [];
+    if (x.key === "homesite" && !x.adjusted) return [houseHomesite(r) ?? x];
+    if (x.key === "driveway" && drive && !x.adjusted) return [drawnDriveRow(drive, K)];
+    return [x];
+  });
+  const setAside = [...(facts.setAside ?? []), ...auto];
+  return {
+    ...facts,
+    gates: facts.gates.filter((g) => !out.has(g.key)),
+    rows,
+    existingHouse: true,
+    ...(setAside.length ? { setAside } : {}),
+  };
+}
+
+/** Best homesite at the house itself (plan §1b): its December sun, aspect and slope, its quality grade. */
+function houseHomesite(r: Result): Row | null {
+  const h = derivedHouse(r);
+  if (!h || "outside" in h) return null;
+  const g = row("homesite", FACTOR_LABELS.homesite);
+  return {
+    ...g(
+      h.qGrade,
+      `${THE_HOUSE}: faces ${compass(h.aspectDeg ?? NaN)}, ${fmt(h.sunH, 1)} h of December sun, ${fmt(h.slopeDeg ?? NaN)}° slope`,
+    ),
+    panelNote: `the house's quality ${h.qGrade} (${fmt(h.quality)})`,
+    short: `${fmt(h.sunH, 1)} h sun, faces ${compass(h.aspectDeg ?? NaN)}`,
+    measure: { value: h.sunH, unit: "h" },
+  };
+}
+
+/** The Driveway row on the drawn existing drive (plan §1b): graded on its steepest, as a route is. */
+function drawnDriveRow(l: NonNullable<Result["lines"]>[number], K: CardConfig): Row {
+  const g = row("driveway", FACTOR_LABELS.driveway);
+  const max = l.maxGradePct!;
+  const avg = l.avgGradePct != null ? `${fmt(l.avgGradePct)}% average, ` : "";
+  return {
+    ...g(
+      atMost(max, K.rows.drivewayPct),
+      `${THE_EXISTING_DRIVE}: ${fmt(l.lengthFt)} ft, ${avg}${fmt(max)}% at its steepest`,
+    ),
+    short: `${fmt(max)}% steepest`,
+    measure: { value: max, unit: "%" },
+  };
+}
 
 /**
  * A person's adjustments on the card's facts (step 12, plan §3), before their rubric grades them:
