@@ -1482,8 +1482,14 @@ until step 5 (Q14).
     - **The elevation's labels** (#419): every label downstream of the elevation names the DEM actually used; with
       3DEP each string is as it was.
     - **Trailheads by a trail** (#420): the OSM bake also takes a public parking lot within 60 m of a hiking route's
-      trails or an agency's named path, named for itself or its trail, merged by distance alone (150 m). The Hayters
-      Gap lot (the Brumley Mountain Trail, to The Channels) was tagged only as parking.
+      path, footway, track, bridleway or service-road members (never a through road), or of an agency's named path,
+      named for itself or its trail, merged by distance alone (150 m). The Hayters Gap lot (the Brumley Mountain Trail,
+      to The Channels) was tagged only as parking.
+      - The pass runs by quarter cell, one Overpass request at a time; a remark counts as a failure, retried twice.
+        Each quarter is merged with the lots already shipped, one per OSM id, so a short answer never drops a lot.
+      - The Hayters Gap lot is also a cited override (`lib/screen/data/trailhead-overrides.json`: OSM and VDOF).
+      - Bake 5 came back short of the bar Zach set (547 lots against bake 2's 1,140; 34 quarters below the shipped
+        lots); shipped as he said, with the shortfall and pruning in polish.md.
 
 
 81. **Paddling's other lakes; schema v10** (Zach, 2026-11-11, the existing-house step; `docs/plans/existing-house.md`
