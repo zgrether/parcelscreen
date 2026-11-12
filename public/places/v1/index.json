@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "baked": "2026-11-11",
+  "baked": "2026-11-12",
   "bounds": [
     -92,
     33,
@@ -483,6 +483,13 @@
       "ll": [
         36.218787,
         -81.684004
+      ]
+    },
+    {
+      "name": "Boones Mill",
+      "ll": [
+        37.114749,
+        -79.954014
       ]
     },
     {
@@ -5485,8 +5492,8 @@
       "attribution": "© OpenStreetMap contributors",
       "url": "https://www.openstreetmap.org/copyright",
       "folder": "osm",
-      "fetched": "2026-11-11",
-      "count": 9692
+      "fetched": "2026-11-12",
+      "count": 9967
     },
     {
       "id": "usfs",
@@ -5495,7 +5502,7 @@
       "attribution": "USDA Forest Service",
       "url": "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_InfraRecreationSites_01/MapServer/0",
       "folder": "official",
-      "fetched": "2026-11-11",
+      "fetched": "2026-11-12",
       "count": 577
     },
     {
@@ -5525,7 +5532,7 @@
       "attribution": "VA state parks (VGIN)",
       "url": "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Landmarks/FeatureServer/1",
       "folder": "official",
-      "fetched": "2026-11-11",
+      "fetched": "2026-11-12",
       "count": 45
     },
     {
@@ -5535,7 +5542,7 @@
       "attribution": "NC state parks (DPR)",
       "url": "https://services6.arcgis.com/nRIB86xC7kq6wavB/arcgis/rest/services/NC_State_Parks_Points/FeatureServer/0",
       "folder": "official",
-      "fetched": "2026-11-11",
+      "fetched": "2026-11-12",
       "count": 47
     },
     {
@@ -5545,7 +5552,7 @@
       "attribution": "TN state parks (TDEC)",
       "url": "https://services5.arcgis.com/bPacKTm9cauMXVfn/arcgis/rest/services/TN_State_Parks_Points/FeatureServer/0",
       "folder": "official",
-      "fetched": "2026-11-11",
+      "fetched": "2026-11-12",
       "count": 70
     },
     {
@@ -5555,7 +5562,7 @@
       "attribution": "TN trails (TDEC)",
       "url": "https://services1.arcgis.com/YuVBSS7Y1of2Qud1/arcgis/rest/services/Tennessee_Statewide_Trails_Lines_Public/FeatureServer/0",
       "folder": "official",
-      "fetched": "2026-11-11",
+      "fetched": "2026-11-12",
       "count": 4460
     }
   ],
@@ -5563,7 +5570,7 @@
     "osm": {
       "33_-78": 4,
       "33_-79": 123,
-      "33_-80": 27,
+      "33_-80": 28,
       "34_-77": 123,
       "34_-78": 256,
       "34_-79": 87,
@@ -5575,19 +5582,19 @@
       "34_-85": 122,
       "34_-86": 118,
       "34_-87": 283,
-      "34_-88": 103,
+      "34_-88": 104,
       "34_-89": 23,
       "34_-90": 28,
       "34_-91": 34,
-      "35_-76": 90,
+      "35_-76": 163,
       "35_-77": 108,
-      "35_-78": 174,
-      "35_-79": 392,
-      "35_-80": 178,
-      "35_-81": 433,
-      "35_-82": 220,
-      "35_-83": 267,
-      "35_-84": 793,
+      "35_-78": 226,
+      "35_-79": 488,
+      "35_-80": 199,
+      "35_-81": 465,
+      "35_-82": 270,
+      "35_-83": 311,
+      "35_-84": 794,
       "35_-85": 495,
       "35_-86": 689,
       "35_-87": 488,
@@ -5597,17 +5604,17 @@
       "35_-91": 137,
       "36_-76": 81,
       "36_-77": 287,
-      "36_-78": 54,
-      "36_-79": 116,
+      "36_-78": 65,
+      "36_-79": 119,
       "36_-80": 225,
       "36_-81": 153,
-      "36_-82": 133,
-      "36_-83": 335,
-      "36_-84": 218,
-      "36_-85": 318,
+      "36_-82": 255,
+      "36_-83": 356,
+      "36_-84": 229,
+      "36_-85": 359,
       "36_-86": 229,
-      "36_-87": 639,
-      "36_-88": 227,
+      "36_-87": 640,
+      "36_-88": 269,
       "36_-89": 159,
       "36_-90": 123,
       "36_-91": 39,
@@ -5615,7 +5622,7 @@
       "37_-77": 211,
       "37_-78": 270,
       "37_-79": 133,
-      "37_-80": 237,
+      "37_-80": 283,
       "37_-81": 131,
       "37_-82": 65,
       "37_-83": 37,
