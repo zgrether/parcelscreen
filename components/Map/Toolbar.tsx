@@ -7,6 +7,10 @@
  *                  Split; + Mark opens the Mark picker, which holds the house site and the lines; the acres open the
  *                  parcel panel's Details at Boundary, step 8b)
  *   a tool in use: what to do next, and its controls (Finish, Done, Keep…, Cancel)
+ * Map room (plan §3): with a parcel open and no tool in use, the bar is one "✎ Edit" button (and the desktop's grade
+ * button) until Edit opens it; then it holds the line above and a Done at its end, and stays open while the person
+ * edits, until Done, the × or another parcel (the bar is keyed by the parcel). Long-press and right-click still open the
+ * Mark picker without it.
  * The trash (built parcels only) asks inline before deleting. A tap refused because a built parcel is open
  * shows a brief note above the bar.
  */
@@ -26,6 +30,7 @@ import { NEIGHBOUR_WORDS } from "@/lib/report/raise";
 import { isPreview } from "@/lib/client/samples";
 import { SAMPLE_WORDS } from "@/lib/areas/words";
 import { SPLIT_WORDS } from "@/lib/split/words";
+import { setFullMapBlockers } from "@/components/Explore/fullMap";
 
 const GRADE_COMBINATION = NEIGHBOUR_WORDS.go;
 
@@ -90,11 +95,34 @@ function Bar({ ctl }: { ctl: ExploreController }) {
   const { mode, store } = ctl.state;
   const open = store.open;
   const [confirming, setConfirming] = useState(false);
+  const [editing, setEditing] = useState(false);
+  // Full-map mode never runs with the bar open for editing (map-room plan §5; Zach, #427).
+  const editingNow = editing && !!open;
+  useEffect(() => {
+    setFullMapBlockers({ editing: editingNow });
+    return () => setFullMapBlockers({ editing: false });
+  }, [editingNow]);
   const tap = useTapWord();
-  const body = barBody(ctl, confirming, setConfirming, tap);
+  const folded = !!open && !mode && !editing && !isPreview(open);
+  const body = folded ? (
+    <>
+      <Btn
+        onClick={() => setEditing(true)}
+        label="Edit the parcel"
+        title="Edit the boundary, the marks and the lines"
+      >
+        <span aria-hidden="true">✎</span>
+        <span className="tb-edit-word"> Edit</span>
+      </Btn>
+      {/* The parcel's one action (step 4c): here on a desktop; under the sheet's header on a phone. */}
+      {ctl.docked && <GradeAction where="toolbar" />}
+    </>
+  ) : (
+    barBody(ctl, confirming, setConfirming, tap, () => setEditing(false))
+  );
   return (
     <div
-      className="toolbar"
+      className={folded ? "toolbar folded" : "toolbar"}
       role="toolbar"
       aria-label="Parcel tools"
       data-mode={mode ?? (open ? "open" : "idle")}
@@ -110,6 +138,8 @@ function barBody(
   setConfirming: (b: boolean) => void,
   /** "Tap" or "Click", the device's word (polish 2, M5). */
   tap: TapWord,
+  /** Done: the bar folds back to Edit (map-room plan §3). */
+  done: () => void,
 ): ReactNode {
   const { mode, store, draft, split, combine } = ctl.state;
   const open = store.open;
@@ -419,6 +449,9 @@ function barBody(
           {ac(acres)} ac <span aria-hidden="true">▾</span>
         </button>
       )}
+      <Btn kind="quiet" onClick={done}>
+        Done
+      </Btn>
     </>
   );
 }

@@ -8,7 +8,7 @@
 import { centroid } from "@turf/turf";
 import { expect, test, type Page } from "@playwright/test";
 import { loadFixture } from "../test/support/fixtures";
-import { importParcel, openExplorer, reload } from "./flow";
+import { editParcel, importParcel, openExplorer, reload } from "./flow";
 import { replayHar } from "./replay";
 
 const SLUG = "ferney-creek-52-47A";
@@ -243,6 +243,7 @@ test.describe("phone", () => {
     expect((await camera(page)).zoom).toBeCloseTo(before.zoom + 1, 1);
 
     // + Mark → Track: the taps are the line's corners, and the map stays where it is.
+    await editParcel(page);
     await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).click();
     await page
       .getByRole("dialog", { name: "Mark on the parcel" })

@@ -1,0 +1,71 @@
+name: Room for the map
+
+# The map-room mission (docs/plans/map-room.md §7), on CI's runners, for what the cloud sessions that build the app
+# can't reach: the measurement (screenshots/map-room.spec.ts) at 390 × 844 with the live basemaps, the map's share of
+# the screen into the job summary, and the shots pushed to pr-assets/map-room/<commit>/.
+# Nothing here gates a merge.
+on:
+  pull_request:
+    paths:
+      - screenshots/map-room.spec.ts
+      - .github/workflows/map-room.yml
+  workflow_dispatch: {}
+
+concurrency:
+  group: map-room-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  screenshots:
+    # A fork's PR gets a read-only token: nothing to push to.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm build
+      - run: pnpm exec playwright test -c playwright.screenshots.config.ts screenshots/map-room.spec.ts
+        env:
+          E2E_SKIP_BUILD: "1"
+      - name: The map's share, into the job summary
+        if: always()
+        run: |
+          { echo '```json'; cat test-results/screenshots/map-room/coverage.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY" || true
+      - name: To pr-assets/map-room/<head commit>
+        if: always()
+        env:
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          ls test-results/screenshots/map-room || exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin pr-assets
+          git worktree add ../assets origin/pr-assets
+          dir="../assets/map-room/${HEAD::7}"
+          mkdir -p "$dir"
+          cp test-results/screenshots/map-room/*.png test-results/screenshots/map-room/coverage.json "$dir/"
+          cd ../assets
+          git add -A map-room
+          git commit -m "Room for the map screenshots (${HEAD::7})" || exit 0
+          # Other workflows push here too: take theirs and try again.
+          for i in 1 2 3; do
+            git push origin HEAD:pr-assets && exit 0
+            git pull --rebase origin pr-assets
+          done
+          exit 1
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: map-room-shots-test-results
+          path: test-results/
+          retention-days: 7

@@ -5,13 +5,14 @@
 import { expect, test, type Page } from "@playwright/test";
 import {
   ageKept,
+  editParcel,
   importParcel,
   keptScreenCount,
+  listRow,
   openExplorer,
   openFromList,
   reload,
   screenIt,
-  listRow,
   unfoldListing,
 } from "./flow";
 import { replayHar } from "./replay";
@@ -90,6 +91,7 @@ test("the asking price: entered in the parcel sheet with its date, shown on Your
   await replayHar(context, FERNEY);
   await openExplorer(page, FERNEY);
   await importParcel(page, FERNEY);
+  await editParcel(page);
   await page.locator('button[aria-label$="acres: parcel details"]').first().click();
   await unfoldListing(page);
   const price = page.getByLabel("Asking price");

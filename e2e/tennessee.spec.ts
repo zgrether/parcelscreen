@@ -6,7 +6,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { ownRecordsHint } from "@/lib/geo/ownRecords";
 import { loadFixture, ROAN_SEARCH } from "../test/support/fixtures";
-import { expectAllDone, openExplorer, openSearch, screenIt } from "./flow";
+import { editParcel, expectAllDone, openExplorer, openSearch, screenIt } from "./flow";
 import { replayHamilton, threeGorgesPoint } from "./hamilton";
 import { replayHar } from "./replay";
 
@@ -44,6 +44,7 @@ test("Roan Mountain: the Tennessee lines draw; a tap shows the Carter record's f
   await openExplorer(page, ROAN);
   await expect.poll(() => linesDrawn(page), { timeout: 30_000 }).toBeGreaterThan(0);
   await tapAt(page, loadFixture(ROAN).input.point);
+  await editParcel(page);
   const info = page.getByRole("button", { name: /acres: parcel details$/ });
   await expect(info).toBeVisible({ timeout: 15_000 });
   await info.click();
@@ -120,6 +121,7 @@ test("Hamilton County: the county's own lines draw; a tap on a Three Gorges lot 
   // Not the no-lines hint: Hamilton has a source now.
   await expect(page.getByText("keeps its own records")).toHaveCount(0);
   await tapAt(page, lot);
+  await editParcel(page);
   const info = page.getByRole("button", { name: /acres: parcel details$/ });
   await expect(info).toBeVisible({ timeout: 15_000 });
   await info.click();

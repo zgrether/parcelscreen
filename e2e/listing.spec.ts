@@ -8,6 +8,7 @@ import { centroid } from "@turf/turf";
 import { expect, test, type Page } from "@playwright/test";
 import { loadFixture } from "../test/support/fixtures";
 import {
+  editParcel,
   expectAllDone,
   importParcel,
   openExplorer,
@@ -85,6 +86,7 @@ test("the listing's facts: typed, the name shown, the acres compared on the card
   expectAllDone(await screenIt(page));
 
   // The Notes tab's Listing section.
+  await editParcel(page);
   await page.locator('button[aria-label$="acres: parcel details"]').first().click();
   const listing = await unfoldListing(page);
   await expect(listing.getByLabel("Name")).toHaveAttribute("placeholder", "52-47A");
@@ -153,6 +155,7 @@ test("a searched link is offered to the next parcel opened, and attached only wi
   await openExplorer(page, FERNEY);
   await importParcel(page, FERNEY);
   // Its imported name cleared, so the chip names it after the listing's street.
+  await editParcel(page);
   await page.locator('button[aria-label$="acres: parcel details"]').first().click();
   const name = (await unfoldListing(page)).getByLabel("Name");
   await name.fill("");
@@ -173,6 +176,7 @@ test("a searched link is offered to the next parcel opened, and attached only wi
   expect(await stored(page)).toMatchObject({ listingUrl: LINK, name: "0 Ferney Creek Rd" });
 
   // Dismissed: gone, and not offered again. (Its link cleared first: a parcel with a link is never offered one.)
+  await editParcel(page);
   await page.locator('button[aria-label$="acres: parcel details"]').first().click();
   const link = (await unfoldListing(page)).getByLabel("Listing link");
   await link.fill("");

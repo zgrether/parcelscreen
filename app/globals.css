@@ -167,6 +167,83 @@ html:has(.explore) body {
   .explore-panel.bare .explore-scroll {
     display: none;
   }
+  /* Map room (Zach, #427 Q3): the handle is a real button with a 44 px target, from the sheet's top edge down over
+     the strip under the bar, so it never reaches over the map. */
+  .sheet-handle {
+    position: relative;
+    cursor: pointer;
+  }
+  .sheet-handle::after {
+    content: "";
+    position: absolute;
+    inset: -8px -44px -30px;
+  }
+  .sheet-handle:focus-visible {
+    outline: 2px solid var(--color-water);
+    outline-offset: 4px;
+  }
+  /* Map room §1: collapsed to the line. Everything else stays mounted, hidden, so collapsing clears nothing. */
+  .explore-panel.at-line > :not(.sheet-handle, .sheet-line) {
+    display: none;
+  }
+  .explore-panel.at-line .sheet-handle {
+    margin-bottom: 1px;
+  }
+  .sheet-line {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 4px 0 14px;
+    touch-action: none;
+    cursor: pointer;
+    /* A swipe across its text mustn't select it: the next press on a selection starts a text drag, which cancels the
+       swipe (full-map mode's swipes, map-room plan §5). */
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .sl-name {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 600 16px/1.2 var(--font-cond);
+  }
+  .sheet-line .sh-card,
+  .sl-acres {
+    flex: none;
+    white-space: nowrap;
+  }
+  .sl-acres {
+    color: var(--color-ink-2);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .sl-progress {
+    flex: 1 1 0;
+    display: flex;
+    gap: 6px;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 13.5px;
+  }
+  .sl-grade {
+    flex: none;
+    min-height: 40px;
+    padding: 0 14px;
+    border-color: transparent;
+    background: var(--tb-amber);
+    color: #1c2620;
+    font-weight: 600;
+  }
+  .sheet-line .sh-x {
+    flex: none;
+    width: 44px;
+    height: 44px;
+  }
 }
 
 /* ---------- Panel components (proto L44–70, L89–90) ---------- */
@@ -599,6 +676,89 @@ html:has(.explore) body {
   min-height: 32px;
   white-space: nowrap;
 }
+/* Map room (plan §2): the key folded to a "Key" chip at the map's bottom left, in the map buttons' style; 44 px on a
+   phone. Open, it has a Hide at its end, and on a phone the shading's legend under the overlays. */
+.map-key-line.folded {
+  left: calc(var(--float-l, 0px) + 12px);
+  right: auto;
+  margin: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+.mkl-key {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--tb-bg);
+  color: var(--tb-ink);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+  font: 600 14px/1 var(--font-sans);
+  cursor: pointer;
+}
+.mkl-hide {
+  min-height: 32px;
+  white-space: nowrap;
+}
+.map-key-line .surface-legend {
+  display: none;
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  .mkl-key,
+  .mkl-hide {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .map-key-line .surface-legend.in-key {
+    display: flex;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    position: static;
+    width: auto;
+    padding: 0;
+    background: none;
+    color: inherit;
+    box-shadow: none;
+  }
+}
+.surface-legend.in-key .sl-title {
+  font-weight: 600;
+}
+/* On the key's light panel, the column's light-on-dark ink is too faint: the panel's own ink and size. */
+.surface-legend.in-key .sl-title,
+.surface-legend.in-key .sl-solid,
+.surface-legend.in-key .sl-range,
+.surface-legend.in-key .sl-note {
+  color: var(--color-ink-2);
+  font-size: 12px;
+}
+.slk-ramp {
+  display: inline-block;
+  width: 96px;
+  height: 10px;
+  border-radius: 3px;
+}
+.slk-end {
+  color: var(--color-ink-2);
+  font-size: 12px;
+}
+.slk-row {
+  display: inline-flex;
+}
+.slk-band {
+  position: relative;
+  width: 30px;
+  height: 10px;
+}
+.slk-tick {
+  position: absolute;
+  top: 12px;
+  right: -10px;
+  font-size: 11px;
+}
 .mk-all-pins {
   margin: 6px 0 4px;
 }
@@ -745,6 +905,24 @@ html:has(.explore) body {
   }
   .tb-status .long {
     display: none;
+  }
+  /* Map room (plan §3): folded to Edit, the bar is one 44 px button at the bottom right, above the sheet. */
+  .toolbar.folded {
+    left: auto;
+    right: 12px;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+  .toolbar.folded .tb-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 12px;
+    font-size: 15px;
+  }
+  /* The folded Key chip takes the same row, at the left, while the bar is folded (it sits above the open bar). */
+  .explore:has(.toolbar.folded) .map-key-line.folded {
+    bottom: calc(var(--sheet-h) + 10px);
   }
   .switch-toast {
     bottom: calc(var(--sheet-h) + 62px);
@@ -1628,15 +1806,9 @@ html:has(.explore) body {
     flex-direction: row;
     align-items: flex-start;
   }
-  /* Owner, 2026-11-05: above the tab bar, the sheet and the key line (their heights: --tabs-h, --sheet-h, --kl-h; its
-     own, --lg-h), and never higher than just under "Your list". */
+  /* Map room (plan §2): a phone's shading legend is in the open Key, not over the map's left edge. */
   .map-col .surface-legend {
-    position: fixed;
-    left: 10px;
-    top: max(
-      112px,
-      calc(100dvh - var(--tabs-h, 0px) - var(--sheet-h, 0px) - 82px - var(--kl-h, 0px) - var(--lg-h, 190px))
-    );
+    display: none;
   }
 }
 .map-ctl-btn {
@@ -2310,8 +2482,13 @@ html:has(.app-nav) .explore {
     --tabs-h: 0px;
   }
   html.map-tool:has(.app-map:not([hidden])) .app-nav,
-  html.note-typing:has(.app-map:not([hidden])) .app-nav {
+  html.note-typing:has(.app-map:not([hidden])) .app-nav,
+  html.full-map:has(.app-map:not([hidden])) .app-nav {
     display: none;
+  }
+  /* Full-map mode (map-room plan §5) steps the tab bar aside as a tool does. */
+  html.full-map:has(.app-map:not([hidden])) {
+    --tabs-h: 0px;
   }
   html:has(.app-nav) .explore {
     padding-top: env(safe-area-inset-top, 0px);
@@ -9407,4 +9584,55 @@ button.use-row[aria-expanded="true"] .use-name::after {
 }
 .pay-note {
   margin: 0 0 4px;
+}
+
+/* ---------- Map room §5: full-map mode. The sheet's line and the restore button stay; every other control hides. */
+.explore.full-map .map-col,
+.explore.full-map .search-btn,
+.explore.full-map .back-chip,
+.explore.full-map .map-key-line,
+.explore.full-map .toolbar,
+.explore.full-map .switch-toast,
+.explore.full-map .tilt-hint,
+.explore.full-map .map-hint,
+.explore.full-map .finish-prompt {
+  display: none;
+}
+.full-map-restore {
+  position: absolute;
+  z-index: 21;
+  /* Under the map's ⓘ (its credits stay: the basemaps' terms). */
+  top: calc(env(safe-area-inset-top, 0px) + 48px);
+  right: 12px;
+  width: auto;
+  padding: 0 14px;
+  border: 0;
+  font: 600 14px/1 var(--font-sans);
+  cursor: pointer;
+}
+/* The one-time hint over the line (Zach: once per device). */
+.full-map-hint {
+  position: absolute;
+  z-index: 16;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--sheet-h, 0px) + 64px);
+  margin: 0 auto;
+  width: fit-content;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(28, 38, 32, 0.92);
+  color: var(--tb-ink);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+  font-size: 14px;
+  pointer-events: none;
+}
+/* The desktop's way in, beside the Key chip; a phone swipes the line down instead. */
+.mkl-hide-controls {
+  margin-left: -6px;
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  .mkl-hide-controls {
+    display: none;
+  }
 }

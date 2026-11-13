@@ -7,7 +7,7 @@ import type { BrowserContext, Page } from "@playwright/test";
 import { ownRecordsHint } from "@/lib/geo/ownRecords";
 import { expect, test } from "./fixtures";
 import { loadFixture, ROAN_SEARCH } from "../test/support/fixtures";
-import { openExplorer, openSearch, screenIt } from "../e2e/flow";
+import { editParcel, openExplorer, openSearch, screenIt } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";
 
 const ROAN = "roan-hwy-143-099-046-02" as const;
@@ -82,6 +82,7 @@ for (const phone of [false, true]) {
       await page.waitForTimeout(1000);
       await shot(page, "1-roan-lines");
       await tapAt(page, loadFixture(ROAN).input.point);
+      await editParcel(page);
       const info = page.getByRole("button", { name: /acres: parcel details$/ });
       await info.click();
       await expect(page.locator("table.facts").first()).toContainText("099 046.02");

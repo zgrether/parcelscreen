@@ -58,6 +58,7 @@ import { SCREEN_CONSTANTS } from "@/lib/screen/config";
 import type { Facts, MarkKind, SepticClass } from "@/lib/report/marks";
 import { TOOL, withRecent, type MarkChoice } from "@/lib/client/markChoices";
 import { DOUBLE_TAP_MS } from "@/components/Map/doubleTap";
+import { fullMap } from "./fullMap";
 import {
   BUSY_TEXT,
   decideTap,
@@ -692,6 +693,14 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       // No record under an empty spot where outlines are drawn (owner, 2026-10-11).
       else if (hit.linesShown && !hit.insideOpen && !hit.outline && !hit.savedKey)
         flash(hint, NO_PARCEL_HERE, 4000);
+      // A tap that does nothing else, on a phone: full-map mode on or off (map-room plan §5; Zach's option A), once the
+      // double-tap window has passed, so a double-tap zooms without the controls flickering.
+      else if (!docked) {
+        const closedSomething = !!hit.closedSomething;
+        setTimeout(() => {
+          if (serial === tapSerial.current) fullMap({ type: "emptyTap", closedSomething });
+        }, DOUBLE_TAP_MS);
+      }
     },
     undoTap(at = performance.now()) {
       const last = lastTap.current;
