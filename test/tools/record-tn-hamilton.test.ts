@@ -1,6 +1,6 @@
 /**
  * Records Hamilton County's parcel answers for the unit tests (the Tennessee counties mission,
- * docs/plans/tn-counties.md): test/support/tnHamilton.ts hamiltonSamples run once against the live Live_Parcels layer,
+ * docs/plans/tn-counties.md): test/support/tnHamilton.ts hamiltonSamples run once against the county's live layer,
  * every request kept in test/fixtures/tn-hamilton/parcels.har with owner and address fields scrubbed (scrubHar.ts).
  * Then the Three Gorges lot is graded live, and what the grade found goes to test-results/tn-hamilton-grade.md (the
  * job summary; nothing of it is kept in the repo).
@@ -24,6 +24,7 @@ import {
   HAMILTON_HAR_DIR,
   THREE_GORGES_GISLINK,
   THREE_GORGES_TAX_CARD,
+  sameGislink,
 } from "../support/tnHamilton";
 
 const BROWSER_UA =
@@ -130,7 +131,7 @@ describe.runIf(import.meta.env.MODE === "record-tn-hamilton")(
 
       // What the tests rely on, checked after writing so a surprise can be read in the file and the summary.
       expect(facts.parcelId).toBe(THREE_GORGES_TAX_CARD);
-      expect(facts.keyId).toBe(THREE_GORGES_GISLINK);
+      expect(sameGislink(facts.keyId)).toBe(THREE_GORGES_GISLINK);
       expect(got.picked.parcel?.props.OBJECTID).toBe(got.record.props.OBJECTID);
       expect(got.search.map((h) => h.id)).toContain(THREE_GORGES_TAX_CARD);
     }, 900_000);

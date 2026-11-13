@@ -190,7 +190,7 @@ export interface ParcelFacts {
   deededAcres: number | null;
   /**
    * The parcel's assessment record: Tennessee's (LINK_TPAD) on the Comptroller's own site, or Hamilton County
-   * assessor's card (RecordsOnl).
+   * assessor's card (RecordsOnlineLink).
    */
   countyRecordUrl: string | null;
   /** Part of the parcel lies under a polygon the county map marks as a boundary conflict (Tennessee, step 2). */
@@ -199,7 +199,7 @@ export interface ParcelFacts {
 
 /**
  * Where Tennessee's assessment records live: the state's (LINK_TPAD), and Hamilton County assessor's cards
- * (RecordsOnl). A link anywhere else isn't shown.
+ * (RecordsOnlineLink). A link anywhere else isn't shown.
  */
 const RECORD_PREFIXES = ["https://assessment.cot.tn.gov/", "https://assessor.hamiltontn.gov/"];
 
@@ -242,7 +242,7 @@ export function parcelFacts(geo: Feature<Polygon>, props: Record<string, unknown
   };
   const parcelId = taxCardId(props) ?? pick("parno", "parcelid", "pin", "gispin", "PARCEL_ID", "parid");
   const link =
-    [props.LINK_TPAD, props.RecordsOnl].find((x): x is string => typeof x === "string")?.trim() ?? "";
+    [props.LINK_TPAD, props.RecordsOnlineLink].find((x): x is string => typeof x === "string")?.trim() ?? "";
   return {
     // A combined boundary may include a bridged strip that isn't part of the listing (lib/geo/combine.ts).
     acres: typeof props.combined_acres === "number" ? props.combined_acres : area(geo) / M2_PER_ACRE,
