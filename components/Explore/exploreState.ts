@@ -926,6 +926,11 @@ export interface TapHit {
   ll?: LatLon;
   /** When the tap happened, on performance.now()'s clock (its event's time, doubleTap.ts eventTime). */
   at?: number;
+  /**
+   * Something was open when the tap began (a tip, the open Key, a popup) and the tap closed it: such a tap does nothing
+   * else (map-room plan §5; Zach, #427).
+   */
+  closedSomething?: boolean;
 }
 
 /** An empty tap where outlines are drawn (owner, 2026-10-11). */

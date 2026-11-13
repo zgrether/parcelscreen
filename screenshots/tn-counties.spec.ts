@@ -7,7 +7,7 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { ownRecordsHint } from "../lib/geo/ownRecords";
-import { screenIt } from "../e2e/flow";
+import { editParcel, screenIt } from "../e2e/flow";
 
 const OUT = "test-results/screenshots/tn-counties";
 /** Inside Three Gorges Farms tract 1, 048 045.24 (the recorder's point on its record). */
@@ -74,6 +74,7 @@ for (const phone of [false, true]) {
       await shot(page, "hamilton-lines");
 
       await tapAt(page, THREE_GORGES);
+      await editParcel(page);
       const info = page.getByRole("button", { name: /acres: parcel details$/ });
       await expect(info).toBeVisible({ timeout: 30_000 });
       await info.click();

@@ -26,10 +26,25 @@ import { GroundProvider } from "@/components/Ground/GroundContext";
 import { PwaShell } from "@/components/Pwa/PwaShell";
 import { MapArea } from "./MapArea";
 import { Search } from "@/components/Map/Search";
-import { mapShowing } from "@/lib/client/mapShowing";
+import { mapShowing, onMapShowing } from "@/lib/client/mapShowing";
 import { ScreenItContext } from "@/components/Results/ScreenItContext";
 import { debugFromUrl } from "@/lib/client/debugHandle";
-import { DockTab, ScreenBody, ScreenHeader, useScreenIt } from "@/components/Results/panel/ScreenIt";
+import {
+  DockTab,
+  ScreenBody,
+  ScreenHeader,
+  useScreenIt,
+  type SheetWhy,
+} from "@/components/Results/panel/ScreenIt";
+import { SheetLine } from "@/components/Results/panel/SheetLine";
+import {
+  FULL_MAP_HINT,
+  FULL_MAP_HINT_KEY,
+  SHOW_CONTROLS,
+  fullMap,
+  setFullMapBlockers,
+  useFullMap,
+} from "./fullMap";
 import { HeaderActions } from "@/components/Results/panel/HeaderActions";
 import { GradeNote } from "@/components/Results/panel/GradeNote";
 import { GradeAction } from "@/components/Results/panel/GradeAction";
@@ -119,18 +134,21 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   useLayoutEffect(() => {
     scroller.current?.scrollTo?.({ top: 0 });
   }, [openKey, info, uses]);
-  // The screen's "after a run, rise" calls the sheet's, which is made below (the sheet's peek depends on the screen).
+  // The screen's sheet moves call the sheet's, which is made below (the sheet's peek depends on the screen).
   const raiseSheet = useRef<(tall?: boolean) => void>(() => {});
-  // After a run the sheet rises, and the panel shows Grade (step 8b).
+  const restoreSheet = useRef<() => void>(() => {});
+  // After a run the panel shows Grade (step 8b), and the sheet goes back to the person's choice, the line in a fresh
+  // session (map-room plan §1; Zach, #427 Q1: no rise to 46%). The rulebook's panel and Steps ▸ raise it.
   const exploreNow = useRef(explore);
   useEffect(() => {
     exploreNow.current = explore;
   });
-  const raise = useCallback((tall?: boolean) => {
-    raiseSheet.current(tall);
+  const onSheet = useCallback((why: SheetWhy) => {
+    if (why === "graded") restoreSheet.current();
+    else raiseSheet.current(why === "steps");
     exploreNow.current.setInfo(false);
   }, []);
-  const screen = useScreenIt(explore, config, raise, setHint);
+  const screen = useScreenIt(explore, config, onSheet, setHint);
   // Step 14: Grade both pieces, in a worker of its own; the panel shows it on Uses (the reducer opened it), the sheet up.
   const raiseOnly = useCallback(() => raiseSheet.current(), []);
   const scenarios = useScenarioGrading(explore, config, raiseOnly);
@@ -142,9 +160,20 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   const answered = !!store.open && !!screen.shown && !screen.stale && !screen.runningHere && !withAction;
   const peek = withAction ? PEEK_WITH_ACTION : PEEK + (answered ? PEEK_ANSWER : 0);
   // Step 8b: Details is in the sheet, so only a map tool steps it aside now.
-  const sheet = useBottomSheet(root, panel, mode !== null || split !== null, peek);
+  // Full-map mode (map-room plan §5): on a phone the line's swipes hide and show the map's controls.
+  const fullMapOn = useFullMap();
+  const sheet = useBottomSheet(
+    root,
+    panel,
+    mode !== null || split !== null,
+    peek,
+    explore.docked
+      ? undefined
+      : { folded: fullMapOn, down: () => fullMap({ type: "hide" }), up: () => fullMap({ type: "show" }) },
+  );
   useEffect(() => {
     raiseSheet.current = sheet.raise;
+    restoreSheet.current = sheet.restore;
   });
   // Step 8b (plan §2): each parcel opens on Grade, or on Details when never graded; a line or mark selected raises the
   // sheet to show its row.
@@ -154,6 +183,8 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
   useEffect(() => {
     // Not remembered between parcels (plan §2): Grade for a graded one, Details for one never graded.
     if (store.open && ungraded !== explore.state.info) setInfo(ungraded);
+    // Each parcel opens with the sheet where the person last put it (map-room plan §1).
+    restoreSheet.current();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per parcel opened
   }, [serial]);
   useEffect(() => {
@@ -176,6 +207,21 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
     document.documentElement.classList.toggle("map-tool", tool);
     return () => document.documentElement.classList.remove("map-tool");
   }, [tool]);
+  // The explorer stays mounted behind the other tabs (step 4b): the one-time hint waits until the map is on show, or a
+  // parcel opened from Your list would spend it unseen.
+  const [mapOnShow, setMapOnShow] = useState(mapShowing);
+  useEffect(() => onMapShowing(setMapOnShow), []);
+  // Full-map mode: never with a tool in use (a tool starting ends it), and it ends when the parcel closes. On a phone the
+  // tab bar steps aside too, as for a tool (the same CSS, html.full-map).
+  useEffect(() => setFullMapBlockers({ tool }), [tool]);
+  const anyOpen = store.open !== null;
+  useEffect(() => {
+    if (!anyOpen) fullMap({ type: "end" });
+  }, [anyOpen]);
+  useEffect(() => {
+    document.documentElement.classList.toggle("full-map", fullMapOn);
+    return () => document.documentElement.classList.remove("full-map");
+  }, [fullMapOn]);
   const tabs = useTabsHeight();
   // Esc on desktop closes the open parcel (17e), when nothing else should take it: no map tool, no panel, no
   // menu, viewer or dialog, no text field. Those keep their own Esc.
@@ -246,6 +292,8 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
     sheet.mapMode ? "mapmode" : "",
     // Step 7: the header shows the answer's reason only while the sheet rests at its peek.
     sheet.atPeek && !withAction ? "at-peek" : "",
+    // Map room: the slim line in the header's place; the rest stays mounted, hidden, so collapsing clears nothing.
+    sheet.atLine && !sheetHidden ? "at-line" : "",
     sheetHidden ? "sheet-hidden" : "",
     docked ? (collapsed ? "dock collapsed" : full ? "dock full" : "dock search-only") : "",
     // The phone sheet with a parcel open and nothing run yet: the header alone (17e).
@@ -260,7 +308,9 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
         <GroundProvider timeZone={config.timeZone} endpoints={config.endpoints}>
           <div
             ref={root}
-            className={sheetTall ? "explore sheet-tall" : "explore"}
+            className={["explore", sheetTall ? "sheet-tall" : "", fullMapOn ? "full-map" : ""]
+              .filter(Boolean)
+              .join(" ")}
             style={vars as CSSProperties}
           >
             <div className="explore-map">
@@ -278,16 +328,23 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
               style={sheet.height != null ? { height: sheet.height } : undefined}
             >
               {/* A button, so a tap on it stays on it: the browser's touch adjustment moves a tap on a plain element to the
-                  nearest button, which since 8c is the header's "Add to list" just below. Out of the tab order, as the
-                  sheet's drag is. */}
-              <button
-                type="button"
-                className="sheet-handle"
-                title="Drag or tap to resize"
-                tabIndex={-1}
-                aria-hidden="true"
-                {...sheet.handlers}
-              />
+                  nearest button, which since 8c is the header's "Add to list" just below. Map room (Zach, #427 Q3): a
+                  real button, named for what it does, with a 44 px target (globals.css); its click toggles, whether a
+                  tap, a key or a screen reader's, and the grip's handlers drag it. */}
+              {!docked && (
+                <button
+                  type="button"
+                  className="sheet-handle"
+                  aria-label={sheet.atLine ? "Expand the sheet" : "Collapse the sheet"}
+                  aria-expanded={!sheet.atLine}
+                  title={sheet.atLine ? "Expand the sheet" : "Collapse the sheet"}
+                  data-grip="handle"
+                  {...sheet.handlers}
+                  onClick={sheet.onHandleClick}
+                />
+              )}
+              {/* Map room: the sheet collapsed to its line. */}
+              {!docked && sheet.atLine && store.open && <SheetLine s={screen} grip={sheet.handlers} />}
               {/* The desktop panel's first row: Search (step 4c). */}
               {docked && (
                 <div className="dock-search">
@@ -303,7 +360,7 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
               {(!docked || parcelOpen) && (
                 <>
                   {/* The parcel and the screen button (owner, after 14d). On phones it's the peek. */}
-                  <header className="explore-header" {...sheet.handlers}>
+                  <header className="explore-header" data-grip="header" {...sheet.handlers}>
                     <ScreenHeader s={screen} desk={docked} />
                   </header>
                   {/* The phone's grade button, under the header (owner, 4c Q1); the desktop's is the toolbar's. */}
@@ -345,10 +402,54 @@ export function ExploreShell({ children }: { children?: ReactNode }) {
               )}
             </aside>
             {collapsed && <DockTab s={screen} reopen={() => setCollapsed(false)} />}
+            {/* Full-map mode's way back (map-room plan §5): one 44 px button, top right. */}
+            {fullMapOn && (
+              <button
+                type="button"
+                className="map-ctl-btn full-map-restore"
+                aria-label={SHOW_CONTROLS}
+                title={SHOW_CONTROLS}
+                onClick={() => fullMap({ type: "show" })}
+              >
+                {/* Words, not ⤢: the fresh-eyes review read the arrows as "go full screen" (#435). */}
+                Show controls
+              </button>
+            )}
+            {!docked && sheet.atLine && !fullMapOn && store.open && mapOnShow && <FullMapHint />}
           </div>
           <PwaShell running={screen.running} open={screen.ctl.state.store.open?.key ?? null} />
         </GroundProvider>
       </ScreenItContext.Provider>
     </ExploreContext.Provider>
+  );
+}
+
+/**
+ * The one-time hint over the line (Zach, #427 option A): "Swipe down to hide controls.", the first time the line shows on
+ * this device, for a few seconds; never again (`ps.fullMapHint`).
+ */
+function FullMapHint() {
+  const [show, setShow] = useState(() => {
+    try {
+      return localStorage.getItem(FULL_MAP_HINT_KEY) !== "1";
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    if (!show) return;
+    try {
+      localStorage.setItem(FULL_MAP_HINT_KEY, "1");
+    } catch {
+      /* storage blocked: it may show again next time */
+    }
+    const t = setTimeout(() => setShow(false), 6000);
+    return () => clearTimeout(t);
+  }, [show]);
+  if (!show) return null;
+  return (
+    <p className="full-map-hint" role="status">
+      {FULL_MAP_HINT}
+    </p>
   );
 }

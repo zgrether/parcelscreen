@@ -7,6 +7,9 @@
  *   - House / Garden: the score ramp, low at the bottom to high at the top, and swatches for the solid
  *     colours drawn over it (house sites and shelves; garden patches).
  * Every colour is the image's own (lib/render/surface.ts), so the legend can't drift from the map.
+ *
+ * Map room (plan §2): on a phone the column's legend gives way, and the open Key shows it instead (`where="key"`), as a
+ * short horizontal bar under the overlays: the same colours, low to high left to right, with the swatches.
  */
 import { heat, SLOPE_BANDS, SURFACE_SOLIDS, wetnessColour, WETNESS_RANGE } from "@/lib/render/surface";
 import { WETNESS_WORDS } from "@/lib/uses/words";
@@ -21,20 +24,22 @@ const rgb = (c: Rgb) => `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
 const deg = (g: number) => ((Math.atan(g) * 180) / Math.PI).toFixed(1);
 const pct = (g: number) => `${Math.round(g * 100)}%`;
 
-export function SurfaceLegend() {
+export function SurfaceLegend({ where = "column" }: { where?: "column" | "key" }) {
   const mode = useSurfaceMode();
   const shown = useHasSurface() && mode !== "off";
+  const key = where === "key";
   // Its height, for a phone's placement above the key line and the sheet (CSS: --lg-h; owner, 2026-11-05).
   useLayoutEffect(() => {
-    const el = shown ? document.querySelector<HTMLElement>(".map-col .surface-legend") : null;
+    const el = shown && !key ? document.querySelector<HTMLElement>(".map-col .surface-legend") : null;
     if (!el) return;
     const set = () => el.style.setProperty("--lg-h", `${el.offsetHeight}px`);
     set();
     const ro = new ResizeObserver(set);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [shown, mode]);
+  }, [shown, mode, key]);
   if (!shown) return null;
+  if (key) return <KeyLegend mode={mode} />;
   if (mode === "wetness") return <WetnessLegend />;
   return mode === "slope" ? <SlopeLegend /> : <ScoreLegend kind={mode} />;
 }
@@ -43,7 +48,7 @@ export function SurfaceLegend() {
  * Water on the land's wetness (owner, 2026-11-05): a strip from wet (deep blue) to dry (clear), the image's own colours,
  * labelled as a range, "wetter ← → drier", with the note that "wet ground" counts only the wettest spots.
  */
-function WetnessLegend() {
+function WetnessLegend({ inKey = false }: { inKey?: boolean }) {
   const { dry, wet } = WETNESS_RANGE;
   const stops = Array.from({ length: 11 }, (_, i) => {
     const c = wetnessColour(wet - ((wet - dry) * i) / 10);
@@ -52,7 +57,12 @@ function WetnessLegend() {
   const title =
     "Wetness: where water gathers and soaks, from the 3 m lidar's flow and slope. Deep blue is wettest; clear is driest.";
   return (
-    <div className="surface-legend wet" role="img" aria-label={title} title={title}>
+    <div
+      className={inKey ? "surface-legend wet in-key" : "surface-legend wet"}
+      role="img"
+      aria-label={title}
+      title={title}
+    >
       <div className="sl-strip" style={{ background: `linear-gradient(to right, ${stops})` }} />
       <span className="sl-range">{WETNESS_WORDS.range}</span>
       <span className="sl-note">{WETNESS_WORDS.note}</span>
@@ -117,6 +127,42 @@ function ScoreLegend({ kind }: { kind: "house" | "garden" }) {
           low
         </span>
       </div>
+      {s.solids.map((x) => (
+        <span key={x.label} className="sl-solid">
+          <span className="sl-swatch" style={{ background: rgb(x.rgba) }} />
+          {x.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** The open Key's copy on a phone (map-room plan §2): one row, the image's own colours, low to high left to right. */
+function KeyLegend({ mode }: { mode: "slope" | "house" | "garden" | "wetness" }) {
+  if (mode === "wetness") return <WetnessLegend inKey />;
+  if (mode === "slope") {
+    const bounds = SLOPE_BANDS.slice(0, -1).map((b) => b.upTo);
+    return (
+      <div className="surface-legend in-key" role="img" aria-label="Slope: gentle (green) to steep (red)">
+        <span className="sl-title">Slope</span>
+        <span className="slk-row">
+          {SLOPE_BANDS.map((b, i) => (
+            <span key={b.upTo} className="slk-band" style={{ background: rgb(b.rgba) }}>
+              {i < bounds.length ? <span className="slk-tick">{pct(bounds[i]!)}</span> : null}
+            </span>
+          ))}
+        </span>
+      </div>
+    );
+  }
+  const s = SCORE[mode];
+  const stops = Array.from({ length: 11 }, (_, i) => `${rgb(heat(i * 10, mode)!)} ${i * 10}%`).join(", ");
+  return (
+    <div className="surface-legend in-key" role="img" aria-label={`${s.about}.`}>
+      <span className="sl-title">{s.title}</span>
+      <span className="slk-end">low</span>
+      <span className="slk-ramp" style={{ background: `linear-gradient(to right, ${stops})` }} />
+      <span className="slk-end">high</span>
       {s.solids.map((x) => (
         <span key={x.label} className="sl-solid">
           <span className="sl-swatch" style={{ background: rgb(x.rgba) }} />

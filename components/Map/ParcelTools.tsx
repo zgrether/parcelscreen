@@ -143,6 +143,7 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
     // open, the second tap is a corner, as before.
     let touchEndAt = -Infinity;
     let lastTap: Tap | null = null;
+    let openAtDown = false;
     const onClick = (e: MapMouseEvent) => {
       // The tap that ended a long press opened the picker: it isn't a tap on the map too.
       if (pressed) return void (pressed = false);
@@ -185,6 +186,7 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
           linesLoading: parcelLinesLoading(map),
           ll: toLL(e),
           at: now,
+          closedSomething: openAtDown,
         });
       }
       if (mode === "house") c.setHouse(toLL(e));
@@ -276,6 +278,13 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
     map.on("click", onClick);
     map.on("dblclick", onDblClick);
     document.addEventListener("keydown", onKey);
+    // Whether something was open as the tap began (a tip, a popup, the open Key): the tap closes it and does nothing else
+    // (map-room plan §5; Zach, #427). Read at the press, before the tap's own handlers close them.
+    const container = map.getCanvasContainer();
+    const onDown = () => {
+      openAtDown = !!document.querySelector(".maplibregl-popup, .map-key-line:not(.folded)");
+    };
+    container.addEventListener("pointerdown", onDown, true);
     // Double-click and drag, or middle-drag, tilts and rotates; a double-click alone zooms in (Google Earth's
     // way, owner 2026-10-10). Not while a tool is open: Draw finishes a boundary with a double-click.
     const uninstall = installTiltRotate(map, () => toolOpen(ref.current.current()));
@@ -289,6 +298,7 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
       map.off("click", onClick);
       map.off("dblclick", onDblClick);
       document.removeEventListener("keydown", onKey);
+      container.removeEventListener("pointerdown", onDown, true);
       uninstall();
     };
   }, [map]);

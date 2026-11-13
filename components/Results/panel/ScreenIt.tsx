@@ -114,10 +114,17 @@ export interface Tried {
   error?: string;
 }
 
+/** Why the panel asks the sheet to move (useScreenIt's onFinished). */
+export type SheetWhy = "graded" | "panel" | "steps";
+
 export function useScreenIt(
   ctl: ExploreController,
   config: UserConfig,
-  onFinished: (tall?: boolean) => void,
+  /**
+   * The sheet's move (map-room plan §1): a grade finished ("graded": back to the person's choice), the rulebook's panel
+   * reopened ("panel": raised to show it) or Steps ▸ ("steps": to the top).
+   */
+  onFinished: (why: SheetWhy) => void,
   hint: SetHint,
 ) {
   const screen = useScreen();
@@ -231,7 +238,7 @@ export function useScreenIt(
       if (live.auto && reassessed === null) setRescreened(live.serial);
     });
     latest.current.ctl.screened(record.id, live.serial);
-    if (reassessed === null) latest.current.onFinished();
+    if (reassessed === null) latest.current.onFinished("graded");
   }, [status, result, live, stored]);
 
   const now = parcel ? runKeys(parcel.geo.geometry, house, config, lines) : null;
@@ -484,7 +491,7 @@ export function useScreenIt(
   // Reopened from the URL (Back from the rulebook): on phones, the sheet comes up to show it.
   const reopened = !!opened?.fromUrl && !!panel && !!display;
   useEffect(() => {
-    if (reopened) latest.current.onFinished(); // ExploreShell's onFinished is the sheet's raise
+    if (reopened) latest.current.onFinished("panel"); // ExploreShell's onFinished moves the sheet
   }, [reopened]);
   // The open panel goes into the URL, replacing its entry, except while the URL's own waits for the report. Only while
   // the map is showing (step 4b: it stays mounted behind the other tabs, whose URLs aren't its), and again on return.
@@ -648,7 +655,7 @@ export function useScreenIt(
     run: () => run(),
     cancel: screen.cancel,
     /** The sheet raised to its top, on Grade (Z-9: the progress bar's Steps ▸). */
-    raiseSheet: () => latest.current.onFinished(true),
+    raiseSheet: () => latest.current.onFinished("steps"),
     steps: screen.state.steps,
     showSteps: live?.serial === serial && status !== "idle" && !screen.state.restored,
     error,
@@ -721,7 +728,7 @@ const factPropsFor = (panel: string, s: ScreenIt): FactProps | null => {
 };
 
 /** What the open parcel holds for its card: those names, and its markers (WF4). */
-const drawnFor = (s: ScreenIt): Drawn | undefined => {
+export const drawnFor = (s: ScreenIt): Drawn | undefined => {
   const open = s.ctl.state.store.open;
   return open
     ? drawnOf(
@@ -815,7 +822,10 @@ export function ScreenHeader({ s, desk = false }: { s: ScreenIt; desk?: boolean 
   );
 }
 
-/** The header's acres (J-5, UX part 2 PR 3c2): a survey's, named so, before the boundary's. */
+/**
+ * The header's acres (J-5, UX part 2 PR 3c2): a survey's, named so, before the boundary's. Shorter than the sheet's line's
+ * (lib/report/acres.ts): the header's row has the county and tax map too, and must fit the 148 px peek on one line.
+ */
 const acresWords = (open: WorkingParcel | null, boundary: number | null): string | null => {
   const surveyed = open?.facts?.survey?.acres ?? null;
   if (surveyed !== null) return `${fmt(surveyed, 1)} ac, surveyed`;

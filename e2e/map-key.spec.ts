@@ -1,7 +1,8 @@
 /**
  * The map's key line (UX part 2 PR 3b2; the audit's P-2): after a grade the map pins the best homesite only, and a line
  * under the map names what's drawn. "All map marks" opens Map layers at the full key, whose Every pin brings the other
- * pins back, and the line says so. A production build, the fixtures' HARs replayed.
+ * pins back, and the line says so. Map room (plan §2): it opens folded to a "Key" chip, and folds again on Hide or a
+ * camera move of the person's own, not the app's. A production build, the fixtures' HARs replayed.
  */
 import { expect, test } from "@playwright/test";
 import { importParcel, openExplorer, screenIt } from "./flow";
@@ -23,6 +24,10 @@ test("the key line names what's drawn; All map marks opens the key; Every pin br
   await importParcel(page, FERNEY);
   await screenIt(page);
 
+  // Folded to its chip after the grade; a tap opens it.
+  const chip = page.getByRole("button", { name: "Show the map's key" });
+  await expect(chip).toHaveText("Key");
+  await chip.click();
   // The best homesite's pin alone: no other sites, shelves, gardens or road entrances.
   const line = page.getByRole("note", { name: "What the map shows" });
   await expect(line).toContainText("Best homesite");
@@ -43,5 +48,28 @@ test("the key line names what's drawn; All map marks opens the key; Every pin br
   // Off again: the best homesite alone.
   await everyPin.click();
   await expect(page.locator(".sitepin:not(.top):not(.steep):not(.mk-pin)")).toHaveCount(0);
+
+  // Hide folds it. Open again, the app's own camera move leaves it open; the person's drag folds it.
+  await line.getByRole("button", { name: "Hide" }).click();
+  await expect(line).toHaveCount(0);
+  await chip.click();
+  await page.evaluate(() =>
+    (window as unknown as { __psMap: { panBy(by: [number, number], o: object): void } }).__psMap.panBy(
+      [60, 0],
+      {
+        duration: 0,
+      },
+    ),
+  );
+  await expect(line).toBeVisible();
+  const box = (await page.locator(".maplibregl-canvas").boundingBox())!;
+  const x = box.x + box.width * 0.6,
+    y = box.y + box.height * 0.3;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + 80, y + 40, { steps: 6 });
+  await page.mouse.up();
+  await expect(line).toHaveCount(0);
+  await expect(chip).toBeVisible();
   expect(errors).toEqual([]);
 });

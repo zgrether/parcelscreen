@@ -8,7 +8,7 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { centroid } from "@turf/turf";
 import { loadFixture } from "../test/support/fixtures";
-import { importParcel, openExplorer, screenIt } from "../e2e/flow";
+import { editParcel, importParcel, openExplorer, screenIt } from "../e2e/flow";
 import { replayHar } from "../e2e/replay";
 
 const FERNEY = "ferney-creek-52-47A" as const;
@@ -29,6 +29,7 @@ async function at(page: Page, dLat: number, dLon: number): Promise<{ x: number; 
 
 /** Draws a short track across Ferney's middle, as e2e/lines.spec.ts does. */
 async function drawTrack(page: Page): Promise<void> {
+  await editParcel(page);
   await page.locator(".toolbar").getByRole("button", { name: "+ Mark", exact: true }).click();
   await page
     .getByRole("dialog", { name: "Mark on the parcel" })
