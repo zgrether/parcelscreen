@@ -133,9 +133,10 @@ group, parcel), `COUNTY_NAME`, `CMAP`, `GP`, `PARCEL` (the tax card's number), `
 right-of-way) and 5 (parcel conflict) are never lines or taps. `PARCELID` isn't read: it ends in the tax year.
 
 **Tennessee's own-records counties** (the Tennessee counties mission, 2026-10-30; `docs/plans/tn-counties.md`).
-Hamilton County's own layer (`mapsdev.hamiltontn.gov`, `Live_Parcels/MapServer/0`) is a fourth parcel source, asked
-only over Hamilton and read as the state's layer is (`MAP`, `GROUP_`, `PARCEL`; `GISLINK`; `OWNERNAME1`, `ADDRESS`;
-`RecordsOnl`, the assessor's card; plain parcels, `PARCEL_TYP=1`). Knox (KGIS: a login, and terms that forbid reuse)
+Hamilton County's own layer (`gis.hamiltontn.gov`, `server/rest/services/Parcels/MapServer/0`; `mapsdev.hamiltontn.gov`'s
+`Live_Parcels` until the county moved it, issue #432) is a fourth parcel source, asked only over Hamilton and read as the
+state's layer is (`MAP`, `GROUP_`, `PARCEL`; `GISLINK`; `OWNERNAME1`, `ADDRESS`; `RecordsOnlineLink`, the assessor's
+card; plain parcels, `PARCEL_TYPE=1`). Knox (KGIS: a login, and terms that forbid reuse)
 and the other seven aren't covered: over each the map names the county and offers Draw.
 
 Its terms, as published:

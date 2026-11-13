@@ -24,7 +24,7 @@ export const PARCEL_HOSTS = new Set([
   "services.nconemap.gov",
   "vginmaps.vdem.virginia.gov",
   "services1.arcgis.com",
-  "mapsdev.hamiltontn.gov",
+  "gis.hamiltontn.gov",
 ]);
 
 /**

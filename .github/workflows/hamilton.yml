@@ -1,0 +1,59 @@
+name: Hamilton County parcels
+
+# Issue #432: a tap on Hamilton County's live parcel service opens no parcel (since about 2026-10-30). On CI's runners,
+# since the cloud sessions can't reach the county host:
+# - probe: what the service answers now, and whether the Comptroller's statewide layer has Hamilton's parcels
+#   (test/tools/hamilton-probe.test.ts), into the job summary;
+# - production: the same tap in a real browser on https://parcelscreen.vercel.app (screenshots/hamilton-prod.spec.ts,
+#   playwright.deployed.config.ts), every request to the county's host and the console's errors, into the job summary.
+# Nothing here gates a merge.
+on:
+  pull_request:
+    paths:
+      - test/tools/hamilton-probe.test.ts
+      - screenshots/hamilton-prod.spec.ts
+      - .github/workflows/hamilton.yml
+  workflow_dispatch: {}
+
+concurrency:
+  group: hamilton-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec vitest run test/tools/hamilton-probe.test.ts --mode hamilton-probe
+      - name: The report, into the job summary
+        if: always()
+        run: cat test-results/hamilton-probe.md >> "$GITHUB_STEP_SUMMARY" || true
+
+  production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm exec playwright test -c playwright.deployed.config.ts screenshots/hamilton-prod.spec.ts
+        env:
+          DEPLOYED_URL: https://parcelscreen.vercel.app
+      - name: The report, into the job summary
+        if: always()
+        run: cat test-results/hamilton-prod.md >> "$GITHUB_STEP_SUMMARY" || true

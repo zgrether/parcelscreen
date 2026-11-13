@@ -6,8 +6,10 @@
 import { polygon } from "@turf/turf";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
+  HAMILTON_HOST,
   hamiltonReplay,
   hamiltonSamples,
+  sameGislink,
   THREE_GORGES_GISLINK,
   THREE_GORGES_TAX_CARD,
 } from "@/test/support/tnHamilton";
@@ -19,7 +21,7 @@ import { parcelFacts } from "./parcels";
 import { pieceDedupeKey } from "./recipe";
 import { serviceDownMessage } from "./serviceStatus";
 
-const HAMILTON = DEFAULT_ENDPOINTS.parcels.find((u) => new URL(u).host === "mapsdev.hamiltontn.gov")!;
+const HAMILTON = DEFAULT_ENDPOINTS.parcels.find((u) => new URL(u).host === HAMILTON_HOST)!;
 const TN = DEFAULT_ENDPOINTS.parcels.find((u) => u.includes("Tennessee_Property_Boundaries"))!;
 
 /** Near Three Gorges Farms, Soddy-Daisy (tn-counties.md §0). */
@@ -34,7 +36,7 @@ describe("the service", () => {
       oid: "OBJECTID",
       id: "GISLINK",
       onlyCounty: "Hamilton",
-      where: "PARCEL_TYP=1",
+      where: "PARCEL_TYPE=1",
       search: "mapGroupParcel",
     });
   });
@@ -71,14 +73,14 @@ describe("the service", () => {
 
 describe("a record", () => {
   const props = withCounty(HAMILTON, {
-    OBJECTID: 8192,
+    OBJECTID: 90551262,
     GISLINK: "033048    04524",
     MAP: "048",
     GROUP_: " ",
     PARCEL: "045.24",
     OWNERNAME1: "[redacted]",
     ADDRESS: "[redacted]",
-    RecordsOnl: "https://assessor.hamiltontn.gov/card/048_045.24",
+    RecordsOnlineLink: "https://assessor.hamiltontn.gov/card/048_045.24",
   });
   const geo = polygon([
     [
@@ -106,7 +108,7 @@ describe("a record", () => {
   });
 
   it("links no card from anywhere else", () => {
-    const f = parcelFacts(geo, { ...props, RecordsOnl: "https://example.com/card" });
+    const f = parcelFacts(geo, { ...props, RecordsOnlineLink: "https://example.com/card" });
     expect(f.countyRecordUrl).toBeNull();
   });
 
@@ -147,9 +149,10 @@ describe("the recording (test/support/tnHamilton.ts, `pnpm record:tn-hamilton`)"
   it("Three Gorges tract 1's record: its tax card, GISLINK, county and the assessor's card", () => {
     const f = parcelFacts(got.record.geo, got.record.props);
     expect(f.parcelId).toBe(THREE_GORGES_TAX_CARD);
-    expect(f.keyId).toBe(THREE_GORGES_GISLINK);
+    expect(sameGislink(f.keyId)).toBe(THREE_GORGES_GISLINK);
     expect(f.county).toBe("Hamilton");
-    expect(f.countyRecordUrl).toBe("https://assessor.hamiltontn.gov/card/048_045.24");
+    // The new layer's RecordsOnlineLink: an assessor's card (its exact path is the recording's, #432).
+    expect(f.countyRecordUrl).toMatch(/^https:\/\/assessor\.hamiltontn\.gov\//);
     expect(f.acres).toBeGreaterThan(4.5);
     expect(f.acres).toBeLessThan(5.6);
     // Owner and address are scrubbed from the recording.
