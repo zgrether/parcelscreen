@@ -1,0 +1,55 @@
+name: Scheduled failure alert
+
+# Owner, after #432: a scheduled workflow that fails opens an issue (or comments on the one already open for it), so a
+# dead service is noticed the day it dies, not two weeks later. Its next scheduled success closes the issue. Only
+# scheduled runs count: a pull request's or a manual run's failure is seen where it ran.
+#
+# workflow_run reads this file from the default branch, so a workflow added to the list takes effect once it's on main.
+on:
+  workflow_run:
+    workflows:
+      - Live services
+      - supabase-keepalive
+      - Area catalog and places refresh
+    types: [completed]
+
+permissions:
+  issues: write
+
+jobs:
+  issue:
+    if: github.event.workflow_run.event == 'schedule' && contains(fromJSON('["failure", "timed_out", "success"]'), github.event.workflow_run.conclusion)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          NAME: ${{ github.event.workflow_run.name }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          title="Scheduled check failing: $NAME"
+          label="scheduled-failure"
+          gh label create "$label" --color B60205 --description "A scheduled workflow is failing" 2>/dev/null || true
+          open=$(gh issue list --state open --label "$label" --json number,title \
+            --jq "map(select(.title == \"$title\")) | .[0].number // empty" || true)
+          when=$(date -u +"%Y-%m-%d %H:%M UTC")
+          if [ "$CONCLUSION" = "success" ]; then
+            [ -z "$open" ] && exit 0
+            gh issue close "$open" --comment "Passing again: [the $when run]($RUN_URL)."
+            exit 0
+          fi
+          body="**$NAME** failed on its scheduled run, $when ($CONCLUSION).
+
+          - Run: $RUN_URL
+          - Commit: $SHA
+
+          Open the run for the failing step. This issue closes itself after the next scheduled run that passes."
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body "Failed again: [the $when run]($RUN_URL) ($CONCLUSION)."
+          else
+            gh issue create --title "$title" --label "$label" --assignee "$OWNER" --body "$body"
+          fi

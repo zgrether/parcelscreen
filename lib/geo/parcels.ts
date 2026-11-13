@@ -36,6 +36,11 @@ export interface PickResult {
   parcel: ParcelRecord | null;
   /** What each service said when none returned a parcel, e.g. "services.nconemap.gov: no parcel at this point". */
   report: string[];
+  /**
+   * The services asked that didn't answer (an HTTP or ArcGIS error, a timeout, no connection), so a tap that finds no
+   * parcel can say the service is down rather than that there's no parcel (owner, after #432).
+   */
+  failed: string[];
 }
 
 interface ParcelFeatureCollection {
@@ -62,6 +67,7 @@ export async function pickParcelAt(
   signal?: AbortSignal,
 ): Promise<PickResult> {
   const report: string[] = [];
+  const failed: string[] = [];
   for (const url of serviceUrls) {
     const short = url.replace(/^https?:\/\//, "").split("/")[0];
     // A county's own service is asked only over its county.
@@ -84,11 +90,13 @@ export async function pickParcelAt(
       });
       if (!r.ok) {
         report.push(`${short}: HTTP ${r.status}`);
+        failed.push(url);
         continue;
       }
       const j = (await r.json()) as ParcelFeatureCollection;
       if (j.error) {
         report.push(`${short}: ${j.error.message || "error"}`);
+        failed.push(url);
         continue;
       }
       const f = (j.features || []).find((x) => !isPlaceholderRecord(url, x.properties));
@@ -106,13 +114,15 @@ export async function pickParcelAt(
           ...(parts ? { parts } : {}),
         },
         report,
+        failed,
       };
     } catch (err) {
       if (err instanceof CancelledError) throw err;
       report.push(`${short}: ${(err as Error).message || "unreachable"}`);
+      failed.push(url);
     }
   }
-  return { parcel: null, report };
+  return { parcel: null, report, failed };
 }
 
 export interface Bounds {

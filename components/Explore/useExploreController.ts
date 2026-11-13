@@ -574,6 +574,10 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     [open, derived, shapes],
   );
 
+  /** A tap's lookup found no parcel because a service didn't answer: the same words as an outline's (owner, after #432). */
+  const pickFailed = (serviceUrl: string): void =>
+    flash(hint, unreachableMessage(serviceDownMessage(serviceUrl), navigator.onLine), 6000);
+
   /**
    * The full county record behind a drawn (simplified) outline, fetched by object id; null if a newer tap
    * superseded it or it couldn't be had (then nothing is selected: simplified geometry is never screened).
@@ -595,8 +599,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       hint((h) => (h === LOADING ? "" : h));
       if (e instanceof CancelledError) return null;
       // The service not answering (a timeout, a refused request, an HTTP error) says which one (owner, after 16b).
-      if (isServiceDown(e))
-        flash(hint, unreachableMessage(serviceDownMessage(outline.source), navigator.onLine), 6000);
+      if (isServiceDown(e)) pickFailed(outline.source);
       else flash(hint, "Couldn't load that parcel's record. Try again.", 2500);
       return null;
     } finally {
@@ -612,6 +615,37 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
     },
     [dispatch, hint],
   );
+
+  /**
+   * Opens the parcel under a point, asking the services (a search's coordinates; a tap while lines load). `wanted`: a
+   * tap's lookup is dropped when a double-tap made it a zoom.
+   */
+  const openAt = async (ll: LatLon, wanted: () => boolean = () => true): Promise<void> => {
+    if (refuseBusy()) return;
+    lookup.current?.abort();
+    const ctl = new AbortController();
+    lookup.current = ctl;
+    hint("Looking up parcel…");
+    try {
+      const { parcel: picked, failed } = await pickParcelAt(browserHttp, parcelServices, ll, ctl.signal);
+      // Where a parcel can be several features (Tennessee, step 2), the record is all of them, conflicts checked.
+      const record = picked && fieldsFor(picked.source).groupById ? await full(picked) : picked;
+      if (!wanted()) return void hint((h) => (h === "Looking up parcel…" ? "" : h));
+      if (!record) {
+        // A service that didn't answer isn't "no parcel here" (owner, after #432): name it.
+        if (failed[0]) return pickFailed(failed[0]);
+        // Over a Tennessee county with no parcel source, say which (the Tennessee counties mission).
+        const county = uncoveredCountyAt(ll, parcelServices);
+        return flash(hint, county ? ownRecordsHint(county) : NO_PARCEL_HERE, 4000);
+      }
+      if (refuseBusy()) return;
+      leaving();
+      dispatch({ type: "select", record, stamp: stamp(), keepPanel: docked });
+      hint("");
+    } catch (e) {
+      if (!(e instanceof CancelledError)) throw e;
+    }
+  };
 
   /** Deletes a drawn line, keeping it for the Undo toast (owner, A). */
   const deleteLine = (id: string, serial: number) => {
@@ -689,9 +723,12 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       if (o.kind !== "none") hint("");
       // An empty map because the parcel service isn't answering: say so, not nothing (owner, after 16b).
       else if (hit.serviceDown) hint(hit.serviceDown);
-      // No record under an empty spot where outlines are drawn (owner, 2026-10-11).
-      else if (hit.linesShown && !hit.insideOpen && !hit.outline && !hit.savedKey)
-        flash(hint, NO_PARCEL_HERE, 4000);
+      // No record under an empty spot where outlines are drawn (owner, 2026-10-11), unless they're still loading: then
+      // ask for the record at the spot, which opens it or names the service that didn't answer (owner, after #432).
+      else if (hit.linesShown && !hit.insideOpen && !hit.outline && !hit.savedKey) {
+        if (hit.linesLoading && hit.ll) await openAt(hit.ll, () => serial === tapSerial.current);
+        else flash(hint, NO_PARCEL_HERE, 4000);
+      }
     },
     undoTap(at = performance.now()) {
       const last = lastTap.current;
@@ -720,29 +757,7 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       hint("");
     },
     parcelServices,
-    async openAt(ll) {
-      if (refuseBusy()) return;
-      lookup.current?.abort();
-      const ctl = new AbortController();
-      lookup.current = ctl;
-      hint("Looking up parcel…");
-      try {
-        const { parcel: picked } = await pickParcelAt(browserHttp, parcelServices, ll, ctl.signal);
-        // Where a parcel can be several features (Tennessee, step 2), the record is all of them, conflicts checked.
-        const record = picked && fieldsFor(picked.source).groupById ? await full(picked) : picked;
-        if (!record) {
-          // Over a Tennessee county with no parcel source, say which (the Tennessee counties mission).
-          const county = uncoveredCountyAt(ll, parcelServices);
-          return flash(hint, county ? ownRecordsHint(county) : NO_PARCEL_HERE, 4000);
-        }
-        if (refuseBusy()) return;
-        leaving();
-        dispatch({ type: "select", record, stamp: stamp(), keepPanel: docked });
-        hint("");
-      } catch (e) {
-        if (!(e instanceof CancelledError)) throw e;
-      }
-    },
+    openAt,
     async openOutline(outline) {
       if (refuseBusy()) return;
       const record = await full(outline);
@@ -1012,13 +1027,14 @@ export function useExploreController(parcelServices: readonly string[], hint: Se
       lookup.current = ctl;
       hint("Looking up parcel…");
       try {
-        const { parcel: picked } = await pickParcelAt(browserHttp, parcelServices, ll, ctl.signal);
+        const { parcel: picked, failed } = await pickParcelAt(browserHttp, parcelServices, ll, ctl.signal);
         // Where a parcel can be several features (Tennessee, step 2), the record is all of them, conflicts checked.
         const parcel = picked && fieldsFor(picked.source).groupById ? await full(picked) : picked;
         if (parcel) {
           dispatch({ type: "combineToggle", parcel });
           hint("");
-        } else flash(hint, "No parcel record here.", 2000);
+        } else if (failed[0]) pickFailed(failed[0]);
+        else flash(hint, "No parcel record here.", 2000);
       } catch (e) {
         if (!(e instanceof CancelledError)) throw e;
       }
