@@ -5,12 +5,16 @@
  */
 import { expect, test, type Page } from "@playwright/test";
 import { ownRecordsHint } from "@/lib/geo/ownRecords";
+import { serviceDownMessage } from "@/lib/geo/serviceStatus";
+import { DEFAULT_ENDPOINTS } from "@/lib/screen/config";
+import { NO_PARCEL_HERE } from "@/components/Explore/exploreState";
 import { loadFixture, ROAN_SEARCH } from "../test/support/fixtures";
 import { editParcel, expectAllDone, openExplorer, openSearch, screenIt } from "./flow";
 import { replayHamilton, threeGorgesPoint } from "./hamilton";
 import { replayHar } from "./replay";
 
 const ROAN = "roan-hwy-143-099-046-02" as const;
+const HAMILTON = DEFAULT_ENDPOINTS.parcels.find((u) => new URL(u).hostname === "gis.hamiltontn.gov")!;
 
 /** The parcel lines drawn on the map now (0 until the map is up). */
 const linesDrawn = (page: Page) =>
@@ -130,6 +134,33 @@ test("Hamilton County: the county's own lines draw; a tap on a Three Gorges lot 
   await expect(facts).toContainText("Hamilton");
   const link = page.getByRole("link", { name: "County record ↗" }).first();
   await expect(link).toHaveAttribute("href", /^https:\/\/assessor\.hamiltontn\.gov\//);
+  expect(errors).toEqual([]);
+});
+
+test("Hamilton County's service not answering: a tap names it, not 'no parcel here' (owner, after #432)", async ({
+  page,
+  context,
+}) => {
+  await replayHar(context, FERNEY);
+  let asked = 0;
+  // A dead host, as mapsdev.hamiltontn.gov was from about 2026-10-30: the lines' requests hang (Cloudflare took about
+  // 20 s to give up), and the tap's own lookup fails.
+  await context.route(/^https:\/\/gis\.hamiltontn\.gov\//, (route) => {
+    if (!route.request().url().includes("geometryType=esriGeometryPoint")) return; // never answered
+    asked++;
+    return route.abort("failed");
+  });
+  const lot = threeGorgesPoint();
+  await openAt(page, { ...lot, z: 16 });
+  await page.waitForFunction(() => {
+    const m = (window as unknown as { __psMap?: { isMoving(): boolean } }).__psMap;
+    return !!m && !m.isMoving();
+  });
+  await page.waitForTimeout(1500);
+  await tapAt(page, lot);
+  await expect.poll(() => asked, { timeout: 15_000 }).toBeGreaterThan(0);
+  await expect(page.locator(".map-hint")).toContainText(serviceDownMessage(HAMILTON), { timeout: 15_000 });
+  await expect(page.getByText(NO_PARCEL_HERE)).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 

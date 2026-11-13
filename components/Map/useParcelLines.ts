@@ -71,6 +71,11 @@ const downInView = new WeakMap<MlMap, string>();
  */
 export const parcelServiceDown = (map: MlMap): string | null => downInView.get(map) ?? null;
 
+/** The maps whose current view's lines are still loading. */
+const loadingInView = new WeakSet<MlMap>();
+/** Whether the current view's parcel lines are still loading, so an empty spot may yet have a record. */
+export const parcelLinesLoading = (map: MlMap): boolean => loadingInView.has(map);
+
 /** A tile's outlines as the map draws them, built once per tile: each feature tagged with its key. */
 interface Prepared {
   keys: string[];
@@ -186,6 +191,7 @@ export function useParcelLines(
       OUR_HINTS.has(h) || isServiceDownMessage(h) || isOwnRecordsHint(h) ? "" : h;
     if (!enabled) {
       downInView.delete(map);
+      loadingInView.delete(map);
       show([]);
       hint(clearOurHints);
       return;
@@ -198,6 +204,7 @@ export function useParcelLines(
     const refresh = () => {
       const gen = ++generation;
       downInView.delete(map);
+      loadingInView.delete(map);
       clearTimeout(redraw);
       redraw = undefined;
       const zoom = map.getZoom();
@@ -246,18 +253,21 @@ export function useParcelLines(
             }, REDRAW_MS);
           }),
       );
+      loadingInView.add(map);
       void Promise.all(jobs).then(() => {
         if (gen !== generation) return;
+        loadingInView.delete(map);
         const county = askTennessee ? uncoveredCountyAt([centre.lat, centre.lng], serviceUrls) : null;
         clearTimeout(redraw);
         redraw = undefined;
         draw();
-        if (failed.size && done.every((t) => t.lines.length === 0)) {
+        const online = navigator.onLine;
+        const down = failed.size ? unreachableMessage(serviceDownMessage([...failed][0]!), online) : null;
+        // A tap on an empty spot says so even where another service's lines drew (owner, after #432).
+        if (down) downInView.set(map, down);
+        if (down && done.every((t) => t.lines.length === 0)) {
           // Offline (step 17c), the banner already says so: a tap or search says the offline words, no hint.
-          const online = navigator.onLine;
-          const message = unreachableMessage(serviceDownMessage([...failed][0]!), online);
-          downInView.set(map, message);
-          if (online) hint(message);
+          if (online) hint(down);
         } else if (county) {
           // One of the nine counties outside the state's system (step 2 plan §6.4) with no source of its own (the
           // Tennessee counties mission): no lines will ever draw here.

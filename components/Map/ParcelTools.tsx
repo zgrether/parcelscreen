@@ -48,7 +48,7 @@ import {
   splitData,
 } from "./overlays";
 import { LAYER, SOURCE } from "./style";
-import { outlineAt, parcelServiceDown } from "./useParcelLines";
+import { outlineAt, parcelLinesLoading, parcelServiceDown } from "./useParcelLines";
 import { useMapLayerPrefs } from "./useMapLayerPrefs";
 
 // A drawn line's tooltip: what it is, its length and grades (34-2); an area marker's, its acres (WF4).
@@ -183,6 +183,8 @@ function useMapTaps(map: MlMap | null, ctl: ExploreController) {
           savedKey: savedAt(map, e.point),
           serviceDown: parcelServiceDown(map),
           linesShown: map.getZoom() >= LINES_MIN_ZOOM,
+          linesLoading: parcelLinesLoading(map),
+          ll: toLL(e),
           at: now,
           closedSomething: openAtDown,
         });

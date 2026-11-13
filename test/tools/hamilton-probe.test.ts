@@ -111,6 +111,14 @@ describe.runIf(import.meta.env.MODE === "hamilton-probe")("Hamilton County's par
     say(line("MapServer ?f=json", svc));
     const svcJ = json(svc.text);
     if (svcJ) say(`- layers: ${clip(JSON.stringify(svcJ.layers), 600)}`);
+    // The terms the service publishes about itself (docs/commercial-review.md).
+    const item = json((await get(`${service}/info/itemInfo?f=json`)).text);
+    for (const [label, o, keys] of [
+      ["layer", m, ["copyrightText", "description"]],
+      ["MapServer", svcJ, ["copyrightText", "serviceDescription", "description", "documentInfo"]],
+      ["itemInfo", item, ["licenseInfo", "accessInformation", "description", "snippet"]],
+    ] as const)
+      for (const k of keys) say(`- terms, ${label}.${k}: ${clip(JSON.stringify(o?.[k] ?? null), 900)}`);
     const root = HAMILTON_LAYER.replace(/\/rest\/services\/.*$/, "/rest/services");
     const dir = await get(`${root}?f=json`);
     say(line("services directory", dir));

@@ -1,0 +1,31 @@
+name: Live services
+
+# Once a day, the live parcel services a tap asks (test/tools/live-parcels.test.ts): each must return the parcel at a
+# point where it has one. Owner, after #432: Hamilton County's host died on about 2026-10-30, and only a screenshot
+# check that runs on pull requests noticed, two weeks later. A scheduled failure opens an issue (scheduled-failure.yml).
+# Nothing here gates a merge.
+on:
+  schedule:
+    - cron: "41 10 * * *"
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - test/tools/live-parcels.test.ts
+      - .github/workflows/live-services.yml
+
+permissions:
+  contents: read
+
+jobs:
+  parcels:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec vitest run test/tools/live-parcels.test.ts --mode live-parcels

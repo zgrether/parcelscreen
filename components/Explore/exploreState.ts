@@ -913,10 +913,17 @@ export interface TapHit {
   outline: ParcelRecord | null;
   /** A saved (built) parcel under the tap. */
   savedKey: string | null;
-  /** Why no outline could be under it: a state parcel service that isn't answering in this view. */
+  /** Why no outline could be under it: a parcel service that isn't answering in this view. */
   serviceDown?: string | null;
   /** Parcel outlines are drawn at this zoom, so an empty spot has no record (not just none drawn yet). */
   linesShown?: boolean;
+  /**
+   * The view's lines are still loading (a slow or dead service can take half a minute to fail): an empty spot may yet
+   * have a record, so the tap asks for it rather than saying there's none (owner, after #432).
+   */
+  linesLoading?: boolean;
+  /** Where the tap was, for that lookup. */
+  ll?: LatLon;
   /** When the tap happened, on performance.now()'s clock (its event's time, doubleTap.ts eventTime). */
   at?: number;
   /**

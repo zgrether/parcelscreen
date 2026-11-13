@@ -63,6 +63,8 @@ describe("pickParcelAt (failure reporting)", () => {
       "vginmaps.vdem.virginia.gov: Invalid query",
       "services1.arcgis.com: Failed to fetch",
     ]);
+    // All three didn't answer: a tap says the service is down, not that there's no parcel (owner, after #432).
+    expect(r.failed).toEqual([...SERVICES]);
   });
 
   it('a tap on unparceled land (the service\'s PARCELID "0" placeholder) is no parcel (owner, 2026-10-11)', async () => {
@@ -93,6 +95,7 @@ describe("pickParcelAt (failure reporting)", () => {
       "vginmaps.vdem.virginia.gov: no parcel at this point",
       "services1.arcgis.com: no parcel at this point",
     ]);
+    expect(r.failed).toEqual([]);
   });
 
   it("keeps only the first polygon of a MultiPolygon and says so", async () => {
